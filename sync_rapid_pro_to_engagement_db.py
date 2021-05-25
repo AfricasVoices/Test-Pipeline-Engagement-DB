@@ -1,15 +1,12 @@
 import argparse
 import subprocess
-import uuid
 
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
-from engagement_database.engagement_database import EngagementDatabase
 
 from src.common.configuration import UUIDTableConfiguration, EngagementDatabaseConfiguration
 from src.rapid_pro_to_engagement_db.configuration import RapidProToEngagementDBConfiguration, FlowResultConfiguration
 from src.rapid_pro_to_engagement_db.rapid_pro_to_engagement_db import sync_rapid_pro_to_engagement_db
-from test.mock_uuid_table import MockUuidTable
 
 log = Logger(__name__)
 
@@ -28,9 +25,10 @@ if __name__ == "__main__":
 
     pipeline = "engagement-db-test"
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
-    project = "Test"  # subprocess.check_output(["git", "config", "--get", "remote.origin.url"]).decode().strip()
+    # project = subprocess.check_output(["git", "config", "--get", "remote.origin.url"]).decode().strip()
+    project = "test"
 
-    HistoryEntryOrigin.set_globals(user, project, pipeline, commit)
+    HistoryEntryOrigin.set_defaults(user, project, pipeline, commit)
 
     uuid_table_configuration = UUIDTableConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
@@ -54,18 +52,8 @@ if __name__ == "__main__":
         ]
     )
 
-    rapid_pro_config = RapidProToEngagementDBConfiguration(
-        domain="textit.in",
-        token_file_url="gs://avf-credentials/world-vision-textit-token.txt",
-        flow_result_configurations=[
-            FlowResultConfiguration("worldvision_s01e01_activation", "rqa_s01e01", "world_vision_s01e01"),
-        ]
-    )
-
     uuid_table = uuid_table_configuration.init_uuid_table(google_cloud_credentials_file_path)
     engagement_db = engagement_db_configuration.init_engagement_db(google_cloud_credentials_file_path)
-
-    uuid_table = MockUuidTable()
 
     sync_rapid_pro_to_engagement_db(google_cloud_credentials_file_path, rapid_pro_config, engagement_db, uuid_table)
 
