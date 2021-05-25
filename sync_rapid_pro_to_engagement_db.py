@@ -25,8 +25,7 @@ if __name__ == "__main__":
 
     pipeline = "engagement-db-test"
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
-    # project = subprocess.check_output(["git", "config", "--get", "remote.origin.url"]).decode().strip()
-    project = "test"
+    project = subprocess.check_output(["git", "config", "--get", "remote.origin.url"]).decode().strip()
 
     HistoryEntryOrigin.set_defaults(user, project, pipeline, commit)
 
