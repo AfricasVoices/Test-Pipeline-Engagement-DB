@@ -38,18 +38,6 @@ def _add_message_to_coda(coda, coda_dataset_config, db_message):
     coda.add_message(coda_dataset_config.coda_dataset_id, coda_message)
 
 
-def latest_labels(coda_message):
-    out = []
-    seen_scheme_ids = set()
-    for l in coda_message.labels:
-        if l.code_id == "SPECIAL-MANUALLY_UNCODED":
-            continue
-        if l.scheme_id not in seen_scheme_ids:
-            out.append(l)
-            seen_scheme_ids.add(l.scheme_id)
-    return out
-
-
 @firestore.transactional
 def _process_message(transaction, engagement_db, coda, coda_config, message_id):
     """
@@ -97,7 +85,7 @@ def _process_message(transaction, engagement_db, coda, coda_config, message_id):
         log.debug("Updating database message labels to match those in Coda")
         # TODO: consider WS-correction
         ws_scheme = coda_config.ws_correct_dataset_code_scheme
-        for label in latest_labels(coda_message):
+        for label in coda_message.get_latest_labels():
             if label.scheme_id == ws_scheme.scheme_id:
                 ws_code = ws_scheme.get_code_with_code_id(label.code_id)
                 correct_dataset = coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset

@@ -109,7 +109,7 @@
         "coredatamodules": {
             "editable": true,
             "git": "https://github.com/AfricasVoices/CoreDataModules",
-            "ref": "8602f836c013c00d6e2cf32fc88e6748fae68376"
+            "ref": "c72a41bb50a0a9af860d501acf22b9553af60c7a"
         },
         "firebase-admin": {
             "hashes": [
