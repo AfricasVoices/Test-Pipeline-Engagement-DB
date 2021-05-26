@@ -1,10 +1,8 @@
 import json
 
 import core_data_modules.data_models
-from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.logging import Logger
-from core_data_modules.traced_data import Metadata
 from core_data_modules.util import SHAUtils, TimeUtils
 from engagement_database.data_models import HistoryEntryOrigin
 from google.cloud import firestore
@@ -29,18 +27,8 @@ def _add_message_to_coda(coda, coda_dataset_config, db_message):
 
     # Otherwise, if there is an auto-coder specified, run that.
     elif coda_dataset_config.auto_coder is not None:
-        clean_value = coda_dataset_config.auto_coder(db_message.text)
-
-        # Don't label data which the cleaners couldn't code
-        if clean_value != Codes.NOT_CODED:
-            # Construct a label for the clean_value returned by the cleaner
-            code_id = coda_dataset_config.code_scheme.get_code_with_match_value(clean_value)
-
-            label = CleaningUtils.make_label_from_cleaner_code(
-                coda_dataset_config.code_scheme,
-                code_id,
-                origin_id=Metadata.get_call_location()
-            )
+        label = CleaningUtils.apply_cleaner_to_text(db_message.text, coda_dataset_config.auto_coder, coda_dataset_config.code_scheme)
+        if label is not None:
             coda_message.labels = [label]
 
     # Add the message to the Coda dataset.
