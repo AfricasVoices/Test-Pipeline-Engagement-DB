@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "7d33f48cdaa9ce73c25394238ecf34f8e3b133fb0a7e3f6e908c91871161c9a1"
+            "sha256": "aea7fa71bf23544f4d720c7ed49bdc119b8ad6752e9e17419974f3bd23ee8e23"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -101,10 +101,15 @@
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
             "version": "==4.0.0"
         },
+        "codav2pythonclient": {
+            "editable": true,
+            "git": "https://www.github.com/AfricasVoices/CodaV2PythonClient",
+            "ref": "a2f8731a389987f0499b20ad9cc6b2f61c4626b8"
+        },
         "coredatamodules": {
             "editable": true,
             "git": "https://github.com/AfricasVoices/CoreDataModules",
-            "ref": "1ec89838dfa234c1c4753198316fdb6be78343d6"
+            "ref": "8602f836c013c00d6e2cf32fc88e6748fae68376"
         },
         "firebase-admin": {
             "hashes": [
@@ -352,7 +357,7 @@
         "pipelineinfrastructure": {
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",
-            "ref": "32fd8c1bf84deab2d882407dcd4f0a01a0714d4a"
+            "ref": "7b7d243ec953580548bb17d34d077bd796ec91f7"
         },
         "proto-plus": {
             "hashes": [
@@ -462,7 +467,7 @@
                 "sha256:4220c798f5ddf097a7f7464e168126e0a200a89a13c505c93851f6c7efa3de1b",
                 "sha256:a8bb006523296211e12adf0e5eaea19cde8cdc6bdfe32a675491ffb85598273c"
             ],
-            "markers": "python_version >= '3.6' and python_version < '4'",
+            "markers": "python_version >= '3.6' and python_version < '4.0'",
             "version": "==2.8.2"
         },
         "rapidprotools": {
@@ -507,7 +512,7 @@
                 "sha256:2f4da4594db7e1e110a944bb1b551fdf4e6c136ad42e4234131391e21eb5b0df",
                 "sha256:e7b021f7241115872f92f43c6508082facffbd1c048e3c6e2bb9c2a157e28937"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4.0'",
             "version": "==1.26.4"
         }
     },
