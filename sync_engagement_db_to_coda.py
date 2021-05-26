@@ -8,7 +8,7 @@ from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
 from src.common.configuration import UUIDTableConfiguration, EngagementDatabaseConfiguration
-from src.engagament_db_to_coda.configuration import CodaConfiguration, CodaDatasetConfiguration
+from src.engagament_db_to_coda.configuration import CodaConfiguration, CodaDatasetConfiguration, CodeSchemeConfiguration
 from src.engagament_db_to_coda.engagement_db_to_coda import sync_engagement_db_to_coda
 
 log = Logger(__name__)
@@ -53,17 +53,29 @@ if __name__ == "__main__":
             CodaDatasetConfiguration(
                 coda_dataset_id="TEST_gender",
                 engagement_db_dataset="gender",
-                auto_coder=swahili.DemographicCleaner.clean_gender,
-                code_scheme=load_scheme("gender"),
+                code_scheme_configurations=[
+                    CodeSchemeConfiguration(code_scheme=load_scheme("gender"), auto_coder=swahili.DemographicCleaner.clean_gender)
+                ],
                 ws_code_string_value="gender"
             ),
             CodaDatasetConfiguration(
+                coda_dataset_id="TEST_location",
+                engagement_db_dataset="location",
+                code_scheme_configurations=[
+                    CodeSchemeConfiguration(code_scheme=load_scheme("kenya_constituency"), auto_coder=None),
+                    CodeSchemeConfiguration(code_scheme=load_scheme("kenya_county"), auto_coder=None)
+                ],
+                ws_code_string_value="location"
+            ),
+
+            CodaDatasetConfiguration(
                 coda_dataset_id="TEST_s01e01",
                 engagement_db_dataset="s01e01",
-                auto_coder=None,
-                code_scheme=load_scheme("s01e01"),
+                code_scheme_configurations=[
+                    CodeSchemeConfiguration(code_scheme=load_scheme("s01e01"), auto_coder=None)
+                ],
                 ws_code_string_value="s01e01"
-            )
+            ),
         ],
         ws_correct_dataset_code_scheme=load_scheme("ws_correct_dataset")
     )

@@ -25,11 +25,14 @@ def _add_message_to_coda(coda, coda_dataset_config, db_message):
         # TODO: Validate that these labels are valid under the code schemes being copied to.
         coda_message.labels = db_message.labels
 
-    # Otherwise, if there is an auto-coder specified, run that.
-    elif coda_dataset_config.auto_coder is not None:
-        label = CleaningUtils.apply_cleaner_to_text(db_message.text, coda_dataset_config.auto_coder, coda_dataset_config.code_scheme)
-        if label is not None:
-            coda_message.labels = [label]
+    # Otherwise, run any auto-coders that are specified.
+    else:
+        for scheme_config in coda_dataset_config.code_scheme_configurations:
+            if scheme_config.auto_coder is None:
+                continue
+            label = CleaningUtils.apply_cleaner_to_text(db_message.text, scheme_config.auto_coder, scheme_config.code_scheme)
+            if label is not None:
+                coda_message.labels.append(label)
 
     # Add the message to the Coda dataset.
     coda.add_message(coda_dataset_config.coda_dataset_id, coda_message)

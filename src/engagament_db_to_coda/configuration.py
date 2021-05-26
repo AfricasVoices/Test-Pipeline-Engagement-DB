@@ -8,11 +8,16 @@ from coda_v2_python_client.firebase_client_wrapper import CodaV2Client
 
 
 @dataclass
+class CodeSchemeConfiguration:
+    code_scheme: CodeScheme
+    auto_coder: Optional[Callable[[str], str]]
+
+
+@dataclass
 class CodaDatasetConfiguration:
     coda_dataset_id: str
     engagement_db_dataset: str
-    code_scheme: CodeScheme
-    auto_coder: Optional[Callable[[str], str]]
+    code_scheme_configurations: [CodeSchemeConfiguration]
     ws_code_string_value: str
 
 
@@ -23,7 +28,7 @@ class CodaConfiguration:
     ws_correct_dataset_code_scheme: CodeScheme
 
     def init_coda(self, google_cloud_credentials_file_path):
-        # log.info("Initialising engagement database...")
+        # log.info("Initialising Coda...")
         credentials = json.loads(google_cloud_utils.download_blob_to_string(
             google_cloud_credentials_file_path,
             self.credentials_file_url
@@ -32,7 +37,7 @@ class CodaConfiguration:
         coda = CodaV2Client.init_client(
             credentials
         )
-        # log.info("Initialised engagement database")
+        # log.info("Initialised Coda")
 
         return coda
 
