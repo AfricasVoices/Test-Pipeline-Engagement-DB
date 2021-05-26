@@ -65,8 +65,7 @@ def _process_message(transaction, engagement_db, coda, coda_config, message_id):
     :return:
     :rtype:
     """
-    db_message = engagement_db.get_messages(filter=lambda q: q.where("message_id", "==", message_id), transaction=transaction)[0]
-    # db_message = engagement_db.get_message(message_id, transaction=transaction)
+    db_message = engagement_db.get_message(message_id, transaction=transaction)
 
     # Ensure the message has a valid coda id. If it doesn't have one yet, write one back to the database.
     if db_message.coda_id is None:
