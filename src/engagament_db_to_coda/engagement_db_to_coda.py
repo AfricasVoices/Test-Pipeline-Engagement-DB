@@ -4,7 +4,7 @@ import core_data_modules.data_models
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.logging import Logger
 from core_data_modules.util import SHAUtils, TimeUtils
-from engagement_database.data_models import HistoryEntryOrigin
+from engagement_database.data_models import HistoryEntryOrigin, MessageStatuses
 from google.cloud import firestore
 
 log = Logger(__name__)
@@ -122,7 +122,9 @@ def _process_message(transaction, engagement_db, coda, coda_config, message_id):
 def sync_engagement_db_to_coda(google_cloud_credentials_file_path, coda_configuration, engagement_db):
     coda = coda_configuration.init_coda(google_cloud_credentials_file_path)
 
-    messages = engagement_db.get_messages()
+    # Get the messages that we need to sync.
+    # We only need to sync messages that we can use in analysis i.e. those that are live or stale.
+    messages = engagement_db.get_messages(filter=lambda q: q.where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]))
 
     for msg in messages:
         log.info(f"Processing message {msg.message_id}...")
