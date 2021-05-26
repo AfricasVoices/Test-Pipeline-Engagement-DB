@@ -82,7 +82,7 @@ def _process_message(transaction, engagement_db, coda, coda_config, message_id):
     try:
         coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(db_message.dataset)
     except ValueError:
-        log.debug("No Coda dataset found")
+        log.warning(f"No Coda dataset found for dataset '{db_message.dataset}'")
         return
     coda_message = coda.get_message(coda_dataset_config.coda_dataset_id, db_message.coda_id)
 
