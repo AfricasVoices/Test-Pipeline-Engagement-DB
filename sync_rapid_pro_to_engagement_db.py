@@ -4,8 +4,7 @@ import subprocess
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
-from src.common.configuration import UUIDTableConfiguration, EngagementDatabaseConfiguration, RapidProConfiguration
-from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
+from configurations import test_pipeline_configuration
 from src.rapid_pro_to_engagement_db.rapid_pro_to_engagement_db import sync_rapid_pro_to_engagement_db
 
 log = Logger(__name__)
@@ -29,32 +28,18 @@ if __name__ == "__main__":
 
     HistoryEntryOrigin.set_defaults(user, project, pipeline, commit)
 
-    uuid_table_configuration = UUIDTableConfiguration(
-        credentials_file_url="gs://avf-credentials/firebase-test.json",
-        table_name="_engagement_db_test",
-        uuid_prefix="avf-participant-uuid-"
-    )
+    pipeline_config = test_pipeline_configuration.PIPELINE_CONFIGURATION
 
-    engagement_db_configuration = EngagementDatabaseConfiguration(
-        credentials_file_url="gs://avf-credentials/firebase-test.json",
-        database_path="engagement_db_experiments/experimental_test"
-    )
+    if pipeline_config.rapid_pro_sources is None or len(pipeline_config.rapid_pro_sources) == 0:
+        log.info(f"No Rapid Pro sources specified; exiting")
+        exit(0)
 
-    rapid_pro_config = RapidProConfiguration(
-        domain="textit.com",
-        token_file_url="gs://avf-credentials/experimental-test-text-it-token.txt"
-    )
+    uuid_table = pipeline_config.uuid_table.init_uuid_table(google_cloud_credentials_file_path)
+    engagement_db = pipeline_config.engagement_database.init_engagement_db(google_cloud_credentials_file_path)
 
-    flow_result_configurations = [
-        FlowResultConfiguration("test_pipeline_daniel_activation", "rqa_s01e01", "s01e01"),
-        FlowResultConfiguration("test_pipeline_daniel_demog", "constituency", "location"),
-        FlowResultConfiguration("test_pipeline_daniel_demog", "age", "age"),
-        FlowResultConfiguration("test_pipeline_daniel_demog", "gender", "gender"),
-    ]
+    for i, rapid_pro_config in enumerate(pipeline_config.rapid_pro_sources):
+        log.info(f"Syncing Rapid Pro source {i + 1}/{len(pipeline_config.rapid_pro_sources)}...")
+        rapid_pro = rapid_pro_config.rapid_pro.init_rapid_pro_client(google_cloud_credentials_file_path)
 
-    rapid_pro = rapid_pro_config.init_rapid_pro_client(google_cloud_credentials_file_path)
-    uuid_table = uuid_table_configuration.init_uuid_table(google_cloud_credentials_file_path)
-    engagement_db = engagement_db_configuration.init_engagement_db(google_cloud_credentials_file_path)
-
-    sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_result_configurations)
+        sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_pro_config.flow_results)
 
