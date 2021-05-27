@@ -144,4 +144,8 @@ def sync_engagement_db_to_coda(google_cloud_credentials_file_path, coda_configur
 
     for msg in messages:
         log.info(f"Processing message {msg.message_id}...")
-        _process_message(engagement_db.transaction(), engagement_db, coda, coda_configuration, msg.message_id)
+        # TODO: There is a double-fetch here, 1st to get the list of documents that have updated, and then a
+        #       per-document fetch in each transaction. This is a bit weird for now, but once we have incremental
+        #       mode _sync_message_to_coda will become _sync_next_message_to_coda, which will query for the next
+        #       message itself, removing the double-fetch.
+        _sync_message_to_coda(engagement_db.transaction(), engagement_db, coda, coda_configuration, msg.message_id)
