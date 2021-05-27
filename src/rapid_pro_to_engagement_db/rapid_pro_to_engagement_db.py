@@ -132,6 +132,8 @@ def sync_rapid_pro_to_engagement_db(google_cloud_credentials_file_path, rapid_pr
             #          entries for participants who messaged us.
             contact_urn = contacts_lut[run.contact.uuid].urns[0]
             if contact_urn.startswith("tel:"):
+                # TODO: This is known to fail for golis numbers via Shaqodoon. Leaving as a fail-safe for now
+                #       until we're ready to test with golis numbers.
                 assert contact_urn.startswith("tel:+")
             participant_uuid = uuid_table.data_to_uuid(contact_urn)
 
