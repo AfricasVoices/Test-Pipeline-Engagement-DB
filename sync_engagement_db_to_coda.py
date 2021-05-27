@@ -84,4 +84,3 @@ if __name__ == "__main__":
     engagement_db = engagement_db_configuration.init_engagement_db(google_cloud_credentials_file_path)
 
     sync_engagement_db_to_coda(google_cloud_credentials_file_path, coda_config, engagement_db)
-

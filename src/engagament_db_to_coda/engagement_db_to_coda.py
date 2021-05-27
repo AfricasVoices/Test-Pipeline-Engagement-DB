@@ -38,6 +38,57 @@ def _add_message_to_coda(coda, coda_dataset_config, db_message):
     coda.add_message(coda_dataset_config.coda_dataset_id, coda_message)
 
 
+def _update_db_message_from_coda_message(transaction, engagement_db, db_message, coda_message, coda_config):
+    coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(db_message.dataset)
+
+    # Check if the labels in the engagement database message already match those from the coda message.
+    # If they do, return without updating anything.
+    # TODO: Validate if the dataset is correct too?
+    if json.dumps([x.to_dict() for x in db_message.labels]) == json.dumps([y.to_dict() for y in coda_message.labels]):
+        log.debug("Labels match")
+        return
+
+    log.debug("Updating database message labels to match those in Coda")
+
+    # Check the currently assigned labels for one in the WS - Correct Dataset scheme.
+    # If we find one, move this message to the correct dataset and return.
+    ws_scheme = coda_config.ws_correct_dataset_code_scheme
+    for label in coda_message.get_latest_labels():
+        if label.scheme_id == ws_scheme.scheme_id:
+            ws_code = ws_scheme.get_code_with_code_id(label.code_id)
+            correct_dataset = coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset
+
+            # Clear the labels and correct the dataset (the message will sync with the new dataset on the next sync)
+            # TODO: There is a risk of creating an infinite update loop here if there is a cycle of WS-correction
+            #       in the coda dataset. This needs to be addressed before we can enter production.
+            log.debug(f"WS correcting from {db_message.dataset} to {correct_dataset}")
+            db_message.labels = []
+            db_message.dataset = correct_dataset
+
+            origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
+                              "coda_message": coda_message.to_firebase_map()}
+            engagement_db.set_message(
+                message=db_message,
+                origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync (WS Correction)", details=origin_details),
+                transaction=transaction
+            )
+
+            return
+
+    # We didn't find a WS label, so simply update the engagement database message to have the same labels as the
+    # message in Coda.
+    db_message.labels = coda_message.labels
+    origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
+                      "coda_message": coda_message.to_firebase_map()}
+    engagement_db.set_message(
+        message=db_message,
+        origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync", details=origin_details),
+        transaction=transaction
+    )
+
+    return
+
+
 @firestore.transactional
 def _process_message(transaction, engagement_db, coda, coda_config, message_id):
     """
@@ -77,42 +128,7 @@ def _process_message(transaction, engagement_db, coda, coda_config, message_id):
     # If the message exists in Coda, update the database message based on the labels assigned in Coda
     if coda_message is not None:
         log.debug("Message already exists in Coda")
-
-        if json.dumps([x.to_dict() for x in db_message.labels]) == json.dumps([y.to_dict() for y in coda_message.labels]):
-            log.debug("Labels match")
-            return
-
-        log.debug("Updating database message labels to match those in Coda")
-        # TODO: consider WS-correction
-        ws_scheme = coda_config.ws_correct_dataset_code_scheme
-        for label in coda_message.get_latest_labels():
-            if label.scheme_id == ws_scheme.scheme_id:
-                ws_code = ws_scheme.get_code_with_code_id(label.code_id)
-                correct_dataset = coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset
-
-                # Clear the labels and correct the dataset (the message will sync with the new dataset on the next sync
-                # TODO: Probably better to recursively fix this now, so we can detect any cycles in the WS correction code
-                log.debug(f"WS correcting from {db_message.dataset} to {correct_dataset}")
-                db_message.labels = []
-                db_message.dataset = correct_dataset
-
-                origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id, "coda_message": coda_message.to_firebase_map()}
-                engagement_db.set_message(
-                    message=db_message,
-                    origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync (WS Correction)", details=origin_details),
-                    transaction=transaction
-                )
-
-                return
-
-        db_message.labels = coda_message.labels
-        origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id, "coda_message": coda_message.to_firebase_map()}
-        engagement_db.set_message(
-            message=db_message,
-            origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync", details=origin_details),
-            transaction=transaction
-        )
-
+        _update_db_message_from_coda_message(transaction, engagement_db, db_message, coda_message, coda_config)
         return
 
     # The message isn't in Coda, so add it
