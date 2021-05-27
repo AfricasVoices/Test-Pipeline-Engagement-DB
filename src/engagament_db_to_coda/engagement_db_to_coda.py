@@ -90,7 +90,7 @@ def _update_db_message_from_coda_message(transaction, engagement_db, db_message,
 
 
 @firestore.transactional
-def _process_message(transaction, engagement_db, coda, coda_config, message_id):
+def _sync_message_to_coda(transaction, engagement_db, coda, coda_config, message_id):
     """
 
     :param transaction:
