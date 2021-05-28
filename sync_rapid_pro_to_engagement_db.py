@@ -4,8 +4,8 @@ import subprocess
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
-from src.common.configuration import UUIDTableConfiguration, EngagementDatabaseConfiguration
-from src.rapid_pro_to_engagement_db.configuration import RapidProToEngagementDBConfiguration, FlowResultConfiguration
+from src.common.configuration import UUIDTableConfiguration, EngagementDatabaseConfiguration, RapidProConfiguration
+from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 from src.rapid_pro_to_engagement_db.rapid_pro_to_engagement_db import sync_rapid_pro_to_engagement_db
 
 log = Logger(__name__)
@@ -40,19 +40,21 @@ if __name__ == "__main__":
         database_path="engagement_db_experiments/experimental_test"
     )
 
-    rapid_pro_config = RapidProToEngagementDBConfiguration(
-        domain="textit.in",
-        token_file_url="gs://avf-credentials/experimental-test-text-it-token.txt",
-        flow_result_configurations=[
-            FlowResultConfiguration("test_pipeline_daniel_activation", "rqa_s01e01", "s01e01"),
-            FlowResultConfiguration("test_pipeline_daniel_demog", "constituency", "location"),
-            FlowResultConfiguration("test_pipeline_daniel_demog", "age", "age"),
-            FlowResultConfiguration("test_pipeline_daniel_demog", "gender", "gender"),
-        ]
+    rapid_pro_config = RapidProConfiguration(
+        domain="textit.com",
+        token_file_url="gs://avf-credentials/experimental-test-text-it-token.txt"
     )
 
+    flow_result_configurations = [
+        FlowResultConfiguration("test_pipeline_daniel_activation", "rqa_s01e01", "s01e01"),
+        FlowResultConfiguration("test_pipeline_daniel_demog", "constituency", "location"),
+        FlowResultConfiguration("test_pipeline_daniel_demog", "age", "age"),
+        FlowResultConfiguration("test_pipeline_daniel_demog", "gender", "gender"),
+    ]
+
+    rapid_pro = rapid_pro_config.init_rapid_pro_client(google_cloud_credentials_file_path)
     uuid_table = uuid_table_configuration.init_uuid_table(google_cloud_credentials_file_path)
     engagement_db = engagement_db_configuration.init_engagement_db(google_cloud_credentials_file_path)
 
-    sync_rapid_pro_to_engagement_db(google_cloud_credentials_file_path, rapid_pro_config, engagement_db, uuid_table)
+    sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_result_configurations)
 

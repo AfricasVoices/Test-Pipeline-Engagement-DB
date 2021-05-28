@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from core_data_modules.logging import Logger
 from engagement_database import EngagementDatabase
 from id_infrastructure.firestore_uuid_table import FirestoreUuidTable
+from rapid_pro_tools.rapid_pro_client import RapidProClient
 from storage.google_cloud import google_cloud_utils
 
 log = Logger(__name__)
@@ -53,3 +54,19 @@ class UUIDTableConfiguration:
         log.info("Initialised uuid table")
 
         return uuid_table
+
+
+@dataclass
+# TODO: Convert from data-class once design is better tested
+class RapidProConfiguration:
+    domain: str
+    token_file_url: str
+
+    def init_rapid_pro_client(self, google_cloud_credentials_file_path):
+        log.info(f"Initialising Rapid Pro client for domain {self.domain} and auth url {self.token_file_url}...")
+        rapid_pro_token = google_cloud_utils.download_blob_to_string(
+            google_cloud_credentials_file_path, self.token_file_url).strip()
+        rapid_pro_client = RapidProClient(self.domain, rapid_pro_token)
+        log.info("Initialised Rapid Pro client")
+
+        return rapid_pro_client
