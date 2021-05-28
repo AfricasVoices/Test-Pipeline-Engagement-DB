@@ -5,7 +5,7 @@ from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
 from src.common.configuration import UUIDTableConfiguration, EngagementDatabaseConfiguration, RapidProConfiguration
-from src.rapid_pro_to_engagement_db.configuration import RapidProToEngagementDBConfiguration, FlowResultConfiguration
+from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 from src.rapid_pro_to_engagement_db.rapid_pro_to_engagement_db import sync_rapid_pro_to_engagement_db
 
 log = Logger(__name__)
