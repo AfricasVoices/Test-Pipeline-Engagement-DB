@@ -12,6 +12,7 @@ class RapidProSource:
 
 @dataclass
 class PipelineConfiguration:
+    pipeline_name: str
     engagement_database: EngagementDatabaseConfiguration
     uuid_table: UUIDTableConfiguration
     rapid_pro_sources: [RapidProSource] = None

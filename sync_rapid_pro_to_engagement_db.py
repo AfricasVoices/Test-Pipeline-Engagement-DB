@@ -22,13 +22,14 @@ if __name__ == "__main__":
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
 
-    pipeline = "engagement-db-test"
+    # TODO: Load this from a configuration_file_path argument
+    pipeline_config = test_pipeline_configuration.PIPELINE_CONFIGURATION
+
+    pipeline = pipeline_config.pipeline_name
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
     project = subprocess.check_output(["git", "config", "--get", "remote.origin.url"]).decode().strip()
 
     HistoryEntryOrigin.set_defaults(user, project, pipeline, commit)
-
-    pipeline_config = test_pipeline_configuration.PIPELINE_CONFIGURATION
 
     if pipeline_config.rapid_pro_sources is None or len(pipeline_config.rapid_pro_sources) == 0:
         log.info(f"No Rapid Pro sources specified; exiting")
