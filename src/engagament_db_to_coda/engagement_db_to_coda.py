@@ -142,8 +142,8 @@ def sync_engagement_db_to_coda(google_cloud_credentials_file_path, coda_configur
     # We only need to sync messages that we can use in analysis i.e. those that are live or stale.
     messages = engagement_db.get_messages(filter=lambda q: q.where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]))
 
-    for msg in messages:
-        log.info(f"Processing message {msg.message_id}...")
+    for i, msg in enumerate(messages):
+        log.info(f"Processing message {i + 1}/{len(messages)}: {msg.message_id}...")
         # TODO: There is a double-fetch here, 1st to get the list of documents that have updated, and then a
         #       per-document fetch in each transaction. This is a bit weird for now, but once we have incremental
         #       mode _sync_message_to_coda will become _sync_next_message_to_coda, which will query for the next
