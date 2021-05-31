@@ -35,8 +35,8 @@ if __name__ == "__main__":
         log.info(f"No Rapid Pro sources specified; exiting")
         exit(0)
 
-    uuid_table = pipeline_config.uuid_table.init_uuid_table(google_cloud_credentials_file_path)
-    engagement_db = pipeline_config.engagement_database.init_engagement_db(google_cloud_credentials_file_path)
+    uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
+    engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
 
     for i, rapid_pro_config in enumerate(pipeline_config.rapid_pro_sources):
         log.info(f"Syncing Rapid Pro source {i + 1}/{len(pipeline_config.rapid_pro_sources)}...")
