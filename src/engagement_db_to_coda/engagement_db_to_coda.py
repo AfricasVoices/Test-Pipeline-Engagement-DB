@@ -11,6 +11,20 @@ log = Logger(__name__)
 
 
 def _add_message_to_coda(coda, coda_dataset_config, db_message):
+    """
+    Adds a message to Coda.
+
+    If this message already has labels, copies these through to Coda.
+    Otherwise, if an auto-coder is specified, initialises with those initial labels.
+    Otherwise, adds the message with no initial labels.
+
+    :param coda: Coda instance to add the message to.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
+    :param coda_dataset_config: Configuration for adding the message.
+    :type coda_dataset_config: src.engagement_db_to_coda.configuration.CodaDatasetConfiguration
+    :param db_message: Message to add to Coda.
+    :type db_message: engagement_database.data_models.Message
+    """
     log.debug("Adding message to Coda")
 
     coda_message = core_data_modules.data_models.Message(
@@ -38,7 +52,25 @@ def _add_message_to_coda(coda, coda_dataset_config, db_message):
     coda.add_message(coda_dataset_config.coda_dataset_id, coda_message)
 
 
-def _update_db_message_from_coda_message(transaction, engagement_db, db_message, coda_message, coda_config):
+def _update_db_message_from_coda_message(engagement_db, db_message, coda_message, coda_config, transaction=None):
+    """
+    Updates a message in the engagement database based on the labels in the Coda message.
+
+    If the labels match, returns without updating anything.
+    Otherwise, if the new labels contain a WS code, clears the labels and updates the dataset.
+    Otherwise, overwrites the existing labels with the new labels.
+
+    :param engagement_db: Engagement database to update the message in.
+    :type engagement_db: engagement_database.EngagementDatabase
+    :param db_message: Engagement database message to update
+    :type db_message: engagement_database.data_models.Message
+    :param coda_message: Coda message to use to update the engagement database message.
+    :type coda_message: core_data_modules.data_models.Message
+    :param coda_config: Configuration for the update.
+    :type coda_config:  src.engagement_db_to_coda.configuration.CodaSyncConfiguration
+    :param transaction: Transaction in the engagement database to perform the update in.
+    :type transaction: google.cloud.firestore.Transaction | None
+    """
     coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(db_message.dataset)
 
     # Check if the labels in the engagement database message already match those from the coda message.
@@ -92,17 +124,21 @@ def _update_db_message_from_coda_message(transaction, engagement_db, db_message,
 @firestore.transactional
 def _sync_message_to_coda(transaction, engagement_db, coda, coda_config, message_id):
     """
+    Syncs a message from an engagement database to Coda.
 
-    :param transaction:
-    :type transaction:
-    :param engagement_db:
+    This method:
+     - Writes back a coda id if the engagement db message doesn't have one yet.
+     - Syncs the labels from Coda to this message if the message already exists in Coda.
+     - Creates a new message in Coda if this message hasn't been seen in Coda yet.
+
+    :param transaction: Transaction in the engagement database to perform the update in.
+    :type transaction: google.cloud.firestore.Transaction
+    :param engagement_db: Engagement database to sync from.
     :type engagement_db: engagement_database.EngagementDatabase
-    :param coda:
-    :type coda:
-    :param message_id:
-    :type message_id:
-    :return:
-    :rtype:
+    :param coda: Coda instance to sync the message to.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
+    :param message_id: Id of the message to sync.
+    :type message_id: str
     """
     db_message = engagement_db.get_message(message_id, transaction=transaction)
 
@@ -128,7 +164,7 @@ def _sync_message_to_coda(transaction, engagement_db, coda, coda_config, message
     # If the message exists in Coda, update the database message based on the labels assigned in Coda
     if coda_message is not None:
         log.debug("Message already exists in Coda")
-        _update_db_message_from_coda_message(transaction, engagement_db, db_message, coda_message, coda_config)
+        _update_db_message_from_coda_message(engagement_db, db_message, coda_message, coda_config, transaction=transaction)
         return
 
     # The message isn't in Coda, so add it
