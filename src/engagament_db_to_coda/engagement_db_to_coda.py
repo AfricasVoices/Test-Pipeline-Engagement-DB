@@ -135,11 +135,10 @@ def _sync_message_to_coda(transaction, engagement_db, coda, coda_config, message
     _add_message_to_coda(coda, coda_dataset_config, db_message)
 
 
-def sync_engagement_db_to_coda(google_cloud_credentials_file_path, coda_configuration, engagement_db):
-    coda = coda_configuration.init_coda(google_cloud_credentials_file_path)
-
+def sync_engagement_db_to_coda(engagement_db, coda, coda_configuration):
     # Get the messages that we need to sync.
     # We only need to sync messages that we can use in analysis i.e. those that are live or stale.
+    # TODO: Filter out messages that are stale where we have a newer live message.
     messages = engagement_db.get_messages(filter=lambda q: q.where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]))
 
     for i, msg in enumerate(messages):

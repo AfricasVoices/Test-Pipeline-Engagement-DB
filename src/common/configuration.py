@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 
+from coda_v2_python_client.firebase_client_wrapper import CodaV2Client
 from core_data_modules.logging import Logger
 from engagement_database import EngagementDatabase
 from id_infrastructure.firestore_uuid_table import FirestoreUuidTable
@@ -70,3 +71,21 @@ class RapidProClientConfiguration:
         log.info("Initialised Rapid Pro client")
 
         return rapid_pro_client
+
+
+@dataclass
+# TODO: Convert from data-class once design is better tested
+class CodaClientConfiguration:
+    credentials_file_url: str
+
+    def init_coda_client(self, google_cloud_credentials_file_path):
+        log.info("Initialising Coda client...")
+        credentials = json.loads(google_cloud_utils.download_blob_to_string(
+            google_cloud_credentials_file_path,
+            self.credentials_file_url
+        ))
+
+        coda = CodaV2Client.init_client(credentials)
+        log.info("Initialised Coda client")
+
+        return coda

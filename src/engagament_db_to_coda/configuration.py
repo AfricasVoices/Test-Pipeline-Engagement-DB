@@ -1,10 +1,7 @@
-import json
 from dataclasses import dataclass
 from typing import Callable, Optional
 
 from core_data_modules.data_models import CodeScheme
-from storage.google_cloud import google_cloud_utils
-from coda_v2_python_client.firebase_client_wrapper import CodaV2Client
 
 
 @dataclass
@@ -22,24 +19,9 @@ class CodaDatasetConfiguration:
 
 
 @dataclass
-class CodaConfiguration:
-    credentials_file_url: str
+class CodaSyncConfiguration:
     dataset_configurations: [CodaDatasetConfiguration]
     ws_correct_dataset_code_scheme: CodeScheme
-
-    def init_coda(self, google_cloud_credentials_file_path):
-        # log.info("Initialising Coda...")
-        credentials = json.loads(google_cloud_utils.download_blob_to_string(
-            google_cloud_credentials_file_path,
-            self.credentials_file_url
-        ))
-
-        coda = CodaV2Client.init_client(
-            credentials
-        )
-        # log.info("Initialised Coda")
-
-        return coda
 
     def get_dataset_config_by_engagement_db_dataset(self, dataset):
         for config in self.dataset_configurations:
