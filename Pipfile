@@ -4,10 +4,10 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-CoreDataModules = {editable = true,git = "https://www.github.com/AfricasVoices/CoreDataModules",ref = "add-apply-cleaner-to-text"}
+CoreDataModules = {editable = true,git = "https://www.github.com/AfricasVoices/CoreDataModules",ref = "master"}
 RapidProTools = {editable = true,git = "https://www.github.com/AfricasVoices/RapidProTools",ref = "skip-empty-archives"}
 CodaV2PythonClient = {editable = true,git = "https://www.github.com/AfricasVoices/CodaV2PythonClient",ref = "msg-get-add-experiment"}
-PipelineInfrastructure = {editable = true,git = "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",ref = "engagement-db-get-set-messages"}
+PipelineInfrastructure = {editable = true,git = "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",ref = "master"}
 
 [dev-packages]
 
