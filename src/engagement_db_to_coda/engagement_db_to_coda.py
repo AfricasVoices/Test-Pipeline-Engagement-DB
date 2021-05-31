@@ -118,8 +118,6 @@ def _update_db_message_from_coda_message(engagement_db, db_message, coda_message
         transaction=transaction
     )
 
-    return
-
 
 @firestore.transactional
 def _sync_message_to_coda(transaction, engagement_db, coda, coda_config, message_id):
