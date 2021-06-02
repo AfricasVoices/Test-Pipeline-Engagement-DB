@@ -12,12 +12,12 @@ log = Logger(__name__)
 
 @dataclass
 # TODO: Convert from data-class once design is better tested
-class EngagementDatabaseConfiguration:
+class EngagementDatabaseClientConfiguration:
     credentials_file_url: str
     database_path: str
 
-    def init_engagement_db(self, google_cloud_credentials_file_path):
-        log.info("Initialising engagement database...")
+    def init_engagement_db_client(self, google_cloud_credentials_file_path):
+        log.info("Initialising engagement database client...")
         credentials = json.loads(google_cloud_utils.download_blob_to_string(
             google_cloud_credentials_file_path,
             self.credentials_file_url
@@ -27,20 +27,20 @@ class EngagementDatabaseConfiguration:
             credentials,
             self.database_path
         )
-        log.info("Initialised engagement database")
+        log.info("Initialised engagement database client")
 
         return engagement_db
 
 
 @dataclass
 # TODO: Convert from data-class once design is better tested
-class UUIDTableConfiguration:
+class UUIDTableClientConfiguration:
     credentials_file_url: str
     table_name: str
     uuid_prefix: str
 
-    def init_uuid_table(self, google_cloud_credentials_file_path):
-        log.info("Initialising uuid table...")
+    def init_uuid_table_client(self, google_cloud_credentials_file_path):
+        log.info("Initialising uuid table client...")
         credentials = json.loads(google_cloud_utils.download_blob_to_string(
             google_cloud_credentials_file_path,
             self.credentials_file_url
@@ -51,14 +51,14 @@ class UUIDTableConfiguration:
             self.table_name,
             self.uuid_prefix
         )
-        log.info("Initialised uuid table")
+        log.info("Initialised uuid table client")
 
         return uuid_table
 
 
 @dataclass
 # TODO: Convert from data-class once design is better tested
-class RapidProConfiguration:
+class RapidProClientConfiguration:
     domain: str
     token_file_url: str
 
