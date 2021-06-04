@@ -5,6 +5,7 @@ from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.logging import Logger
 from core_data_modules.util import SHAUtils, TimeUtils
 from engagement_database.data_models import HistoryEntryOrigin, MessageStatuses
+from core_data_modules.data_models import Message as CodaMessage
 from google.cloud import firestore
 
 log = Logger(__name__)
@@ -27,7 +28,7 @@ def _add_message_to_coda(coda, coda_dataset_config, db_message):
     """
     log.debug("Adding message to Coda")
 
-    coda_message = core_data_modules.data_models.Message(
+    coda_message = CodaMessage(
         message_id=db_message.coda_id,
         text=db_message.text,
         creation_date_time_utc=TimeUtils.datetime_to_utc_iso_string(db_message.timestamp),
