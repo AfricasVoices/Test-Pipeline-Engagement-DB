@@ -5,7 +5,7 @@ from core_data_modules.data_models import CodeScheme
 
 from src.common.configuration import RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration, \
     EngagementDatabaseClientConfiguration
-from src.engagament_db_to_coda.configuration import CodaSyncConfiguration, CodaDatasetConfiguration, \
+from src.engagement_db_to_coda.configuration import CodaSyncConfiguration, CodaDatasetConfiguration, \
     CodeSchemeConfiguration
 from src.pipeline_configuration_spec import PipelineConfiguration, RapidProSource, CodaConfiguration
 from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration

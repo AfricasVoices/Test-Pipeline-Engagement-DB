@@ -5,7 +5,7 @@ from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
 from configurations import test_pipeline_configuration
-from src.engagament_db_to_coda.engagement_db_to_coda import sync_engagement_db_to_coda
+from src.engagement_db_to_coda.engagement_db_to_coda import sync_engagement_db_to_coda
 
 log = Logger(__name__)
 

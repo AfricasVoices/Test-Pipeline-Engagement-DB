@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from src.common.configuration import RapidProClientConfiguration, EngagementDatabaseClientConfiguration, \
     UUIDTableClientConfiguration, CodaClientConfiguration
-from src.engagament_db_to_coda.configuration import CodaSyncConfiguration
+from src.engagement_db_to_coda.configuration import CodaSyncConfiguration
 from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 
 
