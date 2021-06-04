@@ -1,0 +1,358 @@
+{
+  "SchemeID": "Scheme-28e8f576",
+  "Name": "S01E01",
+  "Version": "0.0.0.1",
+  "Codes": [
+    {
+      "CodeID": "code-15737d6f",
+      "CodeType": "Normal",
+      "DisplayText": "vaccinate more people",
+      "NumericValue": 1,
+      "StringValue": "vaccinate_more_people",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-aef42794",
+      "CodeType": "Normal",
+      "DisplayText": "lack of trust and opposing the vaccines",
+      "NumericValue": 2,
+      "StringValue": "lack_of_trust_and_opposing_the_vaccines",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-6619cd6d",
+      "CodeType": "Normal",
+      "DisplayText": "educate people on the vaccine",
+      "NumericValue": 3,
+      "StringValue": "educate_people_on_the_vaccine",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-13eeba48",
+      "CodeType": "Normal",
+      "DisplayText": "vaccine is good and helpful",
+      "NumericValue": 4,
+      "StringValue": "vaccine_is_good_and_helpful",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-828a2724",
+      "CodeType": "Normal",
+      "DisplayText": "vaccine side effects",
+      "NumericValue": 5,
+      "StringValue": "vaccine_side_effects",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-39abf586",
+      "CodeType": "Normal",
+      "DisplayText": "government leaders to get vaccinated first",
+      "NumericValue": 6,
+      "StringValue": "government_leaders_to_get_vaccinated_first",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-78fc9e86",
+      "CodeType": "Normal",
+      "DisplayText": "provide vaccine for the poor and people in remote areas",
+      "NumericValue": 7,
+      "StringValue": "provide_vaccine_for_the_poor_and_people_in_remote_areas",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-9d8632f7",
+      "CodeType": "Normal",
+      "DisplayText": "questions on efficacy of vaccine",
+      "NumericValue": 8,
+      "StringValue": "questions_on_efficacy_of_vaccine",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-17f36832",
+      "CodeType": "Normal",
+      "DisplayText": "questions about coronavirus",
+      "NumericValue": 9,
+      "StringValue": "questions_about_coronavirus",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-5f8aa20e",
+      "CodeType": "Normal",
+      "DisplayText": "statements about coronavirus",
+      "NumericValue": 10,
+      "StringValue": "statements_about_coronavirus",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-6c4e8091",
+      "CodeType": "Normal",
+      "DisplayText": "how to prevent",
+      "NumericValue": 11,
+      "StringValue": "how_to_prevent",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-4cb50fdc",
+      "CodeType": "Normal",
+      "DisplayText": "how spread/transmitted",
+      "NumericValue": 12,
+      "StringValue": "how_spread_transmitted",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-e10a1a2d",
+      "CodeType": "Normal",
+      "DisplayText": "follow guidelines/call for right practice",
+      "NumericValue": 13,
+      "StringValue": "follow_guidelines_or_call_for_right_practice",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-bd6cff46",
+      "CodeType": "Normal",
+      "DisplayText": "symptoms",
+      "NumericValue": 14,
+      "StringValue": "symptoms",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-2d96e911",
+      "CodeType": "Normal",
+      "DisplayText": "treatment/how to treat",
+      "NumericValue": 15,
+      "StringValue": "treatment_or_how_to_treat",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-f659614a",
+      "CodeType": "Normal",
+      "DisplayText": "misinfo/rumour/stigma",
+      "NumericValue": 16,
+      "StringValue": "misinfo_rumour_stigma",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-2a497e2d",
+      "CodeType": "Normal",
+      "DisplayText": "kenya update",
+      "NumericValue": 17,
+      "StringValue": "kenya_update",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-635bb7ff",
+      "CodeType": "Normal",
+      "DisplayText": "government guidelines",
+      "NumericValue": 18,
+      "StringValue": "government_guidelines",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-22da3bf4",
+      "CodeType": "Normal",
+      "MetaCode": "gratitude",
+      "DisplayText": "gratitude",
+      "NumericValue": 19,
+      "StringValue": "gratitude",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-e4813c5c",
+      "CodeType": "Normal",
+      "MetaCode": "gratitude",
+      "DisplayText": "questions about vaccines",
+      "NumericValue": 20,
+      "StringValue": "questions_about_vaccines",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-a4a7bf37",
+      "CodeType": "Normal",
+      "MetaCode": "gratitude",
+      "DisplayText": "priority groups",
+      "NumericValue": 21,
+      "StringValue": "priority_groups",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-3cfe8dfc",
+      "CodeType": "Normal",
+      "MetaCode": "gratitude",
+      "DisplayText": "other theme",
+      "NumericValue": 22,
+      "StringValue": "other_theme",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-NA-f93d3eb7",
+      "CodeType": "Control",
+      "ControlCode": "NA",
+      "DisplayText": "NA (missing)",
+      "NumericValue": -10,
+      "StringValue": "NA",
+      "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-NS-2c11b7c9",
+      "CodeType": "Control",
+      "ControlCode": "NS",
+      "DisplayText": "NS (skip)",
+      "NumericValue": -20,
+      "StringValue": "NS",
+      "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-NC-42f1d983",
+      "CodeType": "Control",
+      "ControlCode": "NC",
+      "DisplayText": "NC (not coded)",
+      "NumericValue": -30,
+      "StringValue": "NC",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-NR-5e3eee23",
+      "CodeType": "Control",
+      "ControlCode": "NR",
+      "DisplayText": "NR (not reviewed)",
+      "NumericValue": -40,
+      "StringValue": "NR",
+      "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-NIC-99631cb8",
+      "CodeType": "Control",
+      "ControlCode": "NIC",
+      "DisplayText": "NIC (not internally consistent)",
+      "NumericValue": -50,
+      "StringValue": "NIC",
+      "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-STOP-08b832a8",
+      "CodeType": "Control",
+      "ControlCode": "STOP",
+      "DisplayText": "STOP",
+      "NumericValue": -90,
+      "StringValue": "STOP",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-WS-adb25603b7af",
+      "CodeType": "Control",
+      "ControlCode": "WS",
+      "DisplayText": "WS (wrong scheme)",
+      "NumericValue": -100,
+      "StringValue": "WS",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-CE-016c1e22",
+      "CodeType": "Control",
+      "ControlCode": "CE",
+      "DisplayText": "CE (coding error)",
+      "NumericValue": -110,
+      "StringValue": "CE",
+      "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-PB-a434a800",
+      "CodeType": "Meta",
+      "MetaCode": "push_back",
+      "DisplayText": "meta: push back",
+      "NumericValue": -100000,
+      "StringValue": "push_back",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-SQ-5e8f0122",
+      "CodeType": "Meta",
+      "MetaCode": "showtime_question",
+      "DisplayText": "meta: showtime question",
+      "NumericValue": -100030,
+      "StringValue": "showtime_question",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-G-97cb3199",
+      "CodeType": "Meta",
+      "MetaCode": "greeting",
+      "DisplayText": "meta: greeting",
+      "NumericValue": -100020,
+      "StringValue": "greeting",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-OI-c5f1d054",
+      "CodeType": "Meta",
+      "MetaCode": "opt-in",
+      "DisplayText": "meta: opt-in",
+      "NumericValue": -100040,
+      "StringValue": "opt_in",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-SC-a3a065bc",
+      "CodeType": "Meta",
+      "MetaCode": "similar_content",
+      "DisplayText": "meta: similar content",
+      "NumericValue": -100050,
+      "StringValue": "similar_content",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-PI-83b90d32",
+      "CodeType": "Meta",
+      "MetaCode": "participation_incentive",
+      "DisplayText": "meta: participation incentive",
+      "NumericValue": -100060,
+      "StringValue": "participation_incentive",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-EC-3a704f5b",
+      "CodeType": "Meta",
+      "MetaCode": "exclusion_complaint",
+      "DisplayText": "meta: exclusion complaint",
+      "NumericValue": -100070,
+      "StringValue": "exclusion_complaint",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-O-7ce0d2a7",
+      "CodeType": "Meta",
+      "MetaCode": "other",
+      "DisplayText": "meta: other",
+      "NumericValue": -100110,
+      "StringValue": "other",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-AC-9ed22631",
+      "CodeType": "Meta",
+      "MetaCode": "about_conversation",
+      "DisplayText": "meta: about conversation",
+      "NumericValue": -100120,
+      "StringValue": "about_conversation",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-CR-8e99616b",
+      "CodeType": "Meta",
+      "MetaCode": "chasing_reply",
+      "DisplayText": "meta: chasing reply",
+      "NumericValue": -100130,
+      "StringValue": "chasing_reply",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-I-b13a41f6",
+      "CodeType": "Meta",
+      "MetaCode": "impact",
+      "DisplayText": "meta: impact",
+      "NumericValue": -100140,
+      "StringValue": "impact",
+      "VisibleInCoda": true
+    }
+  ]
+}

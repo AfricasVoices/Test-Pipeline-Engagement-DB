@@ -1,0 +1,78 @@
+{
+  "SchemeID": "Scheme-fffffbfc",
+  "Name": "WS - Correct Dataset",
+  "Version": "0.0.0.1",
+  "Codes": [
+    {
+      "StringValue": "location",
+      "NumericValue": 1,
+      "DisplayText": "location",
+      "CodeType": "Normal",
+      "VisibleInCoda": true,
+      "MatchValues": [
+        "location"
+      ],
+      "CodeID": "code-02d4450d"
+    },
+    {
+      "CodeType": "Normal",
+      "MatchValues": [
+        "age"
+      ],
+      "StringValue": "age",
+      "DisplayText": "age",
+      "CodeID": "code-c473f7bb",
+      "VisibleInCoda": true,
+      "NumericValue": 2
+    },
+    {
+      "MatchValues": [
+        "gender"
+      ],
+      "VisibleInCoda": true,
+      "DisplayText": "gender",
+      "NumericValue": 3,
+      "CodeType": "Normal",
+      "CodeID": "code-80edd5c3",
+      "StringValue": "gender"
+    },
+    {
+      "StringValue": "s01e01",
+      "DisplayText": "s01e01",
+      "CodeType": "Normal",
+      "NumericValue": 4,
+      "MatchValues": [
+        "s01e01"
+      ],
+      "CodeID": "code-c8ef44db",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeType": "Control",
+      "VisibleInCoda": true,
+      "ControlCode": "NC",
+      "CodeID": "code-NC-42f1d983",
+      "DisplayText": "NC (not coded)",
+      "StringValue": "NC",
+      "NumericValue": -30
+    },
+    {
+      "CodeType": "Control",
+      "DisplayText": "NR (not reviewed)",
+      "NumericValue": -40,
+      "VisibleInCoda": false,
+      "ControlCode": "NR",
+      "CodeID": "code-NR-5e3eee23",
+      "StringValue": "NR"
+    },
+    {
+      "DisplayText": "CE (coding error)",
+      "NumericValue": -110,
+      "CodeType": "Control",
+      "StringValue": "CE",
+      "ControlCode": "CE",
+      "CodeID": "code-CE-016c1e22",
+      "VisibleInCoda": false
+    }
+  ]
+}

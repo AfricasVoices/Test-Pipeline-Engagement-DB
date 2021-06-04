@@ -1,6 +1,20 @@
-from src.pipeline_configuration_spec import PipelineConfiguration, RapidProSource
-from src.common.configuration import EngagementDatabaseClientConfiguration, UUIDTableClientConfiguration, RapidProClientConfiguration
+import json
+
+from core_data_modules.cleaners import swahili
+from core_data_modules.data_models import CodeScheme
+
+from src.common.configuration import RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration, \
+    EngagementDatabaseClientConfiguration
+from src.engagement_db_to_coda.configuration import CodaSyncConfiguration, CodaDatasetConfiguration, \
+    CodeSchemeConfiguration
+from src.pipeline_configuration_spec import PipelineConfiguration, RapidProSource, CodaConfiguration
 from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
+
+
+def load_code_scheme(fname):
+    with open(f"code_schemes/{fname}.json") as f:
+        return CodeScheme.from_firebase_map(json.load(f))
+
 
 PIPELINE_CONFIGURATION = PipelineConfiguration(
     pipeline_name="engagement-db-test",
@@ -26,5 +40,38 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 FlowResultConfiguration("test_pipeline_daniel_demog", "gender", "gender"),
             ]
         )
-    ]
+    ],
+    coda_sync=CodaConfiguration(
+        coda=CodaClientConfiguration(credentials_file_url="gs://avf-credentials/coda-staging.json"),
+        sync_config=CodaSyncConfiguration(
+            dataset_configurations=[
+                CodaDatasetConfiguration(
+                    coda_dataset_id="TEST_gender",
+                    engagement_db_dataset="gender",
+                    code_scheme_configurations=[
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("gender"), auto_coder=swahili.DemographicCleaner.clean_gender)
+                    ],
+                    ws_code_string_value="gender"
+                ),
+                CodaDatasetConfiguration(
+                    coda_dataset_id="TEST_location",
+                    engagement_db_dataset="location",
+                    code_scheme_configurations=[
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_constituency"), auto_coder=None),
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_county"), auto_coder=None)
+                    ],
+                    ws_code_string_value="location"
+                ),
+                CodaDatasetConfiguration(
+                    coda_dataset_id="TEST_s01e01",
+                    engagement_db_dataset="s01e01",
+                    code_scheme_configurations=[
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("s01e01"), auto_coder=None)
+                    ],
+                    ws_code_string_value="s01e01"
+                ),
+            ],
+            ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset")
+        )
+    )
 )
