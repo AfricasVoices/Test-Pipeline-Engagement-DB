@@ -63,8 +63,8 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
             for dataset in dataset_config.engagement_db_datasets:
                 messages.extend(datasets.get(dataset, []))
 
-            # TODO: Add a flag for controlling whether to overwrite fields where data doesn't exist
-            if len(messages) > 0:
+            # Only overwrite this contact field if there is data to write or it's ok to clear a field.
+            if len(messages) > 0 or sync_config.allow_clearing_fields:
                 if sync_config.write_mode == WriteModes.SHOW_PRESENCE:
                     contact_fields[dataset_config.rapid_pro_contact_field] = _PRESENCE_VALUE
                 else:
