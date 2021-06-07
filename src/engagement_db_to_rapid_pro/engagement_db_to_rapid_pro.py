@@ -38,8 +38,8 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
             rapid_pro.create_field(contact_field)
 
     # Sync each participant to Rapid Pro
-    for participant_uuid, datasets in participants.items():
-        log.info(f"Syncing {participant_uuid}...")
+    for i, (participant_uuid, datasets) in enumerate(participants.items()):
+        log.info(f"Syncing participant {i + 1}/{len(participants)}: {participant_uuid}...")
         urn = uuid_table.uuid_to_data(participant_uuid)
 
         contact_fields = dict()
