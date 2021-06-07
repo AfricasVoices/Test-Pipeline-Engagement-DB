@@ -10,6 +10,18 @@ _PRESENCE_VALUE = "#ENGAGEMENT-DATABASE-HAS-RESPONSE"
 
 
 def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_config):
+    """
+    Synchronises an engagement database to Rapid Pro.
+
+    :param engagement_db: Engagement database to sync to.
+    :type engagement_db: engagement_database.EngagementDatabase
+    :param rapid_pro: Rapid Pro client to sync from.
+    :type rapid_pro: rapid_pro_tools.rapid_pro_client.RapidProClient
+    :param uuid_table: UUID table to use to de-identify contact urns.
+    :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :param sync_config: Configuration for the sync.
+    :type sync_config: src.engagement_db_to_rapid_pro.configuration.EngagementDBToRapidProConfiguration
+    """
     # Get all messages to sync.
     # Only sync live messages. Anything else means we should signal Rapid Pro to request the data again if it can.
     # TODO: This could get expensive as the number of datasets increases, in which case we can optimise by adding
