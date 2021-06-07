@@ -30,20 +30,23 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
 
         dataset.append(msg)
 
-    # Make sure all the contact fields exist in the Rapid Pro workspace
+    # Make sure all the contact fields exist in the Rapid Pro workspace.
     existing_contact_fields = [f.key for f in rapid_pro.get_fields()]
     contact_fields_to_sync = [dataset_config.rapid_pro_contact_field for dataset_config in sync_config.normal_datasets]
     for contact_field in contact_fields_to_sync:
         if contact_field not in existing_contact_fields:
             rapid_pro.create_field(contact_field)
 
-    # Sync each participant to Rapid Pro
+    # Sync each participant to Rapid Pro.
     for i, (participant_uuid, datasets) in enumerate(participants.items()):
         log.info(f"Syncing participant {i + 1}/{len(participants)}: {participant_uuid}...")
+        # Re-identify the participant
         urn = uuid_table.uuid_to_data(participant_uuid)
 
+        # Build a dictionary of contact_field -> value to write for each normal dataset.
         contact_fields = dict()
         for dataset_config in sync_config.normal_datasets:
+            # Find all the messages from this participant that are relevant to this dataset.
             messages = []
             for dataset in dataset_config.engagement_db_datasets:
                 messages.extend(datasets.get(dataset, []))
@@ -58,4 +61,5 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
 
         # TODO: Detect and update consent status
 
+        # Write the contact fields to rapid pro
         rapid_pro.update_contact(urn, contact_fields=contact_fields)
