@@ -8,7 +8,7 @@ from src.common.configuration import RapidProClientConfiguration, CodaClientConf
 from src.engagement_db_to_coda.configuration import CodaSyncConfiguration, CodaDatasetConfiguration, \
     CodeSchemeConfiguration
 from src.engagement_db_to_rapid_pro.configuration import EngagementDBToRapidProConfiguration, DatasetConfiguration, \
-    SyncModes
+    WriteModes
 from src.pipeline_configuration_spec import PipelineConfiguration, RapidProSource, CodaConfiguration, RapidProTarget
 from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 
@@ -90,7 +90,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 DatasetConfiguration(engagement_db_datasets=["age"], rapid_pro_contact_field="age"),
                 DatasetConfiguration(engagement_db_datasets=["s01e01"], rapid_pro_contact_field="s01e01")
             ],
-            sync_mode=SyncModes.SHOW_PRESENCE
+            write_mode=WriteModes.SHOW_PRESENCE
         )
     )
 )

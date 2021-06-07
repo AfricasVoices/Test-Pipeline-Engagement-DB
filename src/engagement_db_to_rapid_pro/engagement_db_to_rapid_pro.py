@@ -1,7 +1,7 @@
 from core_data_modules.logging import Logger
 from engagement_database.data_models import MessageStatuses
 
-from src.engagement_db_to_rapid_pro.configuration import SyncModes
+from src.engagement_db_to_rapid_pro.configuration import WriteModes
 
 log = Logger(__name__)
 
@@ -65,10 +65,10 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
 
             # TODO: Add a flag for controlling whether to overwrite fields where data doesn't exist
             if len(messages) > 0:
-                if sync_config.sync_mode == SyncModes.SHOW_PRESENCE:
+                if sync_config.write_mode == WriteModes.SHOW_PRESENCE:
                     contact_fields[dataset_config.rapid_pro_contact_field] = _PRESENCE_VALUE
                 else:
-                    assert sync_config.sync_mode == SyncModes.CONCATENATE_TEXTS
+                    assert sync_config.write_mode == WriteModes.CONCATENATE_TEXTS
                     contact_fields[dataset_config.rapid_pro_contact_field] = ";".join([m.text for m in messages])
 
         # TODO: Detect and update consent status
