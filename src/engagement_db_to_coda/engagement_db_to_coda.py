@@ -79,7 +79,7 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     # Check if the labels in the engagement database message already match those from the coda message.
     # If they do, return without updating anything.
     # TODO: Validate if the dataset is correct too?
-    if json.dumps([x.to_dict() for x in engagement_db_message.labels]) == json.dumps([y.to_dict() for y in coda_message.labels]):
+    if engagement_db_message.labels == coda_message.labels:
         log.debug("Labels match")
         return
 
