@@ -3,11 +3,8 @@ import subprocess
 
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
-from rapid_pro_tools.rapid_pro_client import RapidProClient
 
 from configurations import test_pipeline_configuration
-from src.engagement_db_to_rapid_pro.configuration import DatasetConfiguration, EngagementDBToRapidProConfiguration, \
-    SyncModes
 from src.engagement_db_to_rapid_pro.engagement_db_to_rapid_pro import sync_engagement_db_to_rapid_pro
 
 log = Logger(__name__)

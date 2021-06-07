@@ -1,8 +1,3 @@
-import glob
-import json
-
-from core_data_modules.cleaners import Codes
-from core_data_modules.data_models import CodeScheme
 from core_data_modules.logging import Logger
 from engagement_database.data_models import MessageStatuses
 
@@ -61,7 +56,6 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
                     assert sync_config.sync_mode == SyncModes.CONCATENATE_TEXTS
                     contact_fields[dataset_config.rapid_pro_contact_field] = ";".join([m.text for m in messages])
 
-        # TODO: Detect consent_withdrawn
-
+        # TODO: Detect and update consent status
 
         rapid_pro.update_contact(urn, contact_fields=contact_fields)
