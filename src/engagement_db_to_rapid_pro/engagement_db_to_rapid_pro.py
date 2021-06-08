@@ -64,12 +64,14 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
                 messages.extend(datasets.get(dataset, []))
 
             # Only overwrite this contact field if there is data to write or it's ok to clear a field.
-            if len(messages) > 0 or sync_config.allow_clearing_fields:
+            if len(messages) > 0:
                 if sync_config.write_mode == WriteModes.SHOW_PRESENCE:
                     contact_fields[dataset_config.rapid_pro_contact_field] = _PRESENCE_VALUE
                 else:
                     assert sync_config.write_mode == WriteModes.CONCATENATE_TEXTS
                     contact_fields[dataset_config.rapid_pro_contact_field] = ";".join([m.text for m in messages])
+            elif sync_config.allow_clearing_fields:
+                contact_fields[dataset_config.rapid_pro_contact_field] = ""
 
         # TODO: Detect and update consent status
 
