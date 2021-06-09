@@ -74,6 +74,8 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
                 contact_fields[dataset_config.rapid_pro_contact_field] = ""
 
         # TODO: Detect and update consent status
-# TODO: Update special group membership status e.g listening groups
+
+        # TODO: Update special group membership status e.g listening groups
+
         # Write the contact fields to rapid pro
         rapid_pro.update_contact(urn, contact_fields=contact_fields)
