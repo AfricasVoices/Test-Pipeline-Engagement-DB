@@ -45,7 +45,7 @@ def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_sche
         # code scheme.
         valid_code_schemes = [c.code_scheme for c in coda_dataset_config.code_scheme_configurations]
         valid_code_schemes.append(ws_correct_dataset_code_scheme)
-        valid_code_schemes_lut = {scheme.scheme_id: scheme for scheme in valid_code_schemes}
+        valid_code_schemes_lut = {code_scheme.scheme_id: code_scheme for code_scheme in valid_code_schemes}
         for label in engagement_db_message.labels:
             assert label.scheme_id in valid_code_schemes_lut.keys(), \
                 f"Scheme id {label.scheme_id} not valid for Coda dataset {coda_dataset_config.coda_dataset_id}"
