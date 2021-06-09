@@ -5,7 +5,7 @@ import subprocess
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
-from src.engagement_db_to_coda.engagement_db_to_coda import sync_engagement_db_to_coda
+from src.engagement_db_to_coda.engagement_db_to_coda import sync_engagement_db_to_coda, sync_coda_to_engagement_db
 
 log = Logger(__name__)
 
@@ -44,3 +44,4 @@ if __name__ == "__main__":
     coda = pipeline_config.coda_sync.coda.init_coda_client(google_cloud_credentials_file_path)
 
     sync_engagement_db_to_coda(engagement_db, coda, pipeline_config.coda_sync.sync_config, incremental_cache_path)
+    # sync_coda_to_engagement_db(coda, engagement_db, pipeline_config.coda_sync.sync_config)
