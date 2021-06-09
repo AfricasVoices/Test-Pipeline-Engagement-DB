@@ -1,8 +1,10 @@
+from datetime import timedelta
+
 from core_data_modules.cleaners import URNCleaner
 from core_data_modules.logging import Logger
 from engagement_database.data_models import Message, MessageDirections, MessageStatuses, HistoryEntryOrigin
-from rapid_pro_tools.rapid_pro_client import RapidProClient
-from storage.google_cloud import google_cloud_utils
+
+from src.rapid_pro_to_engagement_db.cache import RapidProSyncCache
 
 log = Logger(__name__)
 
@@ -57,7 +59,7 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     )
 
 
-def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_result_configs):
+def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_result_configs, cache_path=None):
     """
     Synchronises runs from a Rapid Pro workspace to an engagement database.
 
@@ -79,17 +81,41 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
 
     workspace_name = rapid_pro.get_workspace_name()
 
-    # Build a look-up table of Rapid Pro contact uuid -> Rapid Pro contact so we can look up the urn for each run later.
-    contacts = rapid_pro.get_raw_contacts()
-    contacts_lut = {c.uuid: c for c in contacts}
+    cache = None
+    if cache_path is not None:
+        cache = RapidProSyncCache(f"{cache_path}/{workspace_name}")
+
+    # Load all the contacts in the Rapid Pro workspace, either from the cache or from Rapid Pro
+    if cache is None:
+        contacts = rapid_pro.get_raw_contacts()
+    else:
+        contacts = cache.get_contacts()
+        if contacts is None:
+            contacts = rapid_pro.get_raw_contacts()
 
     for flow_config in flow_result_configs:
         # Get the latest runs for this flow.
         flow_id = rapid_pro.get_flow_id(flow_config.flow_name)
-        runs = rapid_pro.get_raw_runs(flow_id)
+        flow_last_updated = None
+        if cache is not None:
+            flow_last_updated = cache.get_flow_last_updated(flow_id, flow_config.flow_result_field)
+        fetch_since = None
+        if flow_last_updated is not None:
+            fetch_since = flow_last_updated + timedelta(microseconds=1)
+        runs = rapid_pro.get_raw_runs(flow_id, last_modified_after_inclusive=fetch_since)
+
+        # Get any contacts that have been updated since we last asked, in case of the downloaded runs are for very
+        # new contacts.
+        contacts = rapid_pro.update_raw_contacts_with_latest_modified(contacts)
+        if cache is not None:
+            cache.set_contacts(contacts)
+        contacts_lut = {c.uuid: c for c in contacts}
 
         for i, run in enumerate(runs):
             log.debug(f"Processing run {i + 1}/{len(runs)}, id {run.id}...")
+
+            if cache is not None and (flow_last_updated is None or run.modified_on > flow_last_updated):
+                flow_last_updated = run.modified_on
 
             # Get the relevant result from this run, if it exists.
             rapid_pro_result = run.values.get(flow_config.flow_result_field)
@@ -131,3 +157,5 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
             }
             _ensure_engagement_db_has_message(engagement_db, msg, message_origin_details)
 
+            if cache is not None:
+                cache.set_flow_last_updated(flow_id, flow_config.flow_result_field, flow_last_updated)
