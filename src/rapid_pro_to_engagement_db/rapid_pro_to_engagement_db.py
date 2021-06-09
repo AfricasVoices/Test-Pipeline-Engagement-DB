@@ -106,6 +106,11 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
                 # TODO: This is known to fail for golis numbers via Shaqodoon. Leaving as a fail-safe for now
                 #       until we're ready to test with golis numbers.
                 assert contact_urn.startswith("tel:+")
+            if contact_urn.startswith("telegram:"):
+                # Sometimes a telegram urn ends with an optional #<username> e.g. telegram:123456#testuser
+                # To ensure we always get the same urn for the same telegram user, normalise telegram urns to exclude
+                # this #<username>
+                contact_urn = contact_urn.split("#")[0]
             participant_uuid = uuid_table.data_to_uuid(contact_urn)
 
             # Create a message and origin objects for this result and ensure it's in the engagement database.
