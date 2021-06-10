@@ -11,7 +11,7 @@ from google.cloud import firestore
 log = Logger(__name__)
 
 
-def _add_message_to_coda(coda, coda_dataset_config, engagement_db_message):
+def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message):
     """
     Adds a message to Coda.
 
@@ -23,6 +23,9 @@ def _add_message_to_coda(coda, coda_dataset_config, engagement_db_message):
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_dataset_config: Configuration for adding the message.
     :type coda_dataset_config: src.engagement_db_to_coda.configuration.CodaDatasetConfiguration
+    :param ws_correct_dataset_code_scheme: WS Correct Dataset code scheme for the Coda dataset, used to validate any
+                                           existing labels, where applicable.
+    :type ws_correct_dataset_code_scheme: core_data_modules.data_models.CodeScheme
     :param engagement_db_message: Message to add to Coda.
     :type engagement_db_message: engagement_database.data_models.Message
     """
@@ -37,7 +40,21 @@ def _add_message_to_coda(coda, coda_dataset_config, engagement_db_message):
 
     # If the engagement database message already has labels, initialise with these in Coda.
     if len(engagement_db_message.labels) > 0:
-        # TODO: Validate that these labels are valid under the code schemes being copied to.
+        # Ensure the existing labels are valid under the code schemes being copied to, by checking the label's scheme id
+        # exists in this dataset's code schemes or the ws correct dataset scheme, and that the code id is in the
+        # code scheme.
+        valid_code_schemes = [c.code_scheme for c in coda_dataset_config.code_scheme_configurations]
+        valid_code_schemes.append(ws_correct_dataset_code_scheme)
+        valid_code_schemes_lut = {code_scheme.scheme_id: code_scheme for code_scheme in valid_code_schemes}
+        for label in engagement_db_message.labels:
+            assert label.scheme_id in valid_code_schemes_lut.keys(), \
+                f"Scheme id {label.scheme_id} not valid for Coda dataset {coda_dataset_config.coda_dataset_id}"
+            code_scheme = valid_code_schemes_lut[label.scheme_id]
+            valid_codes = code_scheme.codes
+            valid_code_ids = [code.code_id for code in valid_codes]
+            assert label.code_id == "SPECIAL-MANUALLY_UNCODED" or label.code_id in valid_code_ids, \
+                f"Code ID {label.code_id} not found in Scheme {code_scheme.name} (id {label.scheme_id})"
+
         coda_message.labels = engagement_db_message.labels
 
     # Otherwise, run any auto-coders that are specified.
@@ -170,7 +187,7 @@ def _sync_message_to_coda(transaction, engagement_db, coda, coda_config, message
         return
 
     # The message isn't in Coda, so add it
-    _add_message_to_coda(coda, coda_dataset_config, engagement_db_message)
+    _add_message_to_coda(coda, coda_dataset_config, coda_config.ws_correct_dataset_code_scheme, engagement_db_message)
 
 
 def sync_engagement_db_to_coda(engagement_db, coda, coda_configuration):
