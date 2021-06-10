@@ -1,10 +1,10 @@
 import argparse
+import importlib
 import subprocess
 
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
-from configurations import test_pipeline_configuration
 from src.engagement_db_to_rapid_pro.engagement_db_to_rapid_pro import sync_engagement_db_to_rapid_pro
 
 log = Logger(__name__)
@@ -16,13 +16,15 @@ if __name__ == "__main__":
     parser.add_argument("google_cloud_credentials_file_path", metavar="google-cloud-credentials-file-path",
                         help="Path to a Google Cloud service account credentials file to use to access the "
                              "credentials bucket")
+    parser.add_argument("configuration_module",
+                        help="Configuration module to import e.g. 'configurations.test_config'. "
+                             "This module must contain a PIPELINE_CONFIGURATION property")
 
     args = parser.parse_args()
 
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
-    # TODO: Load this from a configuration_file_path argument
-    pipeline_config = test_pipeline_configuration.PIPELINE_CONFIGURATION
+    pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
 
     pipeline = pipeline_config.pipeline_name
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
