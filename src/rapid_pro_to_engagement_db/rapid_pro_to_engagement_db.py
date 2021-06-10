@@ -7,6 +7,31 @@ from storage.google_cloud import google_cloud_utils
 log = Logger(__name__)
 
 
+def _de_identify_contact_urn(contact_urn, uuid_table):
+    """
+    De-identifies the given URN using the given uuid_table.
+
+    :param contact_urn: URN to de-identify.
+    :type contact_urn: str
+    :param uuid_table: Uuid table to use to de-identify.
+    :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :return: De-identified urn.
+    :rtype: str
+    """
+    if contact_urn.startswith("tel:"):
+        # TODO: This is known to fail for golis numbers via Shaqodoon. Leaving as a fail-safe for now
+        #       until we're ready to test with golis numbers.
+        assert contact_urn.startswith("tel:+")
+
+    if contact_urn.startswith("telegram:"):
+        # Sometimes a telegram urn ends with an optional #<username> e.g. telegram:123456#testuser
+        # To ensure we always get the same urn for the same telegram user, normalise telegram urns to exclude
+        # this #<username>
+        contact_urn = contact_urn.split("#")[0]
+
+    return uuid_table.data_to_uuid(contact_urn)
+
+
 def _engagement_db_has_message(engagement_db, message):
     """
     Checks if an engagement database contains a message with the same text, timestamp, and participant_uuid as the
@@ -97,21 +122,11 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
                 log.debug("No relevant run result")
                 continue
 
-            # De-identify the contact's urn.
-            # Note (1) this de-identifies the full urn, so we can handle multiple channel types simultaneously.
-            #      (2) we only get this far if there was a valid run result, which ensures we only add de-identification
-            #          entries for participants who messaged us.
-            contact_urn = contacts_lut[run.contact.uuid].urns[0]
-            if contact_urn.startswith("tel:"):
-                # TODO: This is known to fail for golis numbers via Shaqodoon. Leaving as a fail-safe for now
-                #       until we're ready to test with golis numbers.
-                assert contact_urn.startswith("tel:+")
-            if contact_urn.startswith("telegram:"):
-                # Sometimes a telegram urn ends with an optional #<username> e.g. telegram:123456#testuser
-                # To ensure we always get the same urn for the same telegram user, normalise telegram urns to exclude
-                # this #<username>
-                contact_urn = contact_urn.split("#")[0]
-            participant_uuid = uuid_table.data_to_uuid(contact_urn)
+            # De-identify the contact's full urn.
+            contact = contacts_lut[run.contact.uuid]
+            assert len(contact.urns) == 1, len(contact.urns)
+            contact_urn = contact.urns[0]
+            participant_uuid = _de_identify_contact_urn(contact_urn, uuid_table)
 
             # Create a message and origin objects for this result and ensure it's in the engagement database.
             msg = Message(
