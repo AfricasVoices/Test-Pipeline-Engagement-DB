@@ -59,17 +59,18 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         contact_fields = dict()
         for dataset_config in sync_config.normal_datasets:
             # Find all the messages from this participant that are relevant to this dataset.
-            messages = []
+            message_strings = []
             for dataset in dataset_config.engagement_db_datasets:
-                messages.extend(datasets.get(dataset, []))
+                messages = datasets.get(dataset, [])
+                message_strings.extend([f"\"{m.text}\" - engagement_db.{dataset}" for m in messages])
 
             # Only overwrite this contact field if there is data to write or it's ok to clear a field.
-            if len(messages) > 0:
+            if len(message_strings) > 0:
                 if sync_config.write_mode == WriteModes.SHOW_PRESENCE:
                     contact_fields[dataset_config.rapid_pro_contact_field.key] = _PRESENCE_VALUE
                 else:
                     assert sync_config.write_mode == WriteModes.CONCATENATE_TEXTS
-                    contact_fields[dataset_config.rapid_pro_contact_field.key] = ";".join([m.text for m in messages])
+                    contact_fields[dataset_config.rapid_pro_contact_field.key] = "; ".join(message_strings)
             elif sync_config.allow_clearing_fields:
                 contact_fields[dataset_config.rapid_pro_contact_field.key] = ""
 
