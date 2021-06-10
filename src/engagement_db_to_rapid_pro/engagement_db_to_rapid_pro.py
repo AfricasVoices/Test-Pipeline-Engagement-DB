@@ -43,11 +43,11 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         dataset.append(msg)
 
     # Make sure all the contact fields exist in the Rapid Pro workspace.
-    existing_contact_fields = [f.key for f in rapid_pro.get_fields()]
+    existing_contact_field_keys = [f.key for f in rapid_pro.get_fields()]
     contact_fields_to_sync = [dataset_config.rapid_pro_contact_field for dataset_config in sync_config.normal_datasets]
     for contact_field in contact_fields_to_sync:
-        if contact_field not in existing_contact_fields:
-            rapid_pro.create_field(contact_field)
+        if contact_field.key not in existing_contact_field_keys:
+            rapid_pro.create_field(contact_field.label, contact_field.key)
 
     # Sync each participant to Rapid Pro.
     for i, (participant_uuid, datasets) in enumerate(participants.items()):
@@ -67,12 +67,12 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
             # Only overwrite this contact field if there is data to write or it's ok to clear a field.
             if len(message_strings) > 0:
                 if sync_config.write_mode == WriteModes.SHOW_PRESENCE:
-                    contact_fields[dataset_config.rapid_pro_contact_field] = _PRESENCE_VALUE
+                    contact_fields[dataset_config.rapid_pro_contact_field.key] = _PRESENCE_VALUE
                 else:
                     assert sync_config.write_mode == WriteModes.CONCATENATE_TEXTS
-                    contact_fields[dataset_config.rapid_pro_contact_field] = "; ".join(message_strings)
+                    contact_fields[dataset_config.rapid_pro_contact_field.key] = "; ".join(message_strings)
             elif sync_config.allow_clearing_fields:
-                contact_fields[dataset_config.rapid_pro_contact_field] = ""
+                contact_fields[dataset_config.rapid_pro_contact_field.key] = ""
 
         # TODO: Detect and update consent status
 

@@ -10,9 +10,15 @@ class WriteModes:
 
 
 @dataclass
+class ContactField:
+    key: str
+    label: str
+
+
+@dataclass
 class DatasetConfiguration:
     engagement_db_datasets: [str]
-    rapid_pro_contact_field: str
+    rapid_pro_contact_field: ContactField
 
 
 @dataclass

@@ -8,7 +8,7 @@ from src.common.configuration import RapidProClientConfiguration, CodaClientConf
 from src.engagement_db_to_coda.configuration import CodaSyncConfiguration, CodaDatasetConfiguration, \
     CodeSchemeConfiguration
 from src.engagement_db_to_rapid_pro.configuration import EngagementDBToRapidProConfiguration, DatasetConfiguration, \
-    WriteModes
+    WriteModes, ContactField
 from src.pipeline_configuration_spec import PipelineConfiguration, RapidProSource, CodaConfiguration, RapidProTarget
 from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 
@@ -85,10 +85,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             # Note this performs continuous sync of all datasets for the purpose of testing.
             # In practice, we'd only want to continuously sync consent_withdrawn.
             normal_datasets=[
-                DatasetConfiguration(engagement_db_datasets=["gender"], rapid_pro_contact_field="gender"),
-                DatasetConfiguration(engagement_db_datasets=["location"], rapid_pro_contact_field="location"),
-                DatasetConfiguration(engagement_db_datasets=["age"], rapid_pro_contact_field="age"),
-                DatasetConfiguration(engagement_db_datasets=["s01e01"], rapid_pro_contact_field="s01e01")
+                DatasetConfiguration(engagement_db_datasets=["gender"],   rapid_pro_contact_field=ContactField(key="gender",   label="Gender")),
+                DatasetConfiguration(engagement_db_datasets=["location"], rapid_pro_contact_field=ContactField(key="location", label="Location")),
+                DatasetConfiguration(engagement_db_datasets=["age"],      rapid_pro_contact_field=ContactField(key="age",      label="Age")),
+                DatasetConfiguration(engagement_db_datasets=["s01e01"],   rapid_pro_contact_field=ContactField(key="s01e01",   label="Test S01E01"))
             ],
             write_mode=WriteModes.SHOW_PRESENCE
         )
