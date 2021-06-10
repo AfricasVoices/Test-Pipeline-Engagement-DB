@@ -12,6 +12,7 @@ log = Logger(__name__)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Syncs data from a Rapid Pro workspace to an engagement database")
 
+    parser.add_argument("--incremental-cache-path")
     parser.add_argument("user", help="Identifier of the user launching this program")
     parser.add_argument("google_cloud_credentials_file_path", metavar="google-cloud-credentials-file-path",
                         help="Path to a Google Cloud service account credentials file to use to access the "
@@ -22,6 +23,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    incremental_cache_path = args.incremental_cache_path
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
@@ -43,5 +45,6 @@ if __name__ == "__main__":
         log.info(f"Syncing Rapid Pro source {i + 1}/{len(pipeline_config.rapid_pro_sources)}...")
         rapid_pro = rapid_pro_config.rapid_pro.init_rapid_pro_client(google_cloud_credentials_file_path)
 
-        sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_pro_config.flow_results, cache_path="cache")
+        sync_rapid_pro_to_engagement_db(
+            rapid_pro, engagement_db, uuid_table, rapid_pro_config.flow_results, incremental_cache_path)
 
