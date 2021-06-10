@@ -2,6 +2,7 @@ import json
 
 from core_data_modules.cleaners import swahili
 from core_data_modules.data_models import CodeScheme
+from temba_client.v2 import Field
 
 from src.common.configuration import RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration, \
     EngagementDatabaseClientConfiguration
@@ -90,7 +91,11 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 DatasetConfiguration(engagement_db_datasets=["age"],      rapid_pro_contact_field=ContactField(key="age",      label="Age")),
                 DatasetConfiguration(engagement_db_datasets=["s01e01"],   rapid_pro_contact_field=ContactField(key="s01e01",   label="Test S01E01"))
             ],
-            write_mode=WriteModes.SHOW_PRESENCE
+            consent_withdrawn_dataset=DatasetConfiguration(
+                engagement_db_datasets=["gender", "location", "age", "s01e01"],
+                rapid_pro_contact_field=ContactField(key="engagement_db_consent_withdrawn", label="Engagement DB Consent Withdrawn")
+            ),
+            write_mode=WriteModes.CONCATENATE_TEXTS
         )
     )
 )
