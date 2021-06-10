@@ -83,14 +83,6 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             token_file_url="gs://avf-credentials/experimental-sync-test-textit-token.txt"
         ),
         sync_config=EngagementDBToRapidProConfiguration(
-            # Note this performs continuous sync of all datasets for the purpose of testing.
-            # In practice, we'd only want to continuously sync consent_withdrawn.
-            normal_datasets=[
-                DatasetConfiguration(engagement_db_datasets=["gender"],   rapid_pro_contact_field=ContactField(key="gender",   label="Gender")),
-                DatasetConfiguration(engagement_db_datasets=["location"], rapid_pro_contact_field=ContactField(key="location", label="Location")),
-                DatasetConfiguration(engagement_db_datasets=["age"],      rapid_pro_contact_field=ContactField(key="age",      label="Age")),
-                DatasetConfiguration(engagement_db_datasets=["s01e01"],   rapid_pro_contact_field=ContactField(key="s01e01",   label="Test S01E01"))
-            ],
             consent_withdrawn_dataset=DatasetConfiguration(
                 engagement_db_datasets=["gender", "location", "age", "s01e01"],
                 rapid_pro_contact_field=ContactField(key="engagement_db_consent_withdrawn", label="Engagement DB Consent Withdrawn")
