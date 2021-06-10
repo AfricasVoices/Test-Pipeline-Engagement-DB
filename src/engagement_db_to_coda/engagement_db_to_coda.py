@@ -49,10 +49,11 @@ def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_sche
         for label in engagement_db_message.labels:
             assert label.scheme_id in valid_code_schemes_lut.keys(), \
                 f"Scheme id {label.scheme_id} not valid for Coda dataset {coda_dataset_config.coda_dataset_id}"
-            valid_codes = valid_code_schemes_lut[label.scheme_id].codes
+            code_scheme = valid_code_schemes_lut[label.scheme_id]
+            valid_codes = code_scheme.codes
             valid_code_ids = [code.code_id for code in valid_codes]
             assert label.code_id == "SPECIAL-MANUALLY_UNCODED" or label.code_id in valid_code_ids, \
-                f"Code ID {label.code_id} not found in Scheme {label.scheme_id}"
+                f"Code ID {label.code_id} not found in Scheme {code_scheme.name} (id {label.scheme_id})"
 
         coda_message.labels = engagement_db_message.labels
 
