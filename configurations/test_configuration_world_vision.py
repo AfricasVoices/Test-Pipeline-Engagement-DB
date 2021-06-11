@@ -36,6 +36,9 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             ),
             flow_results=[
                 FlowResultConfiguration("worldvision_s01e01_activation", "rqa_s01e01", "world_vision_s01e01"),
+                FlowResultConfiguration("worldvision_s01_demog", "age", "world_vision_age"),
+                FlowResultConfiguration("worldvision_s01_demog", "gender", "world_vision_gender"),
+                FlowResultConfiguration("worldvision_s01_demog", "constituency", "world_vision_location")
             ]
         )
     ],
@@ -50,6 +53,31 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("world_vision_s01e01"), auto_coder=None)
                     ],
                     ws_code_string_value="s01e01"
+                ),
+                CodaDatasetConfiguration(
+                    coda_dataset_id="WorldVision_age",
+                    engagement_db_dataset="world_vision_age",
+                    code_scheme_configurations=[
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None)
+                    ],
+                    ws_code_string_value="age"
+                ),
+                CodaDatasetConfiguration(
+                    coda_dataset_id="WorldVision_gender",
+                    engagement_db_dataset="world_vision_gender",
+                    code_scheme_configurations=[
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("gender"), auto_coder=swahili.DemographicCleaner.clean_gender)
+                    ],
+                    ws_code_string_value="gender"
+                ),
+                CodaDatasetConfiguration(
+                    coda_dataset_id="WorldVision_location",
+                    engagement_db_dataset="world_vision_location",
+                    code_scheme_configurations=[
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_constituency"), auto_coder=None),
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_county"), auto_coder=None)
+                    ],
+                    ws_code_string_value="location"
                 ),
             ],
             ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset")
