@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c025bbc821188a5863bcd1515d5509d5ee9e1d4677c7343eaa7765823e74b2f8"
+            "sha256": "24a891fa418500a480c361227d93e8296468082263f1878c801a1377e6398289"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -357,7 +357,7 @@
         "pipelineinfrastructure": {
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",
-            "ref": "7139a0ea3b0a3c7da6557fa159c8a3ee2de97796"
+            "ref": "bb273bc6ae76a00cf417dff6a9331b6ce5774a34"
         },
         "proto-plus": {
             "hashes": [
@@ -473,7 +473,7 @@
         "rapidprotools": {
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/RapidProTools",
-            "ref": "663c854b748c02ffd0097ed7ab249246ceefec67"
+            "ref": "553ae92c0d6a319a325ba8fe45fbc0b335b2d884"
         },
         "requests": {
             "hashes": [
