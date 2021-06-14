@@ -5,7 +5,7 @@ from core_data_modules.util import IOUtils
 from temba_client.v2 import Contact
 
 
-class RapidProSyncCache(object):
+class RapidProSyncCache:
     def __init__(self, cache_dir):
         """
         Initialises a Rapid Pro sync cache at the given directory.
