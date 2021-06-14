@@ -208,6 +208,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
             message_origin_details = {
                 "rapid_pro_workspace": workspace_name,
                 "run_id": run.id,
+                "flow_id": flow_id,
+                "flow_name": flow_config.flow_name,
                 "run_value": rapid_pro_result.serialize()
             }
             _ensure_engagement_db_has_message(engagement_db, msg, message_origin_details)
