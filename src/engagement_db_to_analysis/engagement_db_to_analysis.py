@@ -23,7 +23,7 @@ def get_project_messages_from_engagement_db(pipeline_config, engagement_db, enga
                                             run of this pipeline new or changed messages will be updated to these files.
     :type engagement_db_datasets_export_dir: str
     :return: engagement_db_dataset_messages_map of engagement_db_dataset to list of messages.
-    :rtype: dict
+    :rtype: dict of str -> list of Message
     """
 
     engagement_db_dataset_messages_map = {} # of engagement_db_dataset to list of messages
@@ -89,4 +89,3 @@ def filter_messages():
 #TODO: Fold messages by uid
 def fold_messages_by_uid():
     return None
-
