@@ -16,14 +16,14 @@ def serialise_message(msg):
 
     return msg
 
-def get_project_messages_from_engagement_db(pipeline_config, engagement_db, cache_path=None):
+def get_project_messages_from_engagement_db(dataset_configurations, engagement_db, cache_path=None):
     """
 
     Downloads project messages from engagement database. It performs a full download if there is no previous export and
     incrementally otherwise.
 
-    :param pipeline_config: Pipeline configuration module.
-    :type pipeline_config: PIPELINE_CONFIGURATION
+    :param pipeline_config: Dataset configuration in pipeline configuration module.
+    :type pipeline_config: pipeline_config.coda_sync.sync_config.dataset_configurations
     :param engagement_db: Engagement database to download the messages from.
     :type engagement_db: engagement_database.EngagementDatabase
     :param cache_path: Directory containing engagement_db dataset files and a timestamp generated from a previous export.
@@ -36,9 +36,9 @@ def get_project_messages_from_engagement_db(pipeline_config, engagement_db, cach
     cache = EngagementAnalysisCache(cache_path)
 
     engagement_db_dataset_messages_map = {} # of engagement_db_dataset to list of messages
-    for coda_dataset_config in pipeline_config.coda_sync.sync_config.dataset_configurations:
+    for dataset_config in dataset_configurations:
 
-        engagement_db_dataset = coda_dataset_config.engagement_db_dataset
+        engagement_db_dataset = dataset_config.engagement_db_dataset
         latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
         previous_export = cache.get_previous_export_messages(engagement_db_dataset)
 
