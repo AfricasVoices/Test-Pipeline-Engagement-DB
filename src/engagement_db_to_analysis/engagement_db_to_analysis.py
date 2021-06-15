@@ -40,19 +40,19 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
 
         engagement_db_dataset = dataset_config.engagement_db_dataset
         latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
-        previous_export = cache.get_previous_export_messages(engagement_db_dataset)
+        cache_messages = cache.get_previous_export_messages(engagement_db_dataset)
 
         messages = []
         if latest_message_timestamp is not None:
 
             log.info(f"Downloading {engagement_db_dataset} messages created after the previous run...")
-            previous_message_ids = set()
-            for msg in previous_export:
-                previous_message_ids.add(msg["message_id"])
+            cache_message_ids = set()
+            for msg in cache_messages:
+                cache_message_ids.add(msg["message_id"])
 
             new_messages_filter = lambda q: q \
                 .where("dataset", "==", engagement_db_dataset) \
-                .where("message_id", "not-in", previous_message_ids)
+                .where("message_id", "not-in", cache_message_ids)
 
             new_messages = engagement_db.get_messages(filter=new_messages_filter)
             messages.extend(serialise_message(msg) for msg in new_messages)
@@ -64,7 +64,7 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
             # 3. Remove those have been moved.
             # 4. Update those with updated msg properties e.g labels or status.
             updated_messages_filter = lambda q: q \
-                .where("message_id", "in", previous_message_ids) \
+                .where("message_id", "in", cache_message_ids) \
                 .where("last_updated", ">", latest_message_timestamp)
 
             updated_messages = engagement_db.get_messages(filter=updated_messages_filter)
@@ -82,7 +82,7 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
 
             # Retain cache messages that have not been updated in engagement db
             updated_message_ids = {msg.message_id for msg in updated_messages}
-            for msg in previous_export:
+            for msg in cache_messages:
                 if msg["message_id"] not in updated_message_ids:
                     messages.append(msg)
         else:
