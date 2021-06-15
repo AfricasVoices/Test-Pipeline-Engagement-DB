@@ -29,7 +29,7 @@ def get_project_messages_from_engagement_db(pipeline_config, engagement_db, cach
     :param cache_path: Directory containing engagement_db dataset files and a timestamp generated from a previous export.
     :type cache_path: str
     :return: engagement_db_dataset_messages_map of engagement_db_dataset to list of messages.
-    :rtype: dict of engagement_db_dataset -> list of messages
+    :rtype: dict of str -> list of Message
     """
 
     log.info(f"Initialising EngagementAnalysisCache at'{cache_path}'")
@@ -116,4 +116,3 @@ def filter_messages():
 #TODO: Fold messages by uid
 def fold_messages_by_uid():
     return None
-
