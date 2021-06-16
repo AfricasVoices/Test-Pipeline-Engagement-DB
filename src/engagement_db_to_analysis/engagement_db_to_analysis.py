@@ -39,60 +39,38 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
     for dataset_config in dataset_configurations:
 
         engagement_db_dataset = dataset_config.engagement_db_dataset
-        latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
-        cache_messages = cache.get_previous_export_messages(engagement_db_dataset)
 
         messages = []
+        latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
         if latest_message_timestamp is not None:
+            log.info(f"Performing incremental download for {engagement_db_dataset} messages...")
 
-            log.info(f"Downloading {engagement_db_dataset} messages created after the previous run...")
-            cache_message_ids = set()
-            for msg in cache_messages:
-                cache_message_ids.add(msg["message_id"])
-
-            new_messages_filter = lambda q: q \
+            incremental_messages_filter = lambda q: q \
                 .where("dataset", "==", engagement_db_dataset) \
-                .where("message_id", "not-in", cache_message_ids)
-
-            new_messages = engagement_db.get_messages(filter=new_messages_filter)
-            messages.extend(serialise_message(msg) for msg in new_messages)
-            log.debug(f"Downloaded {len(new_messages)} new messages")
-
-            log.info(f"Downloading {engagement_db_dataset} messages updated after the previous run...")
-            # 1. Download messages that have been updated after the previous run.
-            # 2. Check for messages that have been moved to a different dataset after the previous run through ws correction.
-            # 3. Remove those have been moved.
-            # 4. Update those with updated msg properties e.g labels or status.
-            updated_messages_filter = lambda q: q \
-                .where("message_id", "in", cache_message_ids) \
                 .where("last_updated", ">", latest_message_timestamp)
 
-            updated_messages = engagement_db.get_messages(filter=updated_messages_filter)
-            updated_message_count = 0
-            moved_messages_count = 0
-            for msg in updated_messages:
-                if msg.dataset != engagement_db_dataset:
-                    moved_messages_count += 1
-                    continue
-                messages.append(serialise_message(msg))
-                updated_message_count += 1
+            messages.extend(serialise_message(msg) for msg in engagement_db.get_messages(filter=incremental_messages_filter))
 
-            log.debug(f"{moved_messages_count} {engagement_db_dataset} cache message(s) moved to a different dataset")
-            log.debug(f"Updated {updated_message_count} cache message(s)")
+            # Check and remove cache messages that have been ws corrected
+            ws_corrected_messages_filter = lambda q: q \
+                .where("previous_datasets", "array_contains", engagement_db_dataset) \
+                .where("last_updated", ">", latest_message_timestamp)
 
-            # Retain cache messages that have not been updated in engagement db
-            updated_message_ids = {msg.message_id for msg in updated_messages}
+            ws_corrected_messages = engagement_db.get_messages(filter=ws_corrected_messages_filter)
+
+            cache_messages = cache.get_previous_export_messages(engagement_db_dataset)
             for msg in cache_messages:
-                if msg["message_id"] not in updated_message_ids:
-                    messages.append(msg)
+                if msg["message_id"] in {msg.message_id for msg in ws_corrected_messages}:
+                    continue
+                messages.append(msg)
+
         else:
-            log.warning(f"{engagement_db_dataset} previous export file does not exist, "
-                        f"performing a full download ...")
+            log.warning(f"Performing a full download for {engagement_db_dataset} messages...")
 
             full_download_filter = lambda q: q \
                 .where("dataset", "==", engagement_db_dataset)
 
-            messages.extend(msg.to_dict() for msg in engagement_db.get_messages(filter=full_download_filter))
+            messages.extend(serialise_message(msg) for msg in engagement_db.get_messages(filter=full_download_filter))
 
         engagement_db_dataset_messages_map[engagement_db_dataset] = messages
 
@@ -102,7 +80,8 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
                 latest_message_timestamp = isoparse(msg["last_updated"])
 
         # Export latest message timestamp to cache
-        cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
+        if latest_message_timestamp is not None:
+            cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
 
         # Export project engagement_dataset files
         cache.export_engagement_db_dataset(engagement_db_dataset, messages)
