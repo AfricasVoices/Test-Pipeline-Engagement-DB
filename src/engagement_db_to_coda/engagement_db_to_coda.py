@@ -115,7 +115,11 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
             #       in the coda dataset. This needs to be addressed before we can enter production.
             log.debug(f"WS correcting from {engagement_db_message.dataset} to {correct_dataset}")
             engagement_db_message.labels = []
+
+            if engagement_db_message.previous_datasets is None:
+                engagement_db_message.previous_datasets = []
             engagement_db_message.previous_datasets.append(engagement_db_message.dataset)
+
             engagement_db_message.dataset = correct_dataset
 
             origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
