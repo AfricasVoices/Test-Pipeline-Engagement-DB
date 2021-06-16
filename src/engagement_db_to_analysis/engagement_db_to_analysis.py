@@ -80,7 +80,7 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
                 latest_message_timestamp = isoparse(msg["last_updated"])
 
         # Export latest message timestamp to cache
-        if latest_message_timestamp is not None:
+        if latest_message_timestamp is not None or len(messages) > 0:
             cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
 
         # Export project engagement_dataset files

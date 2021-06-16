@@ -62,7 +62,6 @@ class EngagementAnalysisCache(object):
         :rtype: list
         """
         previous_export_file_path = path.join(f"{self.cache_dir}/{engagement_db_dataset}.json")
-
         with open(previous_export_file_path) as f:
             previous_export = json.load(f)
 
