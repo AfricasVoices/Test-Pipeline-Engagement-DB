@@ -12,7 +12,8 @@ log = Logger(__name__)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Syncs data from a Rapid Pro workspace to an engagement database")
 
-    parser.add_argument("--incremental-cache-path")
+    parser.add_argument("--incremental-cache-path",
+                        help="Path to a directory to use to cache results needed for incremental operation.")
     parser.add_argument("user", help="Identifier of the user launching this program")
     parser.add_argument("google_cloud_credentials_file_path", metavar="google-cloud-credentials-file-path",
                         help="Path to a Google Cloud service account credentials file to use to access the "
