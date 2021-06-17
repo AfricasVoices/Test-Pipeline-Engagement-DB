@@ -45,13 +45,14 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
         if latest_message_timestamp is not None:
             log.info(f"Performing incremental download for {engagement_db_dataset} messages...")
 
+            # Download messages that have been updated/created after the previous run
             incremental_messages_filter = lambda q: q \
                 .where("dataset", "==", engagement_db_dataset) \
                 .where("last_updated", ">", latest_message_timestamp)
 
             messages.extend(serialise_message(msg) for msg in engagement_db.get_messages(filter=incremental_messages_filter))
 
-            # Check and remove cache messages that have been ws corrected
+            # Check and remove cache messages that have been ws corrected after the previous run
             ws_corrected_messages_filter = lambda q: q \
                 .where("previous_datasets", "array_contains", engagement_db_dataset) \
                 .where("last_updated", ">", latest_message_timestamp)
@@ -74,8 +75,8 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
 
         engagement_db_dataset_messages_map[engagement_db_dataset] = messages
 
+        # Update latest_message_timestamp
         for msg in messages:
-            # Update latest_message_timestamp
             if latest_message_timestamp is None or isoparse(msg["last_updated"]) > latest_message_timestamp:
                 latest_message_timestamp = isoparse(msg["last_updated"])
 

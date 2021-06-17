@@ -9,7 +9,7 @@ from core_data_modules.util import IOUtils
 class EngagementAnalysisCache(object):
     def __init__(self, cache_dir):
         """
-        Initialises a Engagement to Analysis cache at the given directory.
+        Initialises an Engagement to Analysis cache at the given directory.
         The cache can be used to locally save/retrieve data needed to enable incremental running of a
         Engagement database-> Analysis tool.
 
@@ -32,6 +32,7 @@ class EngagementAnalysisCache(object):
         :return: Timestamp for the last updated message in cache, or None if there is no cache yet for this context.
         :rtype: datetime.datetime | None
         """
+
         try:
             with open(self._latest_message_timestamp_path(engagement_db_dataset)) as f:
                 return datetime.fromisoformat(f.read())
@@ -47,6 +48,7 @@ class EngagementAnalysisCache(object):
         :return: Latest run timestamp.
         :rtype: datetime.datetime
         """
+
         export_path = self._latest_message_timestamp_path(engagement_db_dataset)
         IOUtils.ensure_dirs_exist_for_file(export_path)
         with open(export_path, "w") as f:
@@ -61,6 +63,7 @@ class EngagementAnalysisCache(object):
         :return: list of messages
         :rtype: list
         """
+
         previous_export_file_path = path.join(f"{self.cache_dir}/{engagement_db_dataset}.json")
         with open(previous_export_file_path) as f:
             previous_export = json.load(f)
@@ -78,6 +81,5 @@ class EngagementAnalysisCache(object):
         """
 
         export_file_path = path.join(f"{self.cache_dir}/{engagement_db_dataset}.json")
-
         with open(export_file_path, 'w') as f:
             json.dump(messages, f, indent=2)
