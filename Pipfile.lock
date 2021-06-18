@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b807a8a7becd96ffef70de98012b49919bd0d011b6be0fa79262bca7087b81c0"
+            "sha256": "24a891fa418500a480c361227d93e8296468082263f1878c801a1377e6398289"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -138,6 +138,7 @@
                 "sha256:154f7889c5d679a6f626f36adb12afbd4dbb0a9a04ec575d989d6ba79c4fd65e",
                 "sha256:6d47c79b5d09fbc7e8355fd9594cc4cf65fdde5d401c63951eaac4baa1ba2ae1"
             ],
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'",
             "version": "==1.31.0"
         },
         "google-auth-httplib2": {
@@ -434,7 +435,7 @@
         "rapidprotools": {
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/RapidProTools",
-            "ref": "89ad8b57a204cfd6548308a91e71f860af67f1dc"
+            "ref": "553ae92c0d6a319a325ba8fe45fbc0b335b2d884"
         },
         "requests": {
             "hashes": [

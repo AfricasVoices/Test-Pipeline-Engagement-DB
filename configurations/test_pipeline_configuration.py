@@ -2,12 +2,15 @@ import json
 
 from core_data_modules.cleaners import swahili
 from core_data_modules.data_models import CodeScheme
+from temba_client.v2 import Field
 
 from src.common.configuration import RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration, \
     EngagementDatabaseClientConfiguration
 from src.engagement_db_to_coda.configuration import CodaSyncConfiguration, CodaDatasetConfiguration, \
     CodeSchemeConfiguration
-from src.pipeline_configuration_spec import PipelineConfiguration, RapidProSource, CodaConfiguration
+from src.engagement_db_to_rapid_pro.configuration import EngagementDBToRapidProConfiguration, DatasetConfiguration, \
+    WriteModes, ContactField
+from src.pipeline_configuration_spec import PipelineConfiguration, RapidProSource, CodaConfiguration, RapidProTarget
 from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 
 
@@ -72,6 +75,19 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 ),
             ],
             ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset")
+        )
+    ),
+    rapid_pro_target=RapidProTarget(
+        rapid_pro=RapidProClientConfiguration(
+            domain="textit.com",
+            token_file_url="gs://avf-credentials/experimental-sync-test-textit-token.txt"
+        ),
+        sync_config=EngagementDBToRapidProConfiguration(
+            consent_withdrawn_dataset=DatasetConfiguration(
+                engagement_db_datasets=["gender", "location", "age", "s01e01"],
+                rapid_pro_contact_field=ContactField(key="engagement_db_consent_withdrawn", label="Engagement DB Consent Withdrawn")
+            ),
+            write_mode=WriteModes.CONCATENATE_TEXTS
         )
     )
 )
