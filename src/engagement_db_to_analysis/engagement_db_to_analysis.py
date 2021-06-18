@@ -26,7 +26,7 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
     :type pipeline_config: pipeline_config.coda_sync.sync_config.dataset_configurations
     :param engagement_db: Engagement database to download the messages from.
     :type engagement_db: engagement_database.EngagementDatabase
-    :param cache_path: Directory containing engagement_db dataset files and a timestamp generated from a previous export.
+    :param cache_path: Directory to use for the fetch cache, containing engagement_db dataset files and a timestamp generated from a previous run.
     :type cache_path: str
     :return: engagement_db_dataset_messages_map of engagement_db_dataset to list of messages.
     :rtype: dict of str -> list of Message
