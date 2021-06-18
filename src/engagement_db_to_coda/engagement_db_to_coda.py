@@ -142,7 +142,7 @@ def _sync_next_message_to_coda(transaction, engagement_db, coda, coda_config, la
     Syncs a message from an engagement database to Coda.
 
     This method:
-     - Gets the least recently updated message that was last updated after `last_updated_since`.
+     - Gets the least recently updated message that was last updated after `last_seen_message`.
      - Writes back a coda id if the engagement db message doesn't have one yet.
      - Syncs the labels from Coda to this message if the message already exists in Coda.
      - Creates a new message in Coda if this message hasn't been seen in Coda yet.
