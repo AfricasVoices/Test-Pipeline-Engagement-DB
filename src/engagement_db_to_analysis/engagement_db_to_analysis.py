@@ -32,7 +32,7 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
     :rtype: dict of str -> list of Message
     """
 
-    log.info(f"Initialising EngagementAnalysisCache at'{cache_path}'")
+    log.info(f"Initialising EngagementAnalysisCache at '{cache_path}'")
     cache = EngagementAnalysisCache(cache_path)
 
     engagement_db_dataset_messages_map = {} # of engagement_db_dataset to list of messages
