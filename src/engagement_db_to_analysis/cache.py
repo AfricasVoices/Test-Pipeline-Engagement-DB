@@ -6,7 +6,7 @@ import json
 from core_data_modules.util import IOUtils
 
 
-class EngagementAnalysisCache(object):
+class AnalysisCache(object):
     def __init__(self, cache_dir):
         """
         Initialises an Engagement to Analysis cache at the given directory.

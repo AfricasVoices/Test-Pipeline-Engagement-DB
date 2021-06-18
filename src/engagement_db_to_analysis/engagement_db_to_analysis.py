@@ -3,7 +3,7 @@ from dateutil.parser import isoparse
 from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
 
-from src.engagement_db_to_analysis.cache import EngagementAnalysisCache
+from src.engagement_db_to_analysis.cache import AnalysisCache
 
 log = Logger(__name__)
 
@@ -33,7 +33,7 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
     """
 
     log.info(f"Initialising EngagementAnalysisCache at'{cache_path}'")
-    cache = EngagementAnalysisCache(cache_path)
+    cache = AnalysisCache(cache_path)
 
     engagement_db_dataset_messages_map = {} # of engagement_db_dataset to list of messages
     for dataset_config in dataset_configurations:
