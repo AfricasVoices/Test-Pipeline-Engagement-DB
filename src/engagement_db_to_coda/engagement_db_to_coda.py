@@ -207,7 +207,7 @@ def _sync_next_message_to_coda(transaction, engagement_db, coda, coda_config, da
     assert engagement_db_message.coda_id == SHAUtils.sha_string(engagement_db_message.text)
 
     # Look-up this message in Coda
-    coda_message = coda.get_message(dataset_config.coda_dataset_id, engagement_db_message.coda_id)
+    coda_message = coda.get_dataset_message(dataset_config.coda_dataset_id, engagement_db_message.coda_id)
 
     # If the message exists in Coda, update the database message based on the labels assigned in Coda
     if coda_message is not None:
