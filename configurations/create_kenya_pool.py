@@ -18,6 +18,7 @@ def load_code_scheme(fname):
         return CodeScheme.from_firebase_map(json.load(f))
 
 
+# TODO: Add GPSDD to pool
 PIPELINE_CONFIGURATION = PipelineConfiguration(
     pipeline_name="Create-Kenya-Pool",
     description="Creates the initial Kenya Pool from demographics responses to COVID19, COVID19-Ke-Urban, "
