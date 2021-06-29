@@ -94,6 +94,7 @@ def _get_project_messages_from_engagement_db(dataset_configurations, engagement_
     return engagement_db_dataset_messages_map
 
 def _convert_messages_to_traced_data(user, messages_map):
+    #TODO: add docsting
 
     data = []
     for engagement_db_dataset in messages_map:
@@ -109,6 +110,8 @@ def _convert_messages_to_traced_data(user, messages_map):
 
 
 def _filter_messages(user, data,  pipeline_config):
+        #TODO: add docsting
+
     # Filter out test messages sent by Test Contacts.
     if pipeline_config.filter_test_messages:
         data = MessageFilters.filter_test_messages(user, data)
