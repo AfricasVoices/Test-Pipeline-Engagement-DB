@@ -1,9 +1,18 @@
 from core_data_modules.cleaners import swahili
 
+from dateutil.parser import isoparse
+
+
 from src.pipeline_configuration_spec import *
 
 PIPELINE_CONFIGURATION = PipelineConfiguration(
     pipeline_name="engagement-db-test",
+    project_start_date = isoparse("2021-03-01T10:30:00+03:00"),
+    project_end_date = isoparse("2100-01-01T00:00:00+03:00"),
+    filter_test_messages = False,
+    test_contact_uuids = [
+        "f9158369-b985-4271-a9d6-5dd25e19e43c"
+    ],
     engagement_database=EngagementDatabaseClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
         database_path="engagement_db_experiments/experimental_test"
@@ -72,5 +81,19 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             ),
             write_mode=WriteModes.CONCATENATE_TEXTS
         )
-    )
+    ),
+    analysis_config=[
+        AnalysisConfiguration(
+            engagement_db_dataset = "s01e01",
+            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
+        ),
+        AnalysisConfiguration(
+            engagement_db_dataset = "gender",
+            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
+        ),
+        AnalysisConfiguration(
+            engagement_db_dataset = "location",
+            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
+        ),
+    ]
 )

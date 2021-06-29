@@ -128,7 +128,8 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     )
 
 
-def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_result_configs, cache_path=None):
+def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_result_configs, test_contacts,
+                                    cache_path=None):
     """
     Synchronises runs from a Rapid Pro workspace to an engagement database.
 
@@ -140,6 +141,9 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
     :param flow_result_configs: Configuration for data to sync.
     :type flow_result_configs: list of rapid_pro_to_engagement_db.FlowResultConfiguration
+    :param test_contacts: Rapid Pro contact UUIDs of test contacts.
+                            Messages from any of those test contacts will be tagged with {'test_run': True}
+    :type test_contacts: list of str
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
                        If None, runs in non-incremental mode
     :type cache_path: str | None
@@ -194,6 +198,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
             contact_urn = contact.urns[0]
             participant_uuid = _de_identify_contact_urn(contact_urn, uuid_table)
 
+            test_run = run.contact.uuid in test_contacts
+
             # Create a message and origin objects for this result and ensure it's in the engagement database.
             msg = Message(
                 participant_uuid=participant_uuid,
@@ -203,8 +209,10 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
                 channel_operator=URNCleaner.clean_operator(contact_urn),
                 status=MessageStatuses.LIVE,
                 dataset=flow_config.engagement_db_dataset,
-                labels=[]
+                labels=[],
+                test_run = test_run
             )
+
             message_origin_details = {
                 "rapid_pro_workspace": workspace_name,
                 "run_id": run.id,

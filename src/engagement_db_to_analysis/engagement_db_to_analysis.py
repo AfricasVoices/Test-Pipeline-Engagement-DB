@@ -2,21 +2,23 @@ from dateutil.parser import isoparse
 
 from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
+from core_data_modules.traced_data import TracedData, Metadata
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
+from src.engagement_db_to_analysis import MessageFilters
 
 log = Logger(__name__)
 
 
 def serialise_message(msg):
-
     msg = msg.to_dict()
-    msg["timestamp"] = TimeUtils.datetime_to_utc_iso_string(msg["timestamp"])
-    msg["last_updated"] = TimeUtils.datetime_to_utc_iso_string(msg["last_updated"])
+    msg["timestamp"] = msg["timestamp"].isoformat()
+    msg["last_updated"] = msg["last_updated"].isoformat()
 
     return msg
 
-def get_project_messages_from_engagement_db(dataset_configurations, engagement_db, cache_path=None):
+
+def _get_project_messages_from_engagement_db(dataset_configurations, engagement_db, cache_path=None):
     """
 
     Downloads project messages from engagement database. It performs a full download if there is no previous export and
@@ -35,7 +37,7 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
     log.info(f"Initialising EngagementAnalysisCache at'{cache_path}'")
     cache = AnalysisCache(cache_path)
 
-    engagement_db_dataset_messages_map = {} # of engagement_db_dataset to list of messages
+    engagement_db_dataset_messages_map = {}  # of engagement_db_dataset to list of messages
     for dataset_config in dataset_configurations:
 
         engagement_db_dataset = dataset_config.engagement_db_dataset
@@ -50,7 +52,8 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
                 .where("dataset", "==", engagement_db_dataset) \
                 .where("last_updated", ">", latest_message_timestamp)
 
-            messages.extend(serialise_message(msg) for msg in engagement_db.get_messages(filter=incremental_messages_filter))
+            messages.extend(
+                serialise_message(msg) for msg in engagement_db.get_messages(filter=incremental_messages_filter))
 
             # Check and remove cache messages that have been ws corrected after the previous run
             ws_corrected_messages_filter = lambda q: q \
@@ -71,7 +74,8 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
             full_download_filter = lambda q: q \
                 .where("dataset", "==", engagement_db_dataset)
 
-            messages.extend(serialise_message(msg) for msg in engagement_db.get_messages(filter=full_download_filter))
+            messages.extend(
+                serialise_message(msg) for msg in engagement_db.get_messages(filter=full_download_filter))
 
         engagement_db_dataset_messages_map[engagement_db_dataset] = messages
 
@@ -89,10 +93,45 @@ def get_project_messages_from_engagement_db(dataset_configurations, engagement_d
 
     return engagement_db_dataset_messages_map
 
-#TODO: Filter Messages
-def filter_messages():
-    return None
+def _convert_messages_to_traced_data(user, messages_map):
+
+    data = []
+    for engagement_db_dataset in messages_map:
+
+        engagement_db_dataset_messages = messages_map[engagement_db_dataset]
+        for msg in engagement_db_dataset_messages:
+            data.append(
+                TracedData(msg, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())))
+
+    log.info(f"Converted {len(data)} raw messages to TracedData")
+
+    return data
+
+
+def _filter_messages(user, data,  pipeline_config):
+    # Filter out test messages sent by Test Contacts.
+    if pipeline_config.filter_test_messages:
+        data = MessageFilters.filter_test_messages(user, data)
+    else:
+        log.debug("Not filtering out test messages (because the pipeline_config.filter_test_messages was set to false)")
+
+    # Filter out runs sent outwith the project start and end dates
+    data = MessageFilters.filter_time_range(user, data, pipeline_config)
+
+    return data
 
 #TODO: Fold messages by uid
-def fold_messages_by_uid():
+def _fold_messages_by_uid():
     return None
+
+def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
+
+    messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_config, engagement_db,
+                                               engagement_db_datasets_cache_dir)
+
+    data = _convert_messages_to_traced_data(user, messages_map)
+
+    data = _filter_messages(user, data, pipeline_config)
+
+    return data
+
