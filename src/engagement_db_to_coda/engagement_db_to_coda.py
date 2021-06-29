@@ -156,6 +156,8 @@ def _sync_next_message_to_coda(transaction, engagement_db, coda, coda_config, da
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_config: Coda sync configuration.
     :type coda_config: src.engagement_db_to_coda.configuration.CodaSyncConfiguration
+    :param dataset_config: Configuration for the dataset to sync.
+    :type dataset_config: src.engagement_db_to_coda.configuration.CodaDatasetConfiguration
     :param last_seen_message: Last seen message, downloaded from the database in a previous call, or None.
                               If provided, downloads the least recently updated (next) message after this one, otherwise
                               downloads the least recently updated message in the database.
