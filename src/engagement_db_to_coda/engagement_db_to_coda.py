@@ -109,9 +109,21 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
             ws_code = ws_scheme.get_code_with_code_id(label.code_id)
             correct_dataset = coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset
 
+            # Ensure this message isn't being moved to a dataset which it has previously been assigned to.
+            # This is because if the message has already been in this new dataset, there is a chance there is an
+            # infinite loop in the WS labels, which could get very expensive if we end up cycling this message through
+            # the same datasets at high frequency.
+            # If this message has been in this dataset before, crash and wait for this to be manually corrected.
+            # Note that this is a simple but heavy-handed approach to handling what should be a rare edge case.
+            # If we encounter this problem more frequently than expected, upgrade this to a more sophisticated loop
+            # detector/handler.
+            assert correct_dataset not in engagement_db_message.previous_datasets, \
+                f"Engagement db message '{engagement_db_message.message_id}' is being WS-corrected to dataset " \
+                f"'{correct_dataset}', but already has this dataset in its previous_datasets" \
+                f" ({engagement_db_message.previous_datasets}). " \
+                f"This suggests an infinite loop in the WS labels."
+
             # Clear the labels and correct the dataset (the message will sync with the new dataset on the next sync)
-            # TODO: There is a risk of creating an infinite update loop here if there is a cycle of WS-correction
-            #       in the coda dataset. This needs to be addressed before we can enter production.
             log.debug(f"WS correcting from {engagement_db_message.dataset} to {correct_dataset}")
             engagement_db_message.labels = []
             engagement_db_message.previous_datasets.append(engagement_db_message.dataset)
