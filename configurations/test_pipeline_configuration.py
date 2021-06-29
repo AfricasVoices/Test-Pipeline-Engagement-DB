@@ -1,23 +1,6 @@
-import json
-
 from core_data_modules.cleaners import swahili
-from core_data_modules.data_models import CodeScheme
-from temba_client.v2 import Field
 
-from src.common.configuration import RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration, \
-    EngagementDatabaseClientConfiguration
-from src.engagement_db_to_coda.configuration import CodaSyncConfiguration, CodaDatasetConfiguration, \
-    CodeSchemeConfiguration
-from src.engagement_db_to_rapid_pro.configuration import EngagementDBToRapidProConfiguration, DatasetConfiguration, \
-    WriteModes, ContactField
-from src.pipeline_configuration_spec import PipelineConfiguration, RapidProSource, CodaConfiguration, RapidProTarget
-from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
-
-
-def load_code_scheme(fname):
-    with open(f"code_schemes/{fname}.json") as f:
-        return CodeScheme.from_firebase_map(json.load(f))
-
+from src.pipeline_configuration_spec import *
 
 PIPELINE_CONFIGURATION = PipelineConfiguration(
     pipeline_name="engagement-db-test",
