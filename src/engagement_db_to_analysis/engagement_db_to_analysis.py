@@ -108,21 +108,6 @@ def _convert_messages_to_traced_data(user, messages_map):
 
     return data
 
-
-def _filter_messages(user, data,  pipeline_config):
-        #TODO: add docsting
-
-    # Filter out test messages sent by Test Contacts.
-    if pipeline_config.filter_test_messages:
-        data = MessageFilters.filter_test_messages(user, data)
-    else:
-        log.debug("Not filtering out test messages (because the pipeline_config.filter_test_messages was set to false)")
-
-    # Filter out runs sent outwith the project start and end dates
-    data = MessageFilters.filter_time_range(user, data, pipeline_config)
-
-    return data
-
 #TODO: Fold messages by uid
 def _fold_messages_by_uid():
     return None
@@ -132,9 +117,9 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
     messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_config, engagement_db,
                                                engagement_db_datasets_cache_dir)
 
-    data = _convert_messages_to_traced_data(user, messages_map)
+    messages_td = _convert_messages_to_traced_data(user, messages_map)
 
-    data = _filter_messages(user, data, pipeline_config)
+    messages_td = MessageFilters.filter_time_range(user, messages_td, pipeline_config)
 
-    return data
+    return messages_td
 
