@@ -5,6 +5,8 @@ from core_data_modules.util import SHAUtils, TimeUtils
 from engagement_database.data_models import HistoryEntryOrigin, MessageStatuses
 from google.cloud import firestore
 
+from src.engagement_db_to_coda.cache import CodaSyncCache
+
 log = Logger(__name__)
 
 
@@ -65,7 +67,7 @@ def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_sche
                 coda_message.labels.append(label)
 
     # Add the message to the Coda dataset.
-    coda.add_message(coda_dataset_config.coda_dataset_id, coda_message)
+    coda.add_message_to_dataset(coda_dataset_config.coda_dataset_id, coda_message)
 
 
 def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db_message, coda_message, coda_config,
@@ -107,9 +109,21 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
             ws_code = ws_scheme.get_code_with_code_id(label.code_id)
             correct_dataset = coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset
 
+            # Ensure this message isn't being moved to a dataset which it has previously been assigned to.
+            # This is because if the message has already been in this new dataset, there is a chance there is an
+            # infinite loop in the WS labels, which could get very expensive if we end up cycling this message through
+            # the same datasets at high frequency.
+            # If this message has been in this dataset before, crash and wait for this to be manually corrected.
+            # Note that this is a simple but heavy-handed approach to handling what should be a rare edge case.
+            # If we encounter this problem more frequently than expected, upgrade this to a more sophisticated loop
+            # detector/handler.
+            assert correct_dataset not in engagement_db_message.previous_datasets, \
+                f"Engagement db message '{engagement_db_message.message_id}' (text '{engagement_db_message.text}') " \
+                f"is being WS-corrected to dataset '{correct_dataset}', but already has this dataset in its " \
+                f"previous_datasets ({engagement_db_message.previous_datasets}). " \
+                f"This suggests an infinite loop in the WS labels."
+
             # Clear the labels and correct the dataset (the message will sync with the new dataset on the next sync)
-            # TODO: There is a risk of creating an infinite update loop here if there is a cycle of WS-correction
-            #       in the coda dataset. This needs to be addressed before we can enter production.
             log.debug(f"WS correcting from {engagement_db_message.dataset} to {correct_dataset}")
             engagement_db_message.labels = []
             engagement_db_message.previous_datasets.append(engagement_db_message.dataset)
@@ -138,7 +152,7 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
 
 
 @firestore.transactional
-def _sync_next_message_to_coda(transaction, engagement_db, coda, coda_config, last_seen_message):
+def _sync_next_message_to_coda(transaction, engagement_db, coda, coda_config, dataset_config, last_seen_message):
     """
     Syncs a message from an engagement database to Coda.
 
@@ -156,6 +170,8 @@ def _sync_next_message_to_coda(transaction, engagement_db, coda, coda_config, la
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_config: Coda sync configuration.
     :type coda_config: src.engagement_db_to_coda.configuration.CodaSyncConfiguration
+    :param dataset_config: Configuration for the dataset to sync.
+    :type dataset_config: src.engagement_db_to_coda.configuration.CodaDatasetConfiguration
     :param last_seen_message: Last seen message, downloaded from the database in a previous call, or None.
                               If provided, downloads the least recently updated (next) message after this one, otherwise
                               downloads the least recently updated message in the database.
@@ -167,6 +183,7 @@ def _sync_next_message_to_coda(transaction, engagement_db, coda, coda_config, la
     if last_seen_message is None:
         messages_filter = lambda q: q \
             .where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]) \
+            .where("dataset", "==", dataset_config.engagement_db_dataset) \
             .order_by("last_updated") \
             .order_by("message_id") \
             .limit(1)
@@ -174,6 +191,7 @@ def _sync_next_message_to_coda(transaction, engagement_db, coda, coda_config, la
         # Get the next message modified at or later than the `last_seen_message`, excluding the `last_seen_message`.
         messages_filter = lambda q: q \
             .where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]) \
+            .where("dataset", "==", dataset_config.engagement_db_dataset) \
             .order_by("last_updated") \
             .order_by("message_id") \
             .where("last_updated", ">=", last_seen_message.last_updated) \
@@ -201,12 +219,7 @@ def _sync_next_message_to_coda(transaction, engagement_db, coda, coda_config, la
     assert engagement_db_message.coda_id == SHAUtils.sha_string(engagement_db_message.text)
 
     # Look-up this message in Coda
-    try:
-        coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(engagement_db_message.dataset)
-    except ValueError:
-        log.warning(f"No Coda dataset found for dataset '{engagement_db_message.dataset}'")
-        return engagement_db_message
-    coda_message = coda.get_message(coda_dataset_config.coda_dataset_id, engagement_db_message.coda_id)
+    coda_message = coda.get_dataset_message(dataset_config.coda_dataset_id, engagement_db_message.coda_id)
 
     # If the message exists in Coda, update the database message based on the labels assigned in Coda
     if coda_message is not None:
@@ -216,12 +229,53 @@ def _sync_next_message_to_coda(transaction, engagement_db, coda, coda_config, la
         return engagement_db_message
 
     # The message isn't in Coda, so add it
-    _add_message_to_coda(coda, coda_dataset_config, coda_config.ws_correct_dataset_code_scheme, engagement_db_message)
+    _add_message_to_coda(coda, dataset_config, coda_config.ws_correct_dataset_code_scheme, engagement_db_message)
 
     return engagement_db_message
 
 
-def sync_engagement_db_to_coda(engagement_db, coda, coda_config):
+def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache):
+    """
+    Syncs messages from one engagement database dataset to Coda.
+
+    :param engagement_db: Engagement database to sync from.
+    :type engagement_db: engagement_database.EngagementDatabase
+    :param coda: Coda instance to sync the message to.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
+    :param coda_config: Coda sync configuration.
+    :type coda_config: src.engagement_db_to_coda.configuration.CodaSyncConfiguration
+    :param dataset_config: Configuration for the dataset to sync.
+    :type dataset_config: src.engagement_db_to_coda.configuration.CodaDatasetConfiguration
+    """
+    last_seen_message = None if cache is None else cache.get_last_seen_message(dataset_config.engagement_db_dataset)
+    synced_messages = 0
+    synced_message_ids = set()
+
+    first_run = True
+    while first_run or last_seen_message is not None:
+        first_run = False
+
+        last_seen_message = _sync_next_message_to_coda(
+            engagement_db.transaction(), engagement_db, coda, coda_config, dataset_config, last_seen_message
+        )
+
+        if last_seen_message is not None:
+            synced_messages += 1
+            synced_message_ids.add(last_seen_message.message_id)
+            if cache is not None:
+                cache.set_last_seen_message(dataset_config.engagement_db_dataset, last_seen_message)
+
+            # We can see the same message twice in a run if we need to set a coda id, labels, or do WS correction,
+            # because in these cases we'll write back to one of the retrieved documents.
+            # Log both the number of message objects processed and the number of unique message ids seen so we can
+            # monitor both.
+            log.info(f"Synced {synced_messages} message objects ({len(synced_message_ids)} unique message ids) in "
+                     f"dataset {dataset_config.engagement_db_dataset}")
+        else:
+            log.info(f"No more new messages in dataset {dataset_config.engagement_db_dataset}")
+
+
+def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None):
     """
     Syncs messages from an engagement database to Coda.
 
@@ -231,28 +285,17 @@ def sync_engagement_db_to_coda(engagement_db, coda, coda_config):
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_config: Coda sync configuration.
     :type coda_config: src.engagement_db_to_coda.configuration.CodaSyncConfiguration
+    :param cache_path: Path to a directory to use to cache results needed for incremental operation.
+                       If None, runs in non-incremental mode.
+    :type cache_path: str | None
     """
-    # TODO: Cache the last seen message so we can do incremental updates
-    last_seen_message = None
-    synced_messages = 0
-    synced_message_ids = set()
+    if cache_path is None:
+        cache = None
+        log.warning(f"No `cache_path` provided. This tool will process all relevant messages from all of time")
+    else:
+        cache = CodaSyncCache(cache_path)
 
-    first_run = True
-    while first_run or last_seen_message is not None:
-        first_run = False
-
-        # TODO: Sync by dataset rather than by database. This would reduce costs by removing the need to download
-        #       irrelevant datasets and by removing the need to clear the cache every time we add a new dataset,
-        #       as well as making this consistent with how the rapid pro and analysis scripts work.
-        last_seen_message = _sync_next_message_to_coda(
-            engagement_db.transaction(), engagement_db, coda, coda_config, last_seen_message
-        )
-
-        if last_seen_message is not None:
-            synced_messages += 1
-            synced_message_ids.add(last_seen_message.message_id)
-            # We can see the same message twice in a run if we need to set a coda id, labels ,or do WS correction,
-            # because in these cases we'll write back to one of the retrieved documents.
-            # Log both the number of message objects processed and the number of unique message ids seen so we can
-            # monitor both.
-            log.info(f"Synced {synced_messages} message objects ({len(synced_message_ids)} unique message ids)")
+    for dataset_config in coda_config.dataset_configurations:
+        log.info(f"Syncing engagement db dataset {dataset_config.engagement_db_dataset} to Coda dataset "
+                 f"{dataset_config.coda_dataset_id}...")
+        _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache)

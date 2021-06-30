@@ -12,6 +12,8 @@ log = Logger(__name__)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Syncs data from an engagement database to Coda")
 
+    parser.add_argument("--incremental-cache-path",
+                        help="Path to a directory to use to cache results needed for incremental operation.")
     parser.add_argument("user", help="Identifier of the user launching this program")
     parser.add_argument("google_cloud_credentials_file_path", metavar="google-cloud-credentials-file-path",
                         help="Path to a Google Cloud service account credentials file to use to access the "
@@ -22,6 +24,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    incremental_cache_path = args.incremental_cache_path
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
@@ -40,4 +43,4 @@ if __name__ == "__main__":
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
     coda = pipeline_config.coda_sync.coda.init_coda_client(google_cloud_credentials_file_path)
 
-    sync_engagement_db_to_coda(engagement_db, coda, pipeline_config.coda_sync.sync_config)
+    sync_engagement_db_to_coda(engagement_db, coda, pipeline_config.coda_sync.sync_config, incremental_cache_path)

@@ -45,6 +45,7 @@ class PipelineConfiguration:
     test_contact_uuids: []
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
+    description: str = None
     rapid_pro_sources: [RapidProSource] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
