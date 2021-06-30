@@ -18,14 +18,14 @@ def serialise_message(msg):
     return msg
 
 
-def _get_project_messages_from_engagement_db(dataset_configurations, engagement_db, cache_path=None):
+def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path=None):
     """
 
     Downloads project messages from engagement database. It performs a full download if there is no previous export and
     incrementally otherwise.
 
-    :param pipeline_config: Dataset configuration in pipeline configuration module.
-    :type pipeline_config: pipeline_config.coda_sync.sync_config.dataset_configurations
+    :param analysis_config: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_config: pipeline_config.analysis_config
     :param engagement_db: Engagement database to download the messages from.
     :type engagement_db: engagement_database.EngagementDatabase
     :param cache_path: Directory to use for the fetch cache, containing engagement_db dataset files and a timestamp generated from a previous run.
@@ -38,75 +38,74 @@ def _get_project_messages_from_engagement_db(dataset_configurations, engagement_
     cache = AnalysisCache(cache_path)
 
     engagement_db_dataset_messages_map = {}  # of engagement_db_dataset to list of messages
-    for dataset_config in dataset_configurations:
+    for config in analysis_configurations:
+        for engagement_db_dataset in config.engagement_db_datasets:
 
-        engagement_db_dataset = dataset_config.engagement_db_dataset
+            messages = []
+            latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
+            if latest_message_timestamp is not None:
+                log.info(f"Performing incremental download for {engagement_db_dataset} messages...")
 
-        messages = []
-        latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
-        if latest_message_timestamp is not None:
-            log.info(f"Performing incremental download for {engagement_db_dataset} messages...")
+                # Download messages that have been updated/created after the previous run
+                incremental_messages_filter = lambda q: q \
+                    .where("dataset", "==", engagement_db_dataset) \
+                    .where("last_updated", ">", latest_message_timestamp)
 
-            # Download messages that have been updated/created after the previous run
-            incremental_messages_filter = lambda q: q \
-                .where("dataset", "==", engagement_db_dataset) \
-                .where("last_updated", ">", latest_message_timestamp)
+                messages.extend(
+                    serialise_message(msg) for msg in engagement_db.get_messages(filter=incremental_messages_filter))
 
-            messages.extend(
-                serialise_message(msg) for msg in engagement_db.get_messages(filter=incremental_messages_filter))
+                # Check and remove cache messages that have been ws corrected after the previous run
+                ws_corrected_messages_filter = lambda q: q \
+                    .where("previous_datasets", "array_contains", engagement_db_dataset) \
+                    .where("last_updated", ">", latest_message_timestamp)
 
-            # Check and remove cache messages that have been ws corrected after the previous run
-            ws_corrected_messages_filter = lambda q: q \
-                .where("previous_datasets", "array_contains", engagement_db_dataset) \
-                .where("last_updated", ">", latest_message_timestamp)
+                ws_corrected_messages = engagement_db.get_messages(filter=ws_corrected_messages_filter)
 
-            ws_corrected_messages = engagement_db.get_messages(filter=ws_corrected_messages_filter)
+                cache_messages = cache.get_previous_export_messages(engagement_db_dataset)
+                for msg in cache_messages:
+                    if msg["message_id"] in {msg.message_id for msg in ws_corrected_messages}:
+                        continue
+                    messages.append(msg)
 
-            cache_messages = cache.get_previous_export_messages(engagement_db_dataset)
-            for msg in cache_messages:
-                if msg["message_id"] in {msg.message_id for msg in ws_corrected_messages}:
-                    continue
-                messages.append(msg)
+            else:
+                log.warning(f"Performing a full download for {engagement_db_dataset} messages...")
 
-        else:
-            log.warning(f"Performing a full download for {engagement_db_dataset} messages...")
+                full_download_filter = lambda q: q \
+                    .where("dataset", "==", engagement_db_dataset)
 
-            full_download_filter = lambda q: q \
-                .where("dataset", "==", engagement_db_dataset)
+                messages.extend(
+                    serialise_message(msg) for msg in engagement_db.get_messages(filter=full_download_filter))
 
-            messages.extend(
-                serialise_message(msg) for msg in engagement_db.get_messages(filter=full_download_filter))
+            engagement_db_dataset_messages_map[engagement_db_dataset] = messages
 
-        engagement_db_dataset_messages_map[engagement_db_dataset] = messages
+            # Update latest_message_timestamp
+            for msg in messages:
+                if latest_message_timestamp is None or isoparse(msg["last_updated"]) > latest_message_timestamp:
+                    latest_message_timestamp = isoparse(msg["last_updated"])
 
-        # Update latest_message_timestamp
-        for msg in messages:
-            if latest_message_timestamp is None or isoparse(msg["last_updated"]) > latest_message_timestamp:
-                latest_message_timestamp = isoparse(msg["last_updated"])
+            # Export latest message timestamp to cache
+            if latest_message_timestamp is not None or len(messages) > 0:
+                cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
 
-        # Export latest message timestamp to cache
-        if latest_message_timestamp is not None or len(messages) > 0:
-            cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
-
-        # Export project engagement_dataset files
-        cache.export_engagement_db_dataset(engagement_db_dataset, messages)
+            # Export project engagement_dataset files
+            cache.export_engagement_db_dataset(engagement_db_dataset, messages)
 
     return engagement_db_dataset_messages_map
 
 def _convert_messages_to_traced_data(user, messages_map):
     #TODO: add docsting
 
-    data = []
+    messages_td = []
     for engagement_db_dataset in messages_map:
 
         engagement_db_dataset_messages = messages_map[engagement_db_dataset]
         for msg in engagement_db_dataset_messages:
-            data.append(
+            messages_td.append(
                 TracedData(msg, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())))
 
-    log.info(f"Converted {len(data)} raw messages to TracedData")
+    log.info(f"Converted {len(messages_td)} raw messages to TracedData")
 
-    return data
+    return messages_td
 
 #TODO: Fold messages by uid
 def _fold_messages_by_uid():

@@ -61,7 +61,8 @@ class MessageFilters(object):
         rqa_engagement_db_datasets = []
         for analysis_config in pipeline_config.analysis_config:
             if analysis_config.dataset_type == "research_question_answer":
-                rqa_engagement_db_datasets.append(analysis_config.engagement_db_dataset)
+                for engagement_db_dataset in analysis_config.engagement_db_datasets:
+                    rqa_engagement_db_datasets.append(engagement_db_dataset)
 
         filtered = []
         for td in data:

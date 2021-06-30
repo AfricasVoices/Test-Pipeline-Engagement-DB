@@ -80,16 +80,16 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         )
     ),
     analysis_config=[
-        AnalysisConfiguration(
-            engagement_db_dataset = "s01e01",
+        AnalysisDatasetConfiguration(
+            engagement_db_datasets = ["s01e01"],
             dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
         ),
-        AnalysisConfiguration(
-            engagement_db_dataset = "gender",
+        AnalysisDatasetConfiguration(
+            engagement_db_datasets = ["gender"],
             dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
         ),
-        AnalysisConfiguration(
-            engagement_db_dataset = "location",
+        AnalysisDatasetConfiguration(
+            engagement_db_datasets = ["location"],
             dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
         ),
     ]
