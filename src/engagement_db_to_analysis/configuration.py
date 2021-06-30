@@ -8,6 +8,6 @@ class DatasetTypes:
 
 
 @dataclass
-class AnalysisConfiguration:
+class AnalysisDatasetConfiguration:
     engagement_db_dataset: str
     dataset_type: DatasetTypes
