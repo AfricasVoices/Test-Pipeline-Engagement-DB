@@ -118,9 +118,9 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
             # If we encounter this problem more frequently than expected, upgrade this to a more sophisticated loop
             # detector/handler.
             assert correct_dataset not in engagement_db_message.previous_datasets, \
-                f"Engagement db message '{engagement_db_message.message_id}' is being WS-corrected to dataset " \
-                f"'{correct_dataset}', but already has this dataset in its previous_datasets" \
-                f" ({engagement_db_message.previous_datasets}). " \
+                f"Engagement db message '{engagement_db_message.message_id}' (text '{engagement_db_message.text}') " \
+                f"is being WS-corrected to dataset '{correct_dataset}', but already has this dataset in its " \
+                f"previous_datasets ({engagement_db_message.previous_datasets}). " \
                 f"This suggests an infinite loop in the WS labels."
 
             # Clear the labels and correct the dataset (the message will sync with the new dataset on the next sync)
