@@ -4,6 +4,8 @@ import time
 
 from core_data_modules.traced_data import Metadata
 
+from src.pipeline_configuration_spec import *
+
 
 log = Logger(__name__)
 
@@ -60,7 +62,7 @@ class MessageFilters(object):
         # Filter a list of td for research question messages received within the given time range.
         rqa_engagement_db_datasets = []
         for analysis_config in pipeline_config.analysis_config:
-            if analysis_config.dataset_type == "research_question_answer":
+            if analysis_config.dataset_type == DatasetTypes.RESEARCH_QUESTION_ANSWER:
                 for engagement_db_dataset in analysis_config.engagement_db_datasets:
                     rqa_engagement_db_datasets.append(engagement_db_dataset)
 
