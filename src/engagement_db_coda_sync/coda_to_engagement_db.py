@@ -42,19 +42,18 @@ def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db
             engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction)
 
 
-def sync_coda_to_engagement_db(coda, engagement_db, coda_configuration):
+def sync_coda_to_engagement_db(coda, engagement_db, coda_config):
     """
+    Syncs messages from Coda to an engagement database.
 
-    :param coda:
+    :param coda: Coda instance to sync from.
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
-    :param engagement_db:
-    :type engagement_db:
-    :param coda_configuration:
-    :type coda_configuration:
-    :return:
-    :rtype:
+    :param engagement_db: Engagement database to sync to.
+    :type engagement_db: engagement_database.EngagementDatabase
+    :param coda_config: Coda sync configuration.
+    :type coda_config: src.engagement_db_to_coda.configuration.CodaSyncConfiguration
     """
-    for coda_dataset_config in coda_configuration.dataset_configurations:
+    for coda_dataset_config in coda_config.dataset_configurations:
         log.info(f"Getting messages from Coda dataset {coda_dataset_config.coda_dataset_id}...")
         # TODO: Run incrementally.
         coda_messages = coda.get_dataset_messages(coda_dataset_config.coda_dataset_id)
@@ -63,5 +62,5 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_configuration):
             log.info(f"Processing Coda message {i + 1}/{len(coda_messages)}: {coda_message.message_id}...")
             _sync_coda_message_to_engagement_db(
                 engagement_db.transaction(), coda_message, engagement_db, coda_dataset_config.engagement_db_dataset,
-                coda_configuration
+                coda_config
             )
