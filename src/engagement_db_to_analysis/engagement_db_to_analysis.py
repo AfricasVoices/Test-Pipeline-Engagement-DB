@@ -34,7 +34,7 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
     :rtype: dict of str -> list of Message
     """
 
-    log.info(f"Initialising EngagementAnalysisCache at'{cache_path}'")
+    log.info(f"Initialising EngagementAnalysisCache at '{cache_path}'")
     cache = AnalysisCache(cache_path)
 
     engagement_db_dataset_messages_map = {}  # of engagement_db_dataset to list of messages
@@ -121,4 +121,3 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
     messages_td = MessageFilters.filter_time_range(user, messages_td, pipeline_config)
 
     return messages_td
-
