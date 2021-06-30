@@ -5,7 +5,7 @@ import subprocess
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
-from src.engagement_db_to_coda.engagement_db_to_coda import sync_engagement_db_to_coda
+from src.engagement_db_coda_sync.engagement_db_to_coda import sync_engagement_db_to_coda
 
 log = Logger(__name__)
 
