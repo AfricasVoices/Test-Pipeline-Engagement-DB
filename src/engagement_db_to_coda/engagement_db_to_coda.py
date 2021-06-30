@@ -255,7 +255,8 @@ def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db
     engagement_db_messages = engagement_db.get_messages(
         filter=lambda q: q
             .where("dataset", "==", engagement_db_dataset)
-            .where("coda_id", "==", coda_message.message_id),
+            .where("coda_id", "==", coda_message.message_id)
+            .where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]),
         transaction=transaction
     )
     log.info(f"{len(engagement_db_messages)} engagement db message(s) match Coda message {coda_message.message_id}")
@@ -349,9 +350,12 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_configuration):
     """
     for coda_dataset_config in coda_configuration.dataset_configurations:
         log.info(f"Getting messages from Coda dataset {coda_dataset_config.coda_dataset_id}...")
+        # TODO: Run incrementally.
         coda_messages = coda.get_dataset_messages(coda_dataset_config.coda_dataset_id)
 
         for i, coda_message in enumerate(coda_messages):
             log.info(f"Processing Coda message {i + 1}/{len(coda_messages)}: {coda_message.message_id}...")
             _sync_coda_message_to_engagement_db(
-                engagement_db.transaction(), coda_message, engagement_db, coda_configuration, coda_dataset_config)
+                engagement_db.transaction(), coda_message, engagement_db, coda_dataset_config.engagement_db_dataset,
+                coda_configuration
+            )
