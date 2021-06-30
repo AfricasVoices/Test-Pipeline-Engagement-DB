@@ -198,8 +198,6 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
             contact_urn = contact.urns[0]
             participant_uuid = _de_identify_contact_urn(contact_urn, uuid_table)
 
-            test_run = run.contact.uuid in test_contacts
-
             # Create a message and origin objects for this result and ensure it's in the engagement database.
             msg = Message(
                 participant_uuid=participant_uuid,
@@ -210,7 +208,6 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
                 status=MessageStatuses.LIVE,
                 dataset=flow_config.engagement_db_dataset,
                 labels=[],
-                test_run = test_run
             )
 
             message_origin_details = {
