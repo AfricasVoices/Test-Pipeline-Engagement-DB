@@ -18,7 +18,7 @@ def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_sche
     :param coda: Coda instance to add the message to.
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_dataset_config: Configuration for adding the message.
-    :type coda_dataset_config: src.engagement_db_to_coda.configuration.CodaDatasetConfiguration
+    :type coda_dataset_config: src.engagement_db_coda_sync.configuration.CodaDatasetConfiguration
     :param ws_correct_dataset_code_scheme: WS Correct Dataset code scheme for the Coda dataset, used to validate any
                                            existing labels, where applicable.
     :type ws_correct_dataset_code_scheme: core_data_modules.data_models.CodeScheme
@@ -83,7 +83,7 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     :param coda_message: Coda message to use to update the engagement database message.
     :type coda_message: core_data_modules.data_models.Message
     :param coda_config: Configuration for the update.
-    :type coda_config:  src.engagement_db_to_coda.configuration.CodaSyncConfiguration
+    :type coda_config:  src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param transaction: Transaction in the engagement database to perform the update in.
     :type transaction: google.cloud.firestore.Transaction | None
     """

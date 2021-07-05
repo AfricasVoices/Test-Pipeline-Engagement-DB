@@ -27,9 +27,9 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
     :param coda: Coda instance to sync the message to.
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_config: Coda sync configuration.
-    :type coda_config: src.engagement_db_to_coda.configuration.CodaSyncConfiguration
+    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param dataset_config: Configuration for the dataset to sync.
-    :type dataset_config: src.engagement_db_to_coda.configuration.CodaDatasetConfiguration
+    :type dataset_config: src.engagement_db_coda_sync.configuration.CodaDatasetConfiguration
     :param last_seen_message: Last seen message, downloaded from the database in a previous call, or None.
                               If provided, downloads the least recently updated (next) message after this one, otherwise
                               downloads the least recently updated message in the database.
@@ -101,9 +101,9 @@ def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, datase
     :param coda: Coda instance to sync the message to.
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_config: Coda sync configuration.
-    :type coda_config: src.engagement_db_to_coda.configuration.CodaSyncConfiguration
+    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param dataset_config: Configuration for the dataset to sync.
-    :type dataset_config: src.engagement_db_to_coda.configuration.CodaDatasetConfiguration
+    :type dataset_config: src.engagement_db_coda_sync.configuration.CodaDatasetConfiguration
     """
     last_seen_message = None if cache is None else cache.get_last_seen_message(dataset_config.engagement_db_dataset)
     synced_messages = 0
@@ -142,7 +142,7 @@ def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None
     :param coda: Coda instance to sync the message to.
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_config: Coda sync configuration.
-    :type coda_config: src.engagement_db_to_coda.configuration.CodaSyncConfiguration
+    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
                        If None, runs in non-incremental mode.
     :type cache_path: str | None

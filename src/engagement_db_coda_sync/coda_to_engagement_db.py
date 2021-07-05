@@ -22,7 +22,7 @@ def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db
     :param engagement_db_dataset: Dataset in the engagement database to update.
     :type engagement_db_dataset: str
     :param coda_config: Configuration for the update.
-    :type coda_config: src.engagement_db_to_coda.configuration.CodaSyncConfiguration
+    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     """
     # Get the messages in the engagement database that match this dataset and coda message id
     engagement_db_messages = engagement_db.get_messages(
@@ -51,7 +51,7 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_config):
     :param engagement_db: Engagement database to sync to.
     :type engagement_db: engagement_database.EngagementDatabase
     :param coda_config: Coda sync configuration.
-    :type coda_config: src.engagement_db_to_coda.configuration.CodaSyncConfiguration
+    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     """
     for coda_dataset_config in coda_config.dataset_configurations:
         log.info(f"Getting messages from Coda dataset {coda_dataset_config.coda_dataset_id}...")
