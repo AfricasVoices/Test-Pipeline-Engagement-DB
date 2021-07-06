@@ -96,7 +96,7 @@ def _convert_messages_to_traced_data(user, messages_map):
     """
     Converts messages dict objects to TracedData objects.
 
-    :param user:
+    :param user: identifier of user running the pipeline.
     :type user: str
     :param messages_map: Dict containing messages data.
     :type messages_map: dict
@@ -116,9 +116,54 @@ def _convert_messages_to_traced_data(user, messages_map):
 
     return messages_td
 
-#TODO: Fold messages by uid
-def _fold_messages_by_uid():
-    return None
+def _fold_messages_by_uid(user, message_traced_data):
+    """
+    Groups Messages TracedData objects into individual TracedData objects.
+
+    :param user: identifier of user running the pipeline.
+    :type user: str
+    :param message_traced_data: Messages TracedData objects to group.
+    :type message_traced_data: list of TracedData
+    :return: individual TracedData objects.
+    :rtype: list of individual TracedData objects.
+    """
+
+    individuals_td = []
+    individuals_uids = set()  # for uid lookup
+    for message_td in message_traced_data:
+
+        participant_uuid = message_td["participant_uuid"]
+        update_key = message_td["dataset"]
+
+        # Check if we already have the participant traced data in individuals
+        if message_td["participant_uuid"] in individuals_uids:
+
+            # if it exists
+            # update the existing individual traced data with the message_td
+            for ind_td in individuals_td:
+                if ind_td["participant_uuid"] == participant_uuid:
+                    if update_key in ind_td.keys():
+                        ind_td[update_key].append(message_td)
+                    else:
+                        ind_td.append_data({update_key:[message_td.serialize()]},
+                                           Metadata(user,
+                                                    Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+        else:
+
+            # if it does not exists
+            # 1. create an individual traced data for this uid
+            ind_dict = {"participant_uuid": participant_uuid}
+            ind_td = TracedData(ind_dict, Metadata(user,
+                                                   Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+
+            # 2. update the individual traced data with the message_td
+            ind_td.append_data({update_key: [message_td.serialize()]},
+                               Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+
+            individuals_td.append(ind_td)
+            individuals_uids.add(participant_uuid)
+
+    return  individuals_td
 
 def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
 
@@ -129,4 +174,6 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
 
     messages_td = Filters.filter_messages(user, messages_td, pipeline_config)
 
-    return messages_td
+    individuals_td = _fold_messages_by_uid(user, messages_td)
+
+    return individuals_td
