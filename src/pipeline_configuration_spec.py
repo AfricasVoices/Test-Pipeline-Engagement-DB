@@ -42,6 +42,7 @@ class PipelineConfiguration:
     project_start_date: str
     project_end_date: str
     filter_test_messages: bool
+    test_participant_uids: []
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
     description: str = None

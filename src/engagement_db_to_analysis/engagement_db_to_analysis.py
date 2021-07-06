@@ -176,4 +176,6 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
 
     individuals_td = _fold_messages_by_uid(user, messages_td)
 
+    individuals_td = Filters.filter_individuals(user, individuals_td, pipeline_config)
+
     return individuals_td

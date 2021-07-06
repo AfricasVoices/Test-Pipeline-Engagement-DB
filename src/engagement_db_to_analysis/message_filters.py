@@ -57,11 +57,47 @@ class Filters(object):
 
         return filtered
 
+    @classmethod
+    def filter_test_individuals(cls, user, individual_traced_data, test_contacts):
+        """
+        Filters a list of individuals who are not in pipeline_config.test_contacts e.g AVF/Aggregator staff
+
+        :param individual_traced_data: List of TracedData individuals objects to filter.
+        :type individual_traced_data: list of TracedData
+        :param test_contacts: a list containing test participant uids.
+        :type test_contacts: list of str
+        :return: Filtered list.
+        :rtype: list of TracedData
+        """
+        log.debug("Filtering out test messages...")
+        filtered = []
+        for ind_td in individual_traced_data:
+            if ind_td["participant_uuid"] in test_contacts:
+                continue
+
+            ind_td.append_data(ind_td, Metadata(user, Metadata.get_call_location(), time.time()))
+            filtered.append(ind_td)
+
+        log.info(f"Filtered out test messages. "
+                 f"Returning {len(filtered)}/{len(individual_traced_data)} messages.")
+        return filtered
+
 
     @classmethod
-    def filter_messages(cls, user, data, pipeline_config):
+    def filter_messages(cls, user, messages_data, pipeline_config):
 
         # Filter out runs sent outwith the project start and end dates
-        messages_data = cls.rqa_time_range_filter(user, data, pipeline_config)
+        messages_data = cls.rqa_time_range_filter(user, messages_data, pipeline_config)
 
         return messages_data
+
+    @classmethod
+    def filter_individuals(cls, user, individuals_data, pipeline_config):
+        # Filter out test messages sent by Test Contacts.
+        if pipeline_config.filter_test_messages:
+            individuals_data = cls.filter_test_individuals(user, individuals_data, pipeline_config.test_participant_uids)
+        else:
+            log.debug(
+                "Not filtering out test messages (because the pipeline_config.filter_test_messages was set to false)")
+
+        return individuals_data
