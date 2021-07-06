@@ -11,34 +11,10 @@ log = Logger(__name__)
 
 
 # TODO: Move to Core.
-class MessageFilters(object):
+class Filters(object):
 
-    @staticmethod
-    def filter_test_messages(user, data, test_run_key="test_run"):
-        """
-        Filters a list of td for messages which aren't tagged as being test messages.
-        
-        :param data: List of TracedData message objects to filter.
-        :type data: list of TracedData
-        :param test_run_key: Key in each TracedData of the test message tag.
-                             TracedData objects td where td.get(test_run_key) == True are dropped.
-        :type test_run_key: str
-        :return: Filtered list.
-        :rtype: list of TracedData
-        """
-        log.debug("Filtering out test messages...")
-        filtered = []
-        for td in data:
-            if not td.get(test_run_key, False):
-                td.append_data(td, Metadata(user, Metadata.get_call_location(), time.time()))
-                filtered.append(td)
-
-        log.info(f"Filtered out test messages. "
-                 f"Returning {len(filtered)}/{len(data)} messages.")
-        return filtered
-
-    @staticmethod
-    def filter_time_range(user, data, pipeline_config):
+    @classmethod
+    def rqa_time_range_filter(cls, user, data, pipeline_config):
         """
         Filters a list of td for research question messages received within the given time range.
 
@@ -80,3 +56,12 @@ class MessageFilters(object):
                  f"Returning {len(filtered)}/{len(data)} messages.")
 
         return filtered
+
+
+    @classmethod
+    def filter_messages(cls, user, data, pipeline_config):
+
+        # Filter out runs sent outwith the project start and end dates
+        messages_data = cls.rqa_time_range_filter(user, data, pipeline_config)
+
+        return messages_data

@@ -1,1 +1,1 @@
-from .message_filters import MessageFilters
+from .message_filters import Filters

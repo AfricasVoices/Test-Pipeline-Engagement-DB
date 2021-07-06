@@ -5,7 +5,7 @@ from core_data_modules.util import TimeUtils
 from core_data_modules.traced_data import TracedData, Metadata
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
-from src.engagement_db_to_analysis import MessageFilters
+from src.engagement_db_to_analysis import Filters
 
 log = Logger(__name__)
 
@@ -93,7 +93,16 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
     return engagement_db_dataset_messages_map
 
 def _convert_messages_to_traced_data(user, messages_map):
-    #TODO: add docsting
+    """
+    Converts messages dict objects to TracedData objects.
+
+    :param user:
+    :type user: str
+    :param messages_map: Dict containing messages data.
+    :type messages_map: dict
+    :return: A list of Traced data message objects.
+    :type: list of Traced data
+    """
 
     messages_td = []
     for engagement_db_dataset in messages_map:
@@ -118,6 +127,6 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
 
     messages_td = _convert_messages_to_traced_data(user, messages_map)
 
-    messages_td = MessageFilters.filter_time_range(user, messages_td, pipeline_config)
+    messages_td = Filters.filter_messages(user, messages_td, pipeline_config)
 
     return messages_td
