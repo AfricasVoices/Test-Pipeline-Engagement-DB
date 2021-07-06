@@ -101,12 +101,12 @@
         "codav2pythonclient": {
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/CodaV2PythonClient",
-            "ref": "bd2f52e69a43ab1a523dd177c78ef1a0d0ac1ccc"
+            "ref": "c59797196d66ffb0c6dac754cd56426ff0ac8def"
         },
         "coredatamodules": {
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/CoreDataModules",
-            "ref": "dfa6b52af748bbb232424c3ee524d7a3ec3c454f"
+            "ref": "8d8ecfd265d164b27a0af64c69a85e589216cbce"
         },
         "firebase-admin": {
             "hashes": [
