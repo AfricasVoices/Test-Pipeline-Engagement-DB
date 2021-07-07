@@ -9,7 +9,7 @@ from src.engagement_db_coda_sync.configuration import CodaSyncConfiguration, Cod
     CodeSchemeConfiguration
 from src.engagement_db_to_rapid_pro.configuration import EngagementDBToRapidProConfiguration, DatasetConfiguration, \
     WriteModes, ContactField
-from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
+from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration, RapidProToEngagementDBConfiguration
 
 
 def load_code_scheme(fname):
@@ -20,7 +20,7 @@ def load_code_scheme(fname):
 @dataclass
 class RapidProSource:
     rapid_pro: RapidProClientConfiguration
-    flow_results: [FlowResultConfiguration]
+    sync_config: RapidProToEngagementDBConfiguration
 
 
 @dataclass
