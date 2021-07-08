@@ -13,6 +13,7 @@ from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 
 from src.engagement_db_to_analysis.configuration import AnalysisDatasetConfiguration, DatasetTypes
 
+
 def load_code_scheme(fname):
     with open(f"code_schemes/{fname}.json") as f:
         return CodeScheme.from_firebase_map(json.load(f))
