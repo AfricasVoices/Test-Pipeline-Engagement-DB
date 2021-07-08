@@ -57,7 +57,6 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None
                        If None, runs in non-incremental mode.
     :type cache_path: str | None
     """
-    cache_path = "cache"
     if cache_path is None:
         cache = None
         log.warning(f"No `cache_path` provided. This tool will process all relevant Coda messages from all of time")
