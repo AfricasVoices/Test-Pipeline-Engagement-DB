@@ -5,11 +5,11 @@ from core_data_modules.util import TimeUtils
 from core_data_modules.traced_data import TracedData, Metadata
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
-from src.engagement_db_to_analysis import Filters
+from src.engagement_db_to_analysis.traced_data_filters import filter_messages, filter_individuals
 
 log = Logger(__name__)
 
-
+# Todo move to Pipeline Infrastructure
 def serialise_message(msg):
     msg = msg.to_dict()
     msg["timestamp"] = msg["timestamp"].isoformat()
@@ -18,7 +18,7 @@ def serialise_message(msg):
     return msg
 
 
-def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path=None):
+def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path):
     """
 
     Downloads project messages from engagement database. It performs a full download if there is no previous export and
@@ -80,8 +80,9 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
 
             # Update latest_message_timestamp
             for msg in messages:
-                if latest_message_timestamp is None or isoparse(msg["last_updated"]) > latest_message_timestamp:
-                    latest_message_timestamp = isoparse(msg["last_updated"])
+                msg_last_updated = isoparse(msg["last_updated"])
+                if latest_message_timestamp is None or msg_last_updated > latest_message_timestamp:
+                    latest_message_timestamp = msg_last_updated
 
             # Export latest message timestamp to cache
             if latest_message_timestamp is not None or len(messages) > 0:
@@ -172,10 +173,10 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
 
     messages_td = _convert_messages_to_traced_data(user, messages_map)
 
-    messages_td = Filters.filter_messages(user, messages_td, pipeline_config)
+    messages_td = filter_messages(user, messages_td, pipeline_config)
 
     individuals_td = _fold_messages_by_uid(user, messages_td)
 
-    individuals_td = Filters.filter_individuals(user, individuals_td, pipeline_config)
+    individuals_td = filter_individuals(user, individuals_td, pipeline_config)
 
     return individuals_td
