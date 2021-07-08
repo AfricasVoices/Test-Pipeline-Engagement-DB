@@ -1,0 +1,161 @@
+from core_data_modules.logging import Logger
+from core_data_modules.util import SHAUtils
+from engagement_database.data_models import MessageStatuses, HistoryEntryOrigin
+from google.cloud import firestore
+
+from src.engagement_db_coda_sync.cache import CodaSyncCache
+from src.engagement_db_coda_sync.lib import _update_engagement_db_message_from_coda_message, _add_message_to_coda
+
+log = Logger(__name__)
+
+
+@firestore.transactional
+def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, coda_config, dataset_config, last_seen_message):
+    """
+    Syncs a message from an engagement database to Coda.
+
+    This method:
+     - Gets the least recently updated message that was last updated after `last_seen_message`.
+     - Writes back a coda id if the engagement db message doesn't have one yet.
+     - Syncs the labels from Coda to this message if the message already exists in Coda.
+     - Creates a new message in Coda if this message hasn't been seen in Coda yet.
+
+    :param transaction: Transaction in the engagement database to perform the update in.
+    :type transaction: google.cloud.firestore.Transaction
+    :param engagement_db: Engagement database to sync from.
+    :type engagement_db: engagement_database.EngagementDatabase
+    :param coda: Coda instance to sync the message to.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
+    :param coda_config: Coda sync configuration.
+    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    :param dataset_config: Configuration for the dataset to sync.
+    :type dataset_config: src.engagement_db_coda_sync.configuration.CodaDatasetConfiguration
+    :param last_seen_message: Last seen message, downloaded from the database in a previous call, or None.
+                              If provided, downloads the least recently updated (next) message after this one, otherwise
+                              downloads the least recently updated message in the database.
+    :type last_seen_message: engagement_database.data_models.Message | None
+    :return: The engagement database message that was synced.
+             If there was no new message to sync, returns None.
+    :rtype: engagement_database.data_models.Message | None
+    """
+    if last_seen_message is None:
+        messages_filter = lambda q: q \
+            .where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]) \
+            .where("dataset", "==", dataset_config.engagement_db_dataset) \
+            .order_by("last_updated") \
+            .order_by("message_id") \
+            .limit(1)
+    else:
+        # Get the next message modified at or later than the `last_seen_message`, excluding the `last_seen_message`.
+        messages_filter = lambda q: q \
+            .where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]) \
+            .where("dataset", "==", dataset_config.engagement_db_dataset) \
+            .order_by("last_updated") \
+            .order_by("message_id") \
+            .where("last_updated", ">=", last_seen_message.last_updated) \
+            .start_after({"last_updated": last_seen_message.last_updated, "message_id": last_seen_message.message_id}) \
+            .limit(1)
+
+    next_message_results = engagement_db.get_messages(filter=messages_filter, transaction=transaction)
+
+    if len(next_message_results) == 0:
+        return None
+    else:
+        engagement_db_message = next_message_results[0]
+
+    log.info(f"Syncing message {engagement_db_message.message_id}...")
+
+    # Ensure the message has a valid coda id. If it doesn't have one yet, write one back to the database.
+    if engagement_db_message.coda_id is None:
+        log.debug("Creating coda id")
+        engagement_db_message.coda_id = SHAUtils.sha_string(engagement_db_message.text)
+        engagement_db.set_message(
+            message=engagement_db_message,
+            origin=HistoryEntryOrigin(origin_name="Set coda_id", details={}),
+            transaction=transaction
+        )
+    assert engagement_db_message.coda_id == SHAUtils.sha_string(engagement_db_message.text)
+
+    # Look-up this message in Coda
+    coda_message = coda.get_dataset_message(dataset_config.coda_dataset_id, engagement_db_message.coda_id)
+
+    # If the message exists in Coda, update the database message based on the labels assigned in Coda
+    if coda_message is not None:
+        log.debug("Message already exists in Coda")
+        _update_engagement_db_message_from_coda_message(engagement_db, engagement_db_message, coda_message, coda_config,
+                                                        transaction=transaction)
+        return engagement_db_message
+
+    # The message isn't in Coda, so add it
+    _add_message_to_coda(coda, dataset_config, coda_config.ws_correct_dataset_code_scheme, engagement_db_message)
+
+    return engagement_db_message
+
+
+def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache):
+    """
+    Syncs messages from one engagement database dataset to Coda.
+
+    :param engagement_db: Engagement database to sync from.
+    :type engagement_db: engagement_database.EngagementDatabase
+    :param coda: Coda instance to sync the message to.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
+    :param coda_config: Coda sync configuration.
+    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    :param dataset_config: Configuration for the dataset to sync.
+    :type dataset_config: src.engagement_db_coda_sync.configuration.CodaDatasetConfiguration
+    """
+    last_seen_message = None if cache is None else cache.get_last_seen_message(dataset_config.engagement_db_dataset)
+    synced_messages = 0
+    synced_message_ids = set()
+
+    first_run = True
+    while first_run or last_seen_message is not None:
+        first_run = False
+
+        last_seen_message = _sync_next_engagement_db_message_to_coda(
+            engagement_db.transaction(), engagement_db, coda, coda_config, dataset_config, last_seen_message
+        )
+
+        if last_seen_message is not None:
+            synced_messages += 1
+            synced_message_ids.add(last_seen_message.message_id)
+            if cache is not None:
+                cache.set_last_seen_message(dataset_config.engagement_db_dataset, last_seen_message)
+
+            # We can see the same message twice in a run if we need to set a coda id, labels, or do WS correction,
+            # because in these cases we'll write back to one of the retrieved documents.
+            # Log both the number of message objects processed and the number of unique message ids seen so we can
+            # monitor both.
+            log.info(f"Synced {synced_messages} message objects ({len(synced_message_ids)} unique message ids) in "
+                     f"dataset {dataset_config.engagement_db_dataset}")
+        else:
+            log.info(f"No more new messages in dataset {dataset_config.engagement_db_dataset}")
+
+
+def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None):
+    """
+    Syncs messages from an engagement database to Coda.
+
+    :param engagement_db: Engagement database to sync from.
+    :type engagement_db: engagement_database.EngagementDatabase
+    :param coda: Coda instance to sync the message to.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
+    :param coda_config: Coda sync configuration.
+    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    :param cache_path: Path to a directory to use to cache results needed for incremental operation.
+                       If None, runs in non-incremental mode.
+    :type cache_path: str | None
+    """
+    if cache_path is None:
+        cache = None
+        log.warning(f"No `cache_path` provided. This tool will process all relevant messages from all of time")
+    else:
+        cache = CodaSyncCache(cache_path)
+
+    for dataset_config in coda_config.dataset_configurations:
+        log.info(f"Syncing engagement db dataset {dataset_config.engagement_db_dataset} to Coda dataset "
+                 f"{dataset_config.coda_dataset_id}...")
+        _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache)
+
+
