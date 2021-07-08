@@ -1,3 +1,4 @@
+from core_data_modules.util import TimeUtils
 from dateutil.parser import isoparse
 import time
 
@@ -30,7 +31,7 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
     end_time_inclusive = pipeline_config.project_end_date
 
     log.debug(f"Filtering out research question messages sent outside the project time range "
-              f"{start_time_inclusive.isoformat()} to {end_time_inclusive.isoformat()}...")
+              f"{start_time_inclusive} to {end_time_inclusive}...")
 
     # Filter a list of td for research question messages received within the given time range.
     rqa_engagement_db_datasets = []
@@ -42,14 +43,17 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
     filtered = []
     for td in messages_traced_data:
         if td["dataset"] in rqa_engagement_db_datasets:
-            if start_time_inclusive <= isoparse(td["timestamp"]) < end_time_inclusive:
-                td.append_data(td, Metadata(user, Metadata.get_call_location(), time.time()))
-                filtered.append(td)
+            if start_time_inclusive is not None and isoparse(td["timestamp"]) < start_time_inclusive:
+                continue
+            if end_time_inclusive is not None and isoparse(td["timestamp"]) > end_time_inclusive:
+                continue
+            td.append_data(td, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+            filtered.append(td)
         else:
             filtered.append(td)
 
     log.info(f"Filtered out messages sent outside the time range "
-             f"{start_time_inclusive.isoformat()} to {end_time_inclusive.isoformat()}. "
+             f"{start_time_inclusive} to {end_time_inclusive}. "
              f"Returning {len(filtered)}/{len(messages_traced_data)} messages.")
 
     return filtered
