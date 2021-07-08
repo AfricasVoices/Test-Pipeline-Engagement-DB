@@ -8,6 +8,10 @@ def load_code_scheme(fname):
         return CodeScheme.from_firebase_map(json.load(f))
 
 
+# TODO: Regenerate this file based on the latest Kenya pool opt-ins before entering production.
+rapid_pro_uuid_filter = UuidFilter(uuid_file_url="gs://avf-project-datasets/Test/2021/Kenya-Pool/opt_in_uuids.json")
+
+
 # TODO: Add GPSDD to pool
 PIPELINE_CONFIGURATION = PipelineConfiguration(
     pipeline_name="Create-Kenya-Pool",
@@ -38,7 +42,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     FlowResultConfiguration("undp_kenya_s01_demog", "constituency", "kenya_pool_location"),
                     FlowResultConfiguration("undp_kenya_s01_demog", "gender", "kenya_pool_gender"),
                     FlowResultConfiguration("undp_kenya_s01_demog", "age", "kenya_pool_age")
-                ]
+                ],
+                uuid_filter=rapid_pro_uuid_filter
             )
         ),
         RapidProSource(
