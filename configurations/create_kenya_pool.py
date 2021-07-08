@@ -56,7 +56,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     FlowResultConfiguration("covid19_s01_demog", "constituency", "kenya_pool_location"),
                     FlowResultConfiguration("covid19_s01_demog", "gender", "kenya_pool_gender"),
                     FlowResultConfiguration("covid19_s01_demog", "age", "kenya_pool_age"),
-                ]
+                ],
+                uuid_filter=rapid_pro_uuid_filter
             )
         ),
         RapidProSource(
@@ -69,7 +70,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     FlowResultConfiguration("unicef_covid19_ke_s01_demog", "constituency", "kenya_pool_location"),
                     FlowResultConfiguration("unicef_covid19_ke_s01_demog", "gender", "kenya_pool_gender"),
                     FlowResultConfiguration("unicef_covid19_ke_s01_demog", "age", "kenya_pool_age"),
-                ]
+                ],
+                uuid_filter=rapid_pro_uuid_filter
             )
         ),
         RapidProSource(
@@ -83,7 +85,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     FlowResultConfiguration("oxfam_wash_s01_demog", "gender", "kenya_pool_gender"),
                     FlowResultConfiguration("oxfam_wash_s01_demog", "age", "kenya_pool_age"),
                     FlowResultConfiguration("oxfam_wash_s01_demog", "disabled", "kenya_pool_disabled"),
-                ]
+                ],
+                uuid_filter=rapid_pro_uuid_filter
             )
         ),
         RapidProSource(
@@ -96,7 +99,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     FlowResultConfiguration("worldvision_s01_demog", "constituency", "kenya_pool_location"),
                     FlowResultConfiguration("worldvision_s01_demog", "gender", "kenya_pool_gender"),
                     FlowResultConfiguration("worldvision_s01_demog", "age", "kenya_pool_age"),
-                ]
+                ],
+                uuid_filter=rapid_pro_uuid_filter
             )
         )
     ],
