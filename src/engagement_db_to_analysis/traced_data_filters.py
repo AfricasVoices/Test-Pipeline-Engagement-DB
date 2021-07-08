@@ -54,6 +54,7 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
 
     return filtered
 
+
 def filter_test_individuals(user, individual_traced_data, test_contacts):
     """
     Filters a list of individuals who are not in pipeline_config.test_contacts e.g AVF/Aggregator staff

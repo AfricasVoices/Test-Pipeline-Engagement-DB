@@ -7,6 +7,7 @@ from core_data_modules.traced_data import TracedData, Metadata
 from src.engagement_db_to_analysis.cache import AnalysisCache
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages, filter_individuals
 
+
 log = Logger(__name__)
 
 # Todo move to Pipeline Infrastructure
