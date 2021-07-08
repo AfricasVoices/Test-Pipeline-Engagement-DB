@@ -3,7 +3,7 @@ import importlib
 
 from core_data_modules.logging import Logger
 
-from src.engagement_db_to_analysis.engagement_db_to_analysis import get_project_messages_from_engagement_db
+from src.engagement_db_to_analysis.engagement_db_to_analysis import generate_analysis_files
 
 
 log = Logger(__name__)
@@ -34,5 +34,5 @@ if __name__ == "__main__":
     uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
 
-    data = get_project_messages_from_engagement_db(pipeline_config.coda_sync.sync_config.dataset_configurations,
-                                                   engagement_db, engagement_db_datasets_cache_dir)
+    generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir)
+

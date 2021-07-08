@@ -11,6 +11,7 @@ from src.engagement_db_to_rapid_pro.configuration import EngagementDBToRapidProC
     WriteModes, ContactField
 from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration, RapidProToEngagementDBConfiguration
 
+from src.engagement_db_to_analysis.configuration import AnalysisDatasetConfiguration, DatasetTypes
 
 def load_code_scheme(fname):
     with open(f"code_schemes/{fname}.json") as f:
@@ -38,9 +39,13 @@ class RapidProTarget:
 @dataclass
 class PipelineConfiguration:
     pipeline_name: str
+    project_start_date: str
+    project_end_date: str
+    filter_test_messages: bool
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
     description: str = None
     rapid_pro_sources: [RapidProSource] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
+    analysis_config: [AnalysisDatasetConfiguration] = None
