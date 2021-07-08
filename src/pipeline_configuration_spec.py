@@ -3,12 +3,12 @@ from dataclasses import dataclass
 
 from core_data_modules.data_models import CodeScheme
 
-from src.common.configuration import RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration, \
-    EngagementDatabaseClientConfiguration
-from src.engagement_db_coda_sync.configuration import CodaSyncConfiguration, CodaDatasetConfiguration, \
-    CodeSchemeConfiguration
-from src.engagement_db_to_rapid_pro.configuration import EngagementDBToRapidProConfiguration, DatasetConfiguration, \
-    WriteModes, ContactField
+from src.common.configuration import (RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration,
+                                      EngagementDatabaseClientConfiguration)
+from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, CodaDatasetConfiguration,
+                                                       CodeSchemeConfiguration)
+from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidProConfiguration, DatasetConfiguration,
+                                                          WriteModes, ContactField)
 from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 
 from src.engagement_db_to_analysis.configuration import AnalysisDatasetConfiguration, DatasetTypes
