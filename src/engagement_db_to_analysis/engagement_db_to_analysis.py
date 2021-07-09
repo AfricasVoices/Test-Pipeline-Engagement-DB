@@ -126,43 +126,31 @@ def _fold_messages_by_uid(user, messages_traced_data):
     :param messages_traced_data: Messages TracedData objects to group.
     :type messages_traced_data: list of TracedData
     :return: Individual TracedData objects.
-    :rtype: list of individual TracedData objects.
+    :rtype: dict of uid -> individual TracedData objects.
     """
 
-    participants_traced_data = []
-    participants_uids = set()  # for uid lookup
+    participants_traced_data = {}
     for message in messages_traced_data:
 
         participant_uuid = message["participant_uuid"]
         message_dataset = message["dataset"]
 
-        # Check if we already have the participant traced data in individuals
-        if message["participant_uuid"] in participants_uids:
+        if message["participant_uuid"] not in participants_traced_data.keys():
 
-            # if it exists
-            # update the existing individual traced data with the message_td
-            for participant in participants_traced_data:
-                if participant["participant_uuid"] == participant_uuid:
-                    if message_dataset in participant.keys():
-                        participant[message_dataset].append(message)
-                    else:
-                        participant.append_data({message_dataset:[message.serialize()]},
-                                           Metadata(user,
-                                                    Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+            participant_td = TracedData({message_dataset: [message.serialize()]}, Metadata(user,
+                                                                                           Metadata.get_call_location(),
+                                                                                           TimeUtils.utc_now_as_iso_string()))
+            participants_traced_data[participant_uuid] = participant_td
+
         else:
 
-            # if it does not exists
-            # 1. create an individual traced data for this uid
-            participant_dict = {"participant_uuid": participant_uuid}
-            participant_td = TracedData(participant_dict, Metadata(user,
-                                                   Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
-
-            # 2. update the individual traced data with the message_td
-            participant_td.append_data({message_dataset: [message.serialize()]},
-                               Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
-
-            participants_traced_data.append(participant_td)
-            participants_uids.add(participant_uuid)
+            if message_dataset in participants_traced_data[participant_uuid].keys():
+                participants_traced_data[participant_uuid][message_dataset].append(message)
+            else:
+                participants_traced_data[participant_uuid].append_data({message_dataset: [message.serialize()]},
+                                        Metadata(user,
+                                                 Metadata.get_call_location(),
+                                                 TimeUtils.utc_now_as_iso_string()))
 
     return  participants_traced_data
 
@@ -171,10 +159,10 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
     messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_config, engagement_db,
                                                engagement_db_datasets_cache_dir)
 
-    messages_td = _convert_messages_to_traced_data(user, messages_map)
+    messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
-    messages_td = filter_messages(user, messages_td, pipeline_config)
+    messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    individuals_td = _fold_messages_by_uid(user, messages_td)
+    participants_traced_data = _fold_messages_by_uid(user, messages_traced_data)
 
-    return individuals_td
+    return participants_traced_data
