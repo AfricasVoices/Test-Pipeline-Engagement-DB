@@ -209,6 +209,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 # table entry for people who didn't consent for us to continue to keep their data.
                 if not uuid_table.has_data(contact_urn) or uuid_table.data_to_uuid(contact_urn) not in valid_participant_uuids:
                     log.info("Message not from a participant uuid in specified in the uuid filter; skipping")
+                    if cache is not None:
+                        cache.set_latest_run_timestamp(flow_id, flow_config.flow_result_field, run.modified_on)
                     continue
 
             participant_uuid = uuid_table.data_to_uuid(contact_urn)
