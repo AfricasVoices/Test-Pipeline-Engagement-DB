@@ -97,7 +97,7 @@ def _convert_messages_to_traced_data(user, messages_map):
     """
     Converts messages dict objects to TracedData objects.
 
-    :param user: identifier of user running the pipeline.
+    :param user: Identifier of user running the pipeline.
     :type user: str
     :param messages_map: Dict containing messages data.
     :type messages_map: dict
