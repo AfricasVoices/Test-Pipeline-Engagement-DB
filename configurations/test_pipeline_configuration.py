@@ -26,12 +26,14 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 domain="textit.com",
                 token_file_url="gs://avf-credentials/experimental-test-text-it-token.txt"
             ),
-            flow_results=[
-                FlowResultConfiguration("test_pipeline_daniel_activation", "rqa_s01e01", "s01e01"),
-                FlowResultConfiguration("test_pipeline_daniel_demog", "constituency", "location"),
-                FlowResultConfiguration("test_pipeline_daniel_demog", "age", "age"),
-                FlowResultConfiguration("test_pipeline_daniel_demog", "gender", "gender"),
-            ]
+            sync_config=RapidProToEngagementDBConfiguration(
+                flow_result_configurations=[
+                    FlowResultConfiguration("test_pipeline_daniel_activation", "rqa_s01e01", "s01e01"),
+                    FlowResultConfiguration("test_pipeline_daniel_demog", "constituency", "location"),
+                    FlowResultConfiguration("test_pipeline_daniel_demog", "age", "age"),
+                    FlowResultConfiguration("test_pipeline_daniel_demog", "gender", "gender"),
+                ]
+            )
         )
     ],
     coda_sync=CodaConfiguration(

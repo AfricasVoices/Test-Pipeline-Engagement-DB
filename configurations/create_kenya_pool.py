@@ -1,16 +1,6 @@
-import json
-
 from core_data_modules.cleaners import swahili
-from core_data_modules.data_models import CodeScheme
 
-from src.common.configuration import RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration, \
-    EngagementDatabaseClientConfiguration
-from src.engagement_db_coda_sync.configuration import CodaSyncConfiguration, CodaDatasetConfiguration, \
-    CodeSchemeConfiguration
-from src.engagement_db_to_rapid_pro.configuration import EngagementDBToRapidProConfiguration, DatasetConfiguration, \
-    WriteModes, ContactField
-from src.pipeline_configuration_spec import PipelineConfiguration, RapidProSource, CodaConfiguration, RapidProTarget
-from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
+from src.pipeline_configuration_spec import *
 
 
 def load_code_scheme(fname):
@@ -39,60 +29,70 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 domain="textit.com",
                 token_file_url="gs://avf-credentials/covid19-2-text-it-token.txt"
             ),
-            flow_results=[
-                FlowResultConfiguration("covid19_ke_urban_s01_demog", "constituency", "kenya_pool_location"),
-                FlowResultConfiguration("covid19_ke_urban_s01_demog", "gender", "kenya_pool_gender"),
-                FlowResultConfiguration("covid19_ke_urban_s01_demog", "age", "kenya_pool_age"),
+            sync_config=RapidProToEngagementDBConfiguration(
+                flow_result_configurations=[
+                    FlowResultConfiguration("covid19_ke_urban_s01_demog", "constituency", "kenya_pool_location"),
+                    FlowResultConfiguration("covid19_ke_urban_s01_demog", "gender", "kenya_pool_gender"),
+                    FlowResultConfiguration("covid19_ke_urban_s01_demog", "age", "kenya_pool_age"),
 
-                FlowResultConfiguration("undp_kenya_s01_demog", "constituency", "kenya_pool_location"),
-                FlowResultConfiguration("undp_kenya_s01_demog", "gender", "kenya_pool_gender"),
-                FlowResultConfiguration("undp_kenya_s01_demog", "age", "kenya_pool_age")
-            ]
+                    FlowResultConfiguration("undp_kenya_s01_demog", "constituency", "kenya_pool_location"),
+                    FlowResultConfiguration("undp_kenya_s01_demog", "gender", "kenya_pool_gender"),
+                    FlowResultConfiguration("undp_kenya_s01_demog", "age", "kenya_pool_age")
+                ]
+            )
         ),
         RapidProSource(
             rapid_pro=RapidProClientConfiguration(
                 domain="textit.com",
                 token_file_url="gs://avf-credentials/covid19-text-it-token.txt"
             ),
-            flow_results=[
-                FlowResultConfiguration("covid19_s01_demog", "constituency", "kenya_pool_location"),
-                FlowResultConfiguration("covid19_s01_demog", "gender", "kenya_pool_gender"),
-                FlowResultConfiguration("covid19_s01_demog", "age", "kenya_pool_age"),
-            ]
+            sync_config=RapidProToEngagementDBConfiguration(
+                flow_result_configurations=[
+                    FlowResultConfiguration("covid19_s01_demog", "constituency", "kenya_pool_location"),
+                    FlowResultConfiguration("covid19_s01_demog", "gender", "kenya_pool_gender"),
+                    FlowResultConfiguration("covid19_s01_demog", "age", "kenya_pool_age"),
+                ]
+            )
         ),
         RapidProSource(
             rapid_pro=RapidProClientConfiguration(
                 domain="textit.com",
                 token_file_url="gs://avf-credentials/unicef-kenya-textit-token.txt"
             ),
-            flow_results=[
-                FlowResultConfiguration("unicef_covid19_ke_s01_demog", "constituency", "kenya_pool_location"),
-                FlowResultConfiguration("unicef_covid19_ke_s01_demog", "gender", "kenya_pool_gender"),
-                FlowResultConfiguration("unicef_covid19_ke_s01_demog", "age", "kenya_pool_age"),
-            ]
+            sync_config=RapidProToEngagementDBConfiguration(
+                flow_result_configurations=[
+                    FlowResultConfiguration("unicef_covid19_ke_s01_demog", "constituency", "kenya_pool_location"),
+                    FlowResultConfiguration("unicef_covid19_ke_s01_demog", "gender", "kenya_pool_gender"),
+                    FlowResultConfiguration("unicef_covid19_ke_s01_demog", "age", "kenya_pool_age"),
+                ]
+            )
         ),
         RapidProSource(
             rapid_pro=RapidProClientConfiguration(
                 domain="textit.com",
                 token_file_url="gs://avf-credentials/oxfam-kenya-textit-token.txt"
             ),
-            flow_results=[
-                FlowResultConfiguration("oxfam_wash_s01_demog", "constituency", "kenya_pool_location"),
-                FlowResultConfiguration("oxfam_wash_s01_demog", "gender", "kenya_pool_gender"),
-                FlowResultConfiguration("oxfam_wash_s01_demog", "age", "kenya_pool_age"),
-                FlowResultConfiguration("oxfam_wash_s01_demog", "disabled", "kenya_pool_disabled"),
-            ]
+            sync_config=RapidProToEngagementDBConfiguration(
+                flow_result_configurations=[
+                    FlowResultConfiguration("oxfam_wash_s01_demog", "constituency", "kenya_pool_location"),
+                    FlowResultConfiguration("oxfam_wash_s01_demog", "gender", "kenya_pool_gender"),
+                    FlowResultConfiguration("oxfam_wash_s01_demog", "age", "kenya_pool_age"),
+                    FlowResultConfiguration("oxfam_wash_s01_demog", "disabled", "kenya_pool_disabled"),
+                ]
+            )
         ),
         RapidProSource(
             rapid_pro=RapidProClientConfiguration(
                 domain="textit.com",
                 token_file_url="gs://avf-credentials/world-vision-textit-token.txt"
             ),
-            flow_results=[
-                FlowResultConfiguration("worldvision_s01_demog", "constituency", "kenya_pool_location"),
-                FlowResultConfiguration("worldvision_s01_demog", "gender", "kenya_pool_gender"),
-                FlowResultConfiguration("worldvision_s01_demog", "age", "kenya_pool_age"),
-            ]
+            sync_config=RapidProToEngagementDBConfiguration(
+                flow_result_configurations=[
+                    FlowResultConfiguration("worldvision_s01_demog", "constituency", "kenya_pool_location"),
+                    FlowResultConfiguration("worldvision_s01_demog", "gender", "kenya_pool_gender"),
+                    FlowResultConfiguration("worldvision_s01_demog", "age", "kenya_pool_age"),
+                ]
+            )
         )
     ],
     coda_sync=CodaConfiguration(
