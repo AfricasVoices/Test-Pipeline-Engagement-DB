@@ -8,9 +8,9 @@ from src.pipeline_configuration_spec import *
 PIPELINE_CONFIGURATION = PipelineConfiguration(
     pipeline_name="engagement-db-test",
     # TODO: store in messages and individuals_filter list of functions.
-    project_start_date = isoparse("2021-03-01T10:30:00+03:00"),
-    project_end_date = isoparse("2100-01-01T00:00:00+03:00"),
-    filter_test_messages = False,
+    project_start_date=isoparse("2021-03-01T10:30:00+03:00"),
+    project_end_date=isoparse("2100-01-01T00:00:00+03:00"),
+    filter_test_messages=False,
     engagement_database=EngagementDatabaseClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
         database_path="engagement_db_experiments/experimental_test"
@@ -26,12 +26,14 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 domain="textit.com",
                 token_file_url="gs://avf-credentials/experimental-test-text-it-token.txt"
             ),
-            flow_results=[
-                FlowResultConfiguration("test_pipeline_daniel_activation", "rqa_s01e01", "s01e01"),
-                FlowResultConfiguration("test_pipeline_daniel_demog", "constituency", "location"),
-                FlowResultConfiguration("test_pipeline_daniel_demog", "age", "age"),
-                FlowResultConfiguration("test_pipeline_daniel_demog", "gender", "gender"),
-            ]
+            sync_config=RapidProToEngagementDBConfiguration(
+                flow_result_configurations=[
+                    FlowResultConfiguration("test_pipeline_daniel_activation", "rqa_s01e01", "s01e01"),
+                    FlowResultConfiguration("test_pipeline_daniel_demog", "constituency", "location"),
+                    FlowResultConfiguration("test_pipeline_daniel_demog", "age", "age"),
+                    FlowResultConfiguration("test_pipeline_daniel_demog", "gender", "gender"),
+                ]
+            )
         )
     ],
     coda_sync=CodaConfiguration(
