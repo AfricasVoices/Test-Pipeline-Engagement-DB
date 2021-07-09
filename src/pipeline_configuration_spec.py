@@ -11,7 +11,6 @@ from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, Co
 from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidProConfiguration, DatasetConfiguration,
                                                           WriteModes, ContactField)
 from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration, RapidProToEngagementDBConfiguration
-
 from src.engagement_db_to_analysis.configuration import AnalysisDatasetConfiguration, DatasetTypes
 
 
@@ -41,11 +40,11 @@ class RapidProTarget:
 @dataclass
 class PipelineConfiguration:
     pipeline_name: str
-    project_start_date: datetime
-    project_end_date: datetime
-    filter_test_messages: bool
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
+    project_start_date: datetime = None
+    project_end_date: datetime = None
+    filter_test_messages: bool = None
     description: str = None
     rapid_pro_sources: [RapidProSource] = None
     coda_sync: CodaConfiguration = None
