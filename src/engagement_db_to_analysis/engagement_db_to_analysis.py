@@ -119,7 +119,7 @@ def _convert_messages_to_traced_data(user, messages_map):
 
 def _fold_messages_by_uid(user, messages_traced_data):
     """
-    Groups Messages TracedData objects into individual TracedData objects.
+    Groups Messages TracedData objects into Individual TracedData objects.
 
     :param user: Identifier of user running the pipeline.
     :type user: str
