@@ -30,8 +30,17 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
     # Exclusive end time of the time range to keep. Messages sent after this time will be dropped.
     end_time_inclusive = pipeline_config.project_end_date
 
-    log.debug(f"Filtering out research question messages sent outside the project time range "
-              f"{start_time_inclusive} to {end_time_inclusive}...")
+    if start_time_inclusive is None and end_time_inclusive is None:
+        log.info("No time range filters specified, returning input data unchanged")
+        return messages_traced_data
+
+    time_range_log = ""
+    if start_time_inclusive is not None:
+        time_range_log += f", modified on or after {start_time_inclusive.isoformat()}"
+    if end_time_inclusive is not None:
+        time_range_log += f", modified on or before {end_time_inclusive.isoformat()}"
+
+    log.debug(f"Filtering out research question messages{time_range_log}...")
 
     # Filter a list of td for research question messages received within the given time range.
     rqa_engagement_db_datasets = []
@@ -52,8 +61,7 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
         else:
             filtered.append(td)
 
-    log.info(f"Filtered out messages sent outside the time range "
-             f"{start_time_inclusive} to {end_time_inclusive}. "
+    log.info(f"Filtered out messages{time_range_log}. "
              f"Returning {len(filtered)}/{len(messages_traced_data)} messages.")
 
     return filtered
