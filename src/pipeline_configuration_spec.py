@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from datetime import datetime
 
 from core_data_modules.data_models import CodeScheme
 
@@ -40,8 +41,8 @@ class RapidProTarget:
 @dataclass
 class PipelineConfiguration:
     pipeline_name: str
-    project_start_date: str
-    project_end_date: str
+    project_start_date: datetime
+    project_end_date: datetime
     filter_test_messages: bool
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
