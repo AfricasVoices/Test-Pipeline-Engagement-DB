@@ -1,17 +1,19 @@
 import json
 from dataclasses import dataclass
+from datetime import datetime
 
 from core_data_modules.data_models import CodeScheme
 
-from src.common.configuration import RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration, \
-    EngagementDatabaseClientConfiguration
-from src.engagement_db_coda_sync.configuration import CodaSyncConfiguration, CodaDatasetConfiguration, \
-    CodeSchemeConfiguration
-from src.engagement_db_to_rapid_pro.configuration import EngagementDBToRapidProConfiguration, DatasetConfiguration, \
-    WriteModes, ContactField
+from src.common.configuration import (RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration,
+                                      EngagementDatabaseClientConfiguration)
+from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, CodaDatasetConfiguration,
+                                                       CodeSchemeConfiguration)
+from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidProConfiguration, DatasetConfiguration,
+                                                          WriteModes, ContactField)
 from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration, RapidProToEngagementDBConfiguration
 
 from src.engagement_db_to_analysis.configuration import AnalysisDatasetConfiguration, DatasetTypes
+
 
 def load_code_scheme(fname):
     with open(f"code_schemes/{fname}.json") as f:
@@ -39,8 +41,8 @@ class RapidProTarget:
 @dataclass
 class PipelineConfiguration:
     pipeline_name: str
-    project_start_date: str
-    project_end_date: str
+    project_start_date: datetime
+    project_end_date: datetime
     filter_test_messages: bool
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
