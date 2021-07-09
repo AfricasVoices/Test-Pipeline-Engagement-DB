@@ -1,6 +1,5 @@
 import json
 from dataclasses import dataclass
-from typing import Optional
 
 from core_data_modules.data_models import CodeScheme
 
