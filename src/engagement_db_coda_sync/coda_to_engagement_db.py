@@ -2,6 +2,7 @@ from core_data_modules.logging import Logger
 from engagement_database.data_models import MessageStatuses
 from google.cloud import firestore
 
+from src.engagement_db_coda_sync.cache import CodaSyncCache
 from src.engagement_db_coda_sync.lib import _update_engagement_db_message_from_coda_message
 
 log = Logger(__name__)
@@ -42,7 +43,7 @@ def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db
             engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction)
 
 
-def sync_coda_to_engagement_db(coda, engagement_db, coda_config):
+def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None):
     """
     Syncs messages from Coda to an engagement database.
 
@@ -52,11 +53,22 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_config):
     :type engagement_db: engagement_database.EngagementDatabase
     :param coda_config: Coda sync configuration.
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    :param cache_path: Path to a directory to use to cache results needed for incremental operation.
+                       If None, runs in non-incremental mode.
+    :type cache_path: str | None
     """
+    if cache_path is None:
+        cache = None
+        log.warning(f"No `cache_path` provided. This tool will process all relevant Coda messages from all of time")
+    else:
+        cache = CodaSyncCache(cache_path)
+
     for coda_dataset_config in coda_config.dataset_configurations:
         log.info(f"Getting messages from Coda dataset {coda_dataset_config.coda_dataset_id}...")
-        # TODO: Run incrementally.
-        coda_messages = coda.get_dataset_messages(coda_dataset_config.coda_dataset_id)
+        coda_messages = coda.get_dataset_messages(
+            coda_dataset_config.coda_dataset_id,
+            last_updated_after=None if cache is None else cache.get_last_updated_timestamp(coda_dataset_config.coda_dataset_id)
+        )
 
         for i, coda_message in enumerate(coda_messages):
             log.info(f"Processing Coda message {i + 1}/{len(coda_messages)}: {coda_message.message_id}...")
@@ -64,3 +76,8 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_config):
                 engagement_db.transaction(), coda_message, engagement_db, coda_dataset_config.engagement_db_dataset,
                 coda_config
             )
+
+        seen_timestamps = [msg.last_updated for msg in coda_messages if msg.last_updated is not None]
+        if cache is not None and len(seen_timestamps) > 0:
+            most_recently_updated_timestamp = sorted(seen_timestamps)[-1]
+            cache.set_last_updated_timestamp(coda_dataset_config.coda_dataset_id, most_recently_updated_timestamp)
