@@ -108,14 +108,14 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         coda=CodaClientConfiguration(credentials_file_url="gs://avf-credentials/coda-staging.json"),
         sync_config=CodaSyncConfiguration(
             dataset_configurations=[
-                CodaDatasetConfiguration(
-                    coda_dataset_id="Kenya_Pool_disabled",
-                    engagement_db_dataset="kenya_pool_disabled",
-                    code_scheme_configurations=[
-                        CodeSchemeConfiguration(code_scheme=load_code_scheme("disabled"), auto_coder=None)  # TODO
-                    ],
-                    ws_code_string_value="disabled"
-                ),
+                # CodaDatasetConfiguration(
+                #     coda_dataset_id="Kenya_Pool_disabled",
+                #     engagement_db_dataset="kenya_pool_disabled",
+                #     code_scheme_configurations=[
+                #         CodeSchemeConfiguration(code_scheme=load_code_scheme("disabled"), auto_coder=None)  # TODO
+                #     ],
+                #     ws_code_string_value="disabled"
+                # ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="TEST_location",
                     engagement_db_dataset="location",
@@ -125,22 +125,22 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     ],
                     ws_code_string_value="location"
                 ),
-                CodaDatasetConfiguration(
-                    coda_dataset_id="Kenya_Pool_gender",
-                    engagement_db_dataset="kenya_pool_gender",
-                    code_scheme_configurations=[
-                        CodeSchemeConfiguration(code_scheme=load_code_scheme("gender"), auto_coder=swahili.DemographicCleaner.clean_gender)
-                    ],
-                    ws_code_string_value="gender"
-                ),
-                CodaDatasetConfiguration(
-                    coda_dataset_id="Kenya_Pool_age",
-                    engagement_db_dataset="kenya_pool_age",
-                    code_scheme_configurations=[
-                        # CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None)  # TODO
-                    ],
-                    ws_code_string_value="age"
-                )
+                # CodaDatasetConfiguration(
+                #     coda_dataset_id="Kenya_Pool_gender",
+                #     engagement_db_dataset="kenya_pool_gender",
+                #     code_scheme_configurations=[
+                #         CodeSchemeConfiguration(code_scheme=load_code_scheme("gender"), auto_coder=swahili.DemographicCleaner.clean_gender)
+                #     ],
+                #     ws_code_string_value="gender"
+                # ),
+                # CodaDatasetConfiguration(
+                #     coda_dataset_id="Kenya_Pool_age",
+                #     engagement_db_dataset="kenya_pool_age",
+                #     code_scheme_configurations=[
+                #         # CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None)  # TODO
+                #     ],
+                #     ws_code_string_value="age"
+                # )
             ],
             ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset")
         )

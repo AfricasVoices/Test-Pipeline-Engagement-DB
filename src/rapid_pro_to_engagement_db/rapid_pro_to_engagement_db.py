@@ -208,7 +208,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 # and in the valid uuids. The check for presence in the uuid table is to ensure we don't add a uuid
                 # table entry for people who didn't consent for us to continue to keep their data.
                 if not uuid_table.has_data(contact_urn):
-                    log.info("A uuid filter was specified and the message is not from a participant in the "
+                    log.info("A uuid filter was specified but the message is not from a participant in the "
                              "uuid_table; skipping")
                     if cache is not None:
                         cache.set_latest_run_timestamp(flow_id, flow_config.flow_result_field, run.modified_on)
