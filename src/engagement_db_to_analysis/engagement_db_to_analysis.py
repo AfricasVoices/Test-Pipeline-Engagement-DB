@@ -145,13 +145,18 @@ def _fold_messages_by_uid(user, messages_traced_data):
         else:
 
             if message_dataset in participants_traced_data[participant_uuid].keys():
-                participants_traced_data[participant_uuid][message_dataset].append(message)
+                message_dataset_map = participants_traced_data[participant_uuid].get(message_dataset)
+                message_dataset_map_copy = message_dataset_map.copy()
+                message_dataset_map_copy.append(message.serialize())
+
+                participants_traced_data[participant_uuid].append_data({message_dataset: message_dataset_map_copy},
+                                                                       Metadata(user, Metadata.get_call_location(),
+                                                                                TimeUtils.utc_now_as_iso_string()))
             else:
                 participants_traced_data[participant_uuid].append_data({message_dataset: [message.serialize()]},
                                         Metadata(user,
                                                  Metadata.get_call_location(),
                                                  TimeUtils.utc_now_as_iso_string()))
-
     return  participants_traced_data
 
 def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
