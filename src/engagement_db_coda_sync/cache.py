@@ -45,3 +45,19 @@ class CodaSyncCache:
         IOUtils.ensure_dirs_exist_for_file(export_path)
         with open(export_path, "w") as f:
             f.write(self.message_to_json(message))
+
+    def _last_updated_timestamp_path(self, dataset):
+        return f"{self.cache_dir}/last-updated-timestamp-{dataset}.txt"
+
+    def get_last_updated_timestamp(self, dataset):
+        try:
+            with open(self._last_updated_timestamp_path(dataset)) as f:
+                return datetime.fromisoformat(f.read())
+        except FileNotFoundError:
+            return None
+
+    def set_last_updated_timestamp(self, dataset, last_updated_timestamp):
+        export_path = self._last_updated_timestamp_path(dataset)
+        IOUtils.ensure_dirs_exist_for_file(export_path)
+        with open(export_path, "w") as f:
+            f.write(last_updated_timestamp.isoformat())

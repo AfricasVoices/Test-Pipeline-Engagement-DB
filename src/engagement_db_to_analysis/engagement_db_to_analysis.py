@@ -98,7 +98,7 @@ def _convert_messages_to_traced_data(user, messages_map):
     """
     Converts messages dict objects to TracedData objects.
 
-    :param user: identifier of user running the pipeline.
+    :param user: Identifier of user running the pipeline.
     :type user: str
     :param messages_map: Dict containing messages data.
     :type messages_map: dict
@@ -106,78 +106,69 @@ def _convert_messages_to_traced_data(user, messages_map):
     :type: list of Traced data
     """
 
-    messages_td = []
+    messages_traced_data = []
     for engagement_db_dataset in messages_map:
 
         engagement_db_dataset_messages = messages_map[engagement_db_dataset]
         for msg in engagement_db_dataset_messages:
-            messages_td.append(
+            messages_traced_data.append(
                 TracedData(msg, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())))
 
-    log.info(f"Converted {len(messages_td)} raw messages to TracedData")
+    log.info(f"Converted {len(messages_traced_data)} raw messages to TracedData")
 
-    return messages_td
+    return messages_traced_data
 
-def _fold_messages_by_uid(user, message_traced_data):
+def _fold_messages_by_uid(user, messages_traced_data):
     """
-    Groups Messages TracedData objects into individual TracedData objects.
+    Groups Messages TracedData objects into Individual TracedData objects.
 
-    :param user: identifier of user running the pipeline.
+    :param user: Identifier of user running the pipeline.
     :type user: str
-    :param message_traced_data: Messages TracedData objects to group.
-    :type message_traced_data: list of TracedData
-    :return: individual TracedData objects.
-    :rtype: list of individual TracedData objects.
+    :param messages_traced_data: Messages TracedData objects to group.
+    :type messages_traced_data: list of TracedData
+    :return: Individual TracedData objects.
+    :rtype: dict of uid -> individual TracedData objects.
     """
 
-    individuals_td = []
-    individuals_uids = set()  # for uid lookup
-    for message_td in message_traced_data:
+    participants_traced_data_map = {}
+    for message in messages_traced_data:
+        participant_uuid = message["participant_uuid"]
+        message_dataset = message["dataset"]
 
-        participant_uuid = message_td["participant_uuid"]
-        update_key = message_td["dataset"]
+        if message["participant_uuid"] not in participants_traced_data_map.keys():
 
-        # Check if we already have the participant traced data in individuals
-        if message_td["participant_uuid"] in individuals_uids:
+            participant_td = TracedData({message_dataset: [message.serialize()]},
+                                        Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+            participants_traced_data_map[participant_uuid] = participant_td
 
-            # if it exists
-            # update the existing individual traced data with the message_td
-            for ind_td in individuals_td:
-                if ind_td["participant_uuid"] == participant_uuid:
-                    if update_key in ind_td.keys():
-                        ind_td[update_key].append(message_td)
-                    else:
-                        ind_td.append_data({update_key:[message_td.serialize()]},
-                                           Metadata(user,
-                                                    Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
         else:
 
-            # if it does not exists
-            # 1. create an individual traced data for this uid
-            ind_dict = {"participant_uuid": participant_uuid}
-            ind_td = TracedData(ind_dict, Metadata(user,
-                                                   Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+            if message_dataset in participants_traced_data_map[participant_uuid].keys():
+                message_dataset_map = participants_traced_data_map[participant_uuid].get(message_dataset)
+                message_dataset_map_copy = message_dataset_map.copy()
+                message_dataset_map_copy.append(message.serialize())
 
-            # 2. update the individual traced data with the message_td
-            ind_td.append_data({update_key: [message_td.serialize()]},
-                               Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
-
-            individuals_td.append(ind_td)
-            individuals_uids.add(participant_uuid)
-
-    return  individuals_td
+                participants_traced_data_map[participant_uuid].append_data({message_dataset: message_dataset_map_copy},
+                                                                       Metadata(user, Metadata.get_call_location(),
+                                                                                TimeUtils.utc_now_as_iso_string()))
+            else:
+                participants_traced_data_map[participant_uuid].append_data({message_dataset: [message.serialize()]},
+                                        Metadata(user,
+                                                 Metadata.get_call_location(),
+                                                 TimeUtils.utc_now_as_iso_string()))
+    return  participants_traced_data_map
 
 def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
 
     messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_config, engagement_db,
                                                engagement_db_datasets_cache_dir)
 
-    messages_td = _convert_messages_to_traced_data(user, messages_map)
+    messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
-    messages_td = filter_messages(user, messages_td, pipeline_config)
+    messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    individuals_td = _fold_messages_by_uid(user, messages_td)
+    participants_traced_data_map = _fold_messages_by_uid(user, messages_traced_data)
 
-    individuals_td = filter_individuals(user, individuals_td, pipeline_config)
+    participants_traced_data_map = filter_individuals(user, participants_traced_data_map, pipeline_config)
 
-    return individuals_td
+    return participants_traced_data_map

@@ -128,8 +128,7 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     )
 
 
-def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_result_configs, test_contacts,
-                                    cache_path=None):
+def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_pro_config, cache_path=None):
     """
     Synchronises runs from a Rapid Pro workspace to an engagement database.
 
@@ -139,11 +138,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to de-identify contact urns.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
-    :param flow_result_configs: Configuration for data to sync.
-    :type flow_result_configs: list of rapid_pro_to_engagement_db.FlowResultConfiguration
-    :param test_contacts: Rapid Pro contact UUIDs of test contacts.
-                            Messages from any of those test contacts will be tagged with {'test_run': True}
-    :type test_contacts: list of str
+    :param rapid_pro_config: Configuration for the sync.
+    :type rapid_pro_config: src.rapid_pro_to_engagement_db.configuration.RapidProToEngagementDBConfiguration
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
                        If None, runs in non-incremental mode
     :type cache_path: str | None
@@ -165,7 +161,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
     # (If the cache or a contacts file for this workspace don't exist, `contacts` will be `None` for now)
     contacts = _get_contacts_from_cache(cache)
 
-    for flow_config in flow_result_configs:
+    for flow_config in rapid_pro_config.flow_result_configurations:
         # Get the latest runs for this flow.
         flow_id = rapid_pro.get_flow_id(flow_config.flow_name)
         runs = _get_new_runs(rapid_pro, flow_id, flow_config.flow_result_field, cache)
@@ -207,9 +203,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, flow_r
                 channel_operator=URNCleaner.clean_operator(contact_urn),
                 status=MessageStatuses.LIVE,
                 dataset=flow_config.engagement_db_dataset,
-                labels=[],
+                labels=[]
             )
-
             message_origin_details = {
                 "rapid_pro_workspace": workspace_name,
                 "run_id": run.id,
