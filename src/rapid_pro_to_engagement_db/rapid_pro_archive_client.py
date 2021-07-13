@@ -52,6 +52,9 @@ class RapidProArchiveClient:
         return flow_runs
 
     def update_raw_contacts_with_latest_modified(self, prev_raw_contacts=None, raw_export_log_file=None):
+        # Note: This function contains unused arguments because it's re-implementing the same interface as,
+        # RapidProClient, where they are used. These arguments don't make sense when reading from archives though,
+        # so silently ignoring them.
         log.info(f"Loading contacts from archives...")
         with open(f"{self.archive_dir}/contacts.jsonl") as f:
             contacts = [Contact.deserialize(json.loads(d)) for d in f]
