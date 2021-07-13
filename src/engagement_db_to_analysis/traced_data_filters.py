@@ -27,7 +27,7 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
     # Inclusive start time of the time range to keep. Messages sent before this time will be dropped.
     start_time_inclusive = pipeline_config.project_start_date
 
-    # Exclusive end time of the time range to keep. Messages sent after this time will be dropped.
+    # Inclusive end time of the time range to keep. Messages sent after this time will be dropped.
     end_time_inclusive = pipeline_config.project_end_date
 
     if start_time_inclusive is None and end_time_inclusive is None:
