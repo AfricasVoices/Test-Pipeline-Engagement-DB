@@ -136,9 +136,8 @@ def _fold_messages_by_uid(user, messages_traced_data):
 
         if message["participant_uuid"] not in participants_traced_data_map.keys():
 
-            participant_td = TracedData({message_dataset: [message.serialize()]}, Metadata(user,
-                                                                                           Metadata.get_call_location(),
-                                                                                           TimeUtils.utc_now_as_iso_string()))
+            participant_td = TracedData({message_dataset: [message.serialize()]},
+                                        Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
             participants_traced_data_map[participant_uuid] = participant_td
 
         else:
