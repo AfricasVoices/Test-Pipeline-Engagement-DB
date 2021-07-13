@@ -129,35 +129,35 @@ def _fold_messages_by_uid(user, messages_traced_data):
     :rtype: dict of uid -> individual TracedData objects.
     """
 
-    participants_traced_data = {}
+    participants_traced_data_map = {}
     for message in messages_traced_data:
 
         participant_uuid = message["participant_uuid"]
         message_dataset = message["dataset"]
 
-        if message["participant_uuid"] not in participants_traced_data.keys():
+        if message["participant_uuid"] not in participants_traced_data_map.keys():
 
             participant_td = TracedData({message_dataset: [message.serialize()]}, Metadata(user,
                                                                                            Metadata.get_call_location(),
                                                                                            TimeUtils.utc_now_as_iso_string()))
-            participants_traced_data[participant_uuid] = participant_td
+            participants_traced_data_map[participant_uuid] = participant_td
 
         else:
 
-            if message_dataset in participants_traced_data[participant_uuid].keys():
-                message_dataset_map = participants_traced_data[participant_uuid].get(message_dataset)
+            if message_dataset in participants_traced_data_map[participant_uuid].keys():
+                message_dataset_map = participants_traced_data_map[participant_uuid].get(message_dataset)
                 message_dataset_map_copy = message_dataset_map.copy()
                 message_dataset_map_copy.append(message.serialize())
 
-                participants_traced_data[participant_uuid].append_data({message_dataset: message_dataset_map_copy},
+                participants_traced_data_map[participant_uuid].append_data({message_dataset: message_dataset_map_copy},
                                                                        Metadata(user, Metadata.get_call_location(),
                                                                                 TimeUtils.utc_now_as_iso_string()))
             else:
-                participants_traced_data[participant_uuid].append_data({message_dataset: [message.serialize()]},
+                participants_traced_data_map[participant_uuid].append_data({message_dataset: [message.serialize()]},
                                         Metadata(user,
                                                  Metadata.get_call_location(),
                                                  TimeUtils.utc_now_as_iso_string()))
-    return  participants_traced_data
+    return  participants_traced_data_map
 
 def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
 
@@ -168,6 +168,6 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    participants_traced_data = _fold_messages_by_uid(user, messages_traced_data)
+    participants_traced_data_map = _fold_messages_by_uid(user, messages_traced_data)
 
-    return participants_traced_data
+    return participants_traced_data_map
