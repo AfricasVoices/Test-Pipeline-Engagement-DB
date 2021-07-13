@@ -66,28 +66,29 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
     return filtered
 
 
-def filter_test_individuals(user, individual_traced_data, test_contacts):
+def filter_test_participants(user, participants_traced_data_map, test_contacts):
     """
-    Filters a list of individuals who are not in pipeline_config.test_contacts e.g AVF/Aggregator staff
+    Filters a dict of participants who are not in pipeline_config.test_contacts e.g AVF/Aggregator staff
 
-    :param individual_traced_data: List of TracedData individuals objects to filter.
-    :type individual_traced_data: list of TracedData
+    :param participants_traced_data_map: A dict of TracedData individuals objects to filter.
+    :type participants_traced_data_map: dict of TracedData
     :param test_contacts: a list containing test participant uids.
     :type test_contacts: list of str
-    :return: Filtered list.
-    :rtype: list of TracedData
+    :return: Filtered dict.
+    :rtype: dict of participant_uid -> TracedData
     """
     log.debug("Filtering out test messages...")
-    filtered = []
-    for ind_td in individual_traced_data:
-        if ind_td["participant_uuid"] in test_contacts:
+    filtered = {}
+
+    for uid, trace_data in participants_traced_data_map.items():
+        if uid in test_contacts:
             continue
 
-        ind_td.append_data(ind_td, Metadata(user, Metadata.get_call_location(), time.time()))
-        filtered.append(ind_td)
+        trace_data.append_data(trace_data, Metadata(user, Metadata.get_call_location(), time.time()))
+        filtered[uid] = trace_data
 
     log.info(f"Filtered out test messages. "
-             f"Returning {len(filtered)}/{len(individual_traced_data)} messages.")
+             f"Returning {len(filtered)}/{len(participants_traced_data_map)} messages.")
     return filtered
 
 
@@ -99,12 +100,12 @@ def filter_messages(user, messages_data, pipeline_config):
     return messages_data
 
 
-def filter_individuals(user, individuals_data, pipeline_config):
+def filter_participants(user, participants_traced_data_map, pipeline_config):
     # Filter out test messages sent by Test Contacts.
     if pipeline_config.filter_test_messages:
-        individuals_data = filter_test_individuals(user, individuals_data, pipeline_config.test_participant_uids)
+        participants_traced_data_map = filter_test_participants(user, participants_traced_data_map, pipeline_config.test_participant_uids)
     else:
         log.debug(
             "Not filtering out test messages (because the pipeline_config.filter_test_messages was set to false)")
 
-    return individuals_data
+    return participants_traced_data_map
