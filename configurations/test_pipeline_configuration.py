@@ -10,7 +10,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     # TODO: store in messages and individuals_filter list of functions.
     project_start_date = isoparse("2021-03-01T10:30:00+03:00"),
     project_end_date = isoparse("2100-01-01T00:00:00+03:00"),
-    filter_test_messages = False,
+    filter_test_participants = False,
     test_participant_uids = [
         "avf-participant-uuid-51c15546-58a0-4ab1-b465-e65b71462a8f"
     ],
