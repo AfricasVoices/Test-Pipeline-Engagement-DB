@@ -100,16 +100,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         sync_config=CodaSyncConfiguration(
             dataset_configurations=[
                 CodaDatasetConfiguration(
-                    coda_dataset_id="Kenya_Pool_disabled",
-                    engagement_db_dataset="kenya_pool_disabled",
-                    code_scheme_configurations=[
-                        CodeSchemeConfiguration(code_scheme=load_code_scheme("disabled"), auto_coder=None)  # TODO
-                    ],
-                    ws_code_string_value="disabled"
-                ),
-                CodaDatasetConfiguration(
-                    coda_dataset_id="TEST_location",
-                    engagement_db_dataset="location",
+                    coda_dataset_id="Kenya_Pool_location",
+                    engagement_db_dataset="kenya_pool_location",
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_constituency"), auto_coder=None),
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_county"), auto_coder=None)
@@ -128,12 +120,20 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     coda_dataset_id="Kenya_Pool_age",
                     engagement_db_dataset="kenya_pool_age",
                     code_scheme_configurations=[
-                        # CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None)  # TODO
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None)  # TODO
                     ],
                     ws_code_string_value="age"
-                )
+                ),
+                CodaDatasetConfiguration(
+                    coda_dataset_id="Kenya_Pool_disabled",
+                    engagement_db_dataset="kenya_pool_disabled",
+                    code_scheme_configurations=[
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("disabled"), auto_coder=None)  # TODO
+                    ],
+                    ws_code_string_value="disabled"
+                ),
             ],
-            ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset")
+            ws_correct_dataset_code_scheme=load_code_scheme("kenya_pool_ws_correct_dataset")
         )
     ),
     rapid_pro_target=RapidProTarget(
