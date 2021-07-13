@@ -64,7 +64,7 @@ def _normalise_and_validate_contact_urn(contact_urn):
 
     :param contact_urn: URN to de-identify.
     :type contact_urn: str
-    :return: De-identified urn.
+    :return: Normalised contact urn.
     :rtype: str
     """
     if contact_urn.startswith("tel:"):
