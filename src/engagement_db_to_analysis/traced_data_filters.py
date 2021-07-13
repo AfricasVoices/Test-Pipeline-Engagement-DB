@@ -60,8 +60,7 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
         else:
             filtered.append(td)
 
-    log.info(f"Filtered out messages{time_range_log}. "
-             f"Returning {len(filtered)}/{len(messages_traced_data)} messages.")
+    log.info(f"Returning {len(filtered)}/{len(messages_traced_data)} messages...")
 
     return filtered
 
@@ -77,7 +76,7 @@ def filter_test_participants(user, participants_traced_data_map, test_contacts):
     :return: Filtered dict.
     :rtype: dict of participant_uid -> TracedData
     """
-    log.debug("Filtering out test messages...")
+    log.debug("Filtering out test participants data...")
     filtered = {}
 
     for uid, trace_data in participants_traced_data_map.items():
@@ -87,8 +86,7 @@ def filter_test_participants(user, participants_traced_data_map, test_contacts):
         trace_data.append_data(trace_data, Metadata(user, Metadata.get_call_location(), time.time()))
         filtered[uid] = trace_data
 
-    log.info(f"Filtered out test messages. "
-             f"Returning {len(filtered)}/{len(participants_traced_data_map)} messages.")
+    log.info(f"Returning {len(filtered)}/{len(participants_traced_data_map)} participants data...")
     return filtered
 
 
@@ -101,11 +99,11 @@ def filter_messages(user, messages_data, pipeline_config):
 
 
 def filter_participants(user, participants_traced_data_map, pipeline_config):
-    # Filter out test messages sent by Test Contacts.
-    if pipeline_config.filter_test_messages:
+
+    if pipeline_config.filter_test_participants:
         participants_traced_data_map = filter_test_participants(user, participants_traced_data_map, pipeline_config.test_participant_uids)
     else:
         log.debug(
-            "Not filtering out test messages (because the pipeline_config.filter_test_messages was set to false)")
+            "Not filtering out test participants data (because the pipeline_config.filter_test_participants was set to `False`)")
 
     return participants_traced_data_map

@@ -45,7 +45,7 @@ class PipelineConfiguration:
     uuid_table: UUIDTableClientConfiguration
     project_start_date: datetime = None
     project_end_date: datetime = None
-    filter_test_messages: bool = None
+    filter_test_participants: bool = None
     description: str = None
     rapid_pro_sources: [RapidProSource] = None
     coda_sync: CodaConfiguration = None
