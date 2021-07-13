@@ -93,6 +93,7 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
 
     return engagement_db_dataset_messages_map
 
+
 def _convert_messages_to_traced_data(user, messages_map):
     """
     Converts messages dict objects to TracedData objects.
