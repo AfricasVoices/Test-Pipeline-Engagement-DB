@@ -128,17 +128,14 @@ def _fold_messages_by_uid(user, messages_traced_data):
     :return: Individual TracedData objects.
     :rtype: dict of uid -> individual TracedData objects.
     """
-
     participants_traced_data = {}
     for message in messages_traced_data:
-
         participant_uuid = message["participant_uuid"]
         message_dataset = message["dataset"]
 
         if message["participant_uuid"] not in participants_traced_data.keys():
-
-            participant_td = TracedData({message_dataset: [message.serialize()]}, Metadata(user,
-                                                                                           Metadata.get_call_location(),
+            participant_td = TracedData({message_dataset: [message.serialize()]}, 
+                             Metadata(user, Metadata.get_call_location(),
                                                                                            TimeUtils.utc_now_as_iso_string()))
             participants_traced_data[participant_uuid] = participant_td
 
