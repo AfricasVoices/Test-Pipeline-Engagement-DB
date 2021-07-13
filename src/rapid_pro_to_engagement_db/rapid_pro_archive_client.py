@@ -40,16 +40,21 @@ class RapidProArchiveClient:
     def get_raw_runs(self, flow_id, last_modified_after_inclusive=None):
         log.info(f"Loading raw runs for flow {flow_id}, modified after {last_modified_after_inclusive}, from archives...")
         with open(f"{self.archive_dir}/runs.jsonl") as f:
-            runs = [Run.deserialize(json.loads(d)) for d in f]
+            all_runs = [Run.deserialize(json.loads(d)) for d in f]
 
-        flow_runs = [r for r in runs if r.flow.uuid == flow_id]
-        if last_modified_after_inclusive is not None:
-            flow_runs = [r for r in runs if r.modified_on >= last_modified_after_inclusive]
+        # Filter for runs that are for the requested flow and, optionally, last modified since the requested date.
+        filtered_runs = []
+        for run in all_runs:
+            if run.flow.uuid != flow_id:
+                continue
+            if last_modified_after_inclusive is not None and run.modified_on < last_modified_after_inclusive:
+                continue
+            filtered_runs.append(run)
 
-        flow_runs.sort(key=lambda r: r.modified_on)
+        filtered_runs.sort(key=lambda r: r.modified_on)
 
-        log.info(f"Returning {len(flow_runs)} runs")
-        return flow_runs
+        log.info(f"Returning {len(filtered_runs)} runs")
+        return filtered_runs
 
     def update_raw_contacts_with_latest_modified(self, prev_raw_contacts=None, raw_export_log_file=None):
         # Note: This function contains unused arguments because it's re-implementing the same interface as,
