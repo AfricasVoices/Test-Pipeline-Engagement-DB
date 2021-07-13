@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser.add_argument("--local-archive", action="append",
                         help="Configures a local archive directory to use in place of a production Rapid Pro "
                              "workspace, in the form '<gs-url>=<local-path>' "
-                             "e.g. --local-archive gs://bucket/test.json=~/test-archive. "
+                             "e.g. --local-archive gs://bucket/test.json=~/test-archive"
                              "To configure multiple local archives, pass multiple --local-archive flags")
     parser.add_argument("user", help="Identifier of the user launching this program")
     parser.add_argument("google_cloud_credentials_file_path", metavar="google-cloud-credentials-file-path",
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     incremental_cache_path = args.incremental_cache_path
-    local_archives = args.local_archive
+    local_archives = [] if args.local_archive is None else args.local_archive
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
