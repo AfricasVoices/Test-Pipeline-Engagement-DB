@@ -131,7 +131,6 @@ def _fold_messages_by_uid(user, messages_traced_data):
 
     participants_traced_data_map = {}
     for message in messages_traced_data:
-
         participant_uuid = message["participant_uuid"]
         message_dataset = message["dataset"]
 
