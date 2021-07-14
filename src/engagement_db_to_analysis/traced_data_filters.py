@@ -99,7 +99,6 @@ def filter_messages(user, messages_data, pipeline_config):
 
 
 def filter_participants(user, participants_traced_data_map, pipeline_config):
-
     if pipeline_config.filter_test_participants:
         participants_traced_data_map = filter_test_participants(user, participants_traced_data_map, pipeline_config.test_participant_uids)
     else:
