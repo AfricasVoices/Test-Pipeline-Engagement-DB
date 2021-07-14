@@ -69,5 +69,6 @@ if __name__ == "__main__":
             rapid_pro = rapid_pro_config.rapid_pro.init_rapid_pro_client(google_cloud_credentials_file_path)
 
         sync_rapid_pro_to_engagement_db(
-            rapid_pro, engagement_db, uuid_table, rapid_pro_config.sync_config, incremental_cache_path)
-
+            rapid_pro, engagement_db, uuid_table, rapid_pro_config.sync_config, google_cloud_credentials_file_path,
+            incremental_cache_path
+        )

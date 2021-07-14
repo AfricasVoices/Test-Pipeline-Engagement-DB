@@ -1,8 +1,10 @@
+import json
 from datetime import timedelta
 
 from core_data_modules.cleaners import URNCleaner
 from core_data_modules.logging import Logger
 from engagement_database.data_models import Message, MessageDirections, MessageStatuses, HistoryEntryOrigin
+from storage.google_cloud import google_cloud_utils
 
 from src.rapid_pro_to_engagement_db.cache import RapidProSyncCache
 
@@ -53,15 +55,15 @@ def _get_new_runs(rapid_pro, flow_id, flow_result_field, cache=None):
     return rapid_pro.get_raw_runs(flow_id, last_modified_after_inclusive=filter_last_modified_after)
 
 
-def _de_identify_contact_urn(contact_urn, uuid_table):
+def _normalise_and_validate_contact_urn(contact_urn):
     """
-    De-identifies the given URN using the given uuid_table.
+    Normalises and validates the given URN.
+
+    Fails with an AssertionError if the given URN is invalid.
 
     :param contact_urn: URN to de-identify.
     :type contact_urn: str
-    :param uuid_table: Uuid table to use to de-identify.
-    :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
-    :return: De-identified urn.
+    :return: Normalised contact urn.
     :rtype: str
     """
     if contact_urn.startswith("tel:"):
@@ -75,7 +77,7 @@ def _de_identify_contact_urn(contact_urn, uuid_table):
         # this #<username>
         contact_urn = contact_urn.split("#")[0]
 
-    return uuid_table.data_to_uuid(contact_urn)
+    return contact_urn
 
 
 def _engagement_db_has_message(engagement_db, message):
@@ -128,7 +130,7 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     )
 
 
-def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_pro_config, cache_path=None):
+def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_pro_config, google_cloud_credentials_file_path, cache_path=None):
     """
     Synchronises runs from a Rapid Pro workspace to an engagement database.
 
@@ -149,6 +151,13 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     # TODO: Handle deleted contacts.
     # TODO: Optimise fetching fields from the same flows, so we don't have to download the same runs multiple times.
     workspace_name = rapid_pro.get_workspace_name()
+
+    if rapid_pro_config.uuid_filter is not None:
+        valid_participant_uuids = set(json.loads(google_cloud_utils.download_blob_to_string(
+            google_cloud_credentials_file_path,
+            rapid_pro_config.uuid_filter.uuid_file_url
+        )))
+        log.info(f"Loaded {len(valid_participant_uuids)} valid contacts to filter for")
 
     if cache_path is not None:
         log.info(f"Initialising Rapid Pro sync cache at '{cache_path}/{workspace_name}'")
@@ -182,7 +191,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
             # Get the relevant result from this run, if it exists.
             rapid_pro_result = run.values.get(flow_config.flow_result_field)
             if rapid_pro_result is None:
-                log.debug("No relevant run result")
+                log.debug("No relevant run result; skipping")
                 # Update the cache so we know not to check this run again in this flow + result field context.
                 if cache is not None:
                     cache.set_latest_run_timestamp(flow_id, flow_config.flow_result_field, run.modified_on)
@@ -191,8 +200,26 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
             # De-identify the contact's full urn.
             contact = contacts_lut[run.contact.uuid]
             assert len(contact.urns) == 1, len(contact.urns)
-            contact_urn = contact.urns[0]
-            participant_uuid = _de_identify_contact_urn(contact_urn, uuid_table)
+            contact_urn = _normalise_and_validate_contact_urn(contact.urns[0])
+
+            if rapid_pro_config.uuid_filter is not None:
+                # If a uuid filter exists, then only add this message if the sender's uuid exists in the uuid table
+                # and in the valid uuids. The check for presence in the uuid table is to ensure we don't add a uuid
+                # table entry for people who didn't consent for us to continue to keep their data.
+                if not uuid_table.has_data(contact_urn):
+                    log.info("A uuid filter was specified but the message is not from a participant in the "
+                             "uuid_table; skipping")
+                    if cache is not None:
+                        cache.set_latest_run_timestamp(flow_id, flow_config.flow_result_field, run.modified_on)
+                    continue
+                if uuid_table.data_to_uuid(contact_urn) not in valid_participant_uuids:
+                    log.info("A uuid filter was specified and the message is from a participant in the "
+                             "uuid_table but is not in the uuid filter; skipping")
+                    if cache is not None:
+                        cache.set_latest_run_timestamp(flow_id, flow_config.flow_result_field, run.modified_on)
+                    continue
+
+            participant_uuid = uuid_table.data_to_uuid(contact_urn)
 
             # Create a message and origin objects for this result and ensure it's in the engagement database.
             msg = Message(
