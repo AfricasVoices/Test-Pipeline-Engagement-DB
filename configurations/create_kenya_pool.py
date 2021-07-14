@@ -8,6 +8,10 @@ def load_code_scheme(fname):
         return CodeScheme.from_firebase_map(json.load(f))
 
 
+# TODO: Regenerate this file based on the latest Kenya pool opt-ins before entering production.
+rapid_pro_uuid_filter = UuidFilter(uuid_file_url="gs://avf-project-datasets/Test/2021/Kenya-Pool/opt_in_uuids.json")
+
+
 # TODO: Add GPSDD to pool
 PIPELINE_CONFIGURATION = PipelineConfiguration(
     pipeline_name="Create-Kenya-Pool",
@@ -38,7 +42,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     FlowResultConfiguration("undp_kenya_s01_demog", "constituency", "kenya_pool_location"),
                     FlowResultConfiguration("undp_kenya_s01_demog", "gender", "kenya_pool_gender"),
                     FlowResultConfiguration("undp_kenya_s01_demog", "age", "kenya_pool_age")
-                ]
+                ],
+                uuid_filter=rapid_pro_uuid_filter
             )
         ),
         RapidProSource(
@@ -51,7 +56,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     FlowResultConfiguration("covid19_s01_demog", "constituency", "kenya_pool_location"),
                     FlowResultConfiguration("covid19_s01_demog", "gender", "kenya_pool_gender"),
                     FlowResultConfiguration("covid19_s01_demog", "age", "kenya_pool_age"),
-                ]
+                ],
+                uuid_filter=rapid_pro_uuid_filter
             )
         ),
         RapidProSource(
@@ -64,7 +70,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     FlowResultConfiguration("unicef_covid19_ke_s01_demog", "constituency", "kenya_pool_location"),
                     FlowResultConfiguration("unicef_covid19_ke_s01_demog", "gender", "kenya_pool_gender"),
                     FlowResultConfiguration("unicef_covid19_ke_s01_demog", "age", "kenya_pool_age"),
-                ]
+                ],
+                uuid_filter=rapid_pro_uuid_filter
             )
         ),
         RapidProSource(
@@ -78,7 +85,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     FlowResultConfiguration("oxfam_wash_s01_demog", "gender", "kenya_pool_gender"),
                     FlowResultConfiguration("oxfam_wash_s01_demog", "age", "kenya_pool_age"),
                     FlowResultConfiguration("oxfam_wash_s01_demog", "disabled", "kenya_pool_disabled"),
-                ]
+                ],
+                uuid_filter=rapid_pro_uuid_filter
             )
         ),
         RapidProSource(
@@ -91,7 +99,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     FlowResultConfiguration("worldvision_s01_demog", "constituency", "kenya_pool_location"),
                     FlowResultConfiguration("worldvision_s01_demog", "gender", "kenya_pool_gender"),
                     FlowResultConfiguration("worldvision_s01_demog", "age", "kenya_pool_age"),
-                ]
+                ],
+                uuid_filter=rapid_pro_uuid_filter
             )
         )
     ],
@@ -100,16 +109,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         sync_config=CodaSyncConfiguration(
             dataset_configurations=[
                 CodaDatasetConfiguration(
-                    coda_dataset_id="Kenya_Pool_disabled",
-                    engagement_db_dataset="kenya_pool_disabled",
-                    code_scheme_configurations=[
-                        CodeSchemeConfiguration(code_scheme=load_code_scheme("disabled"), auto_coder=None)  # TODO
-                    ],
-                    ws_code_string_value="disabled"
-                ),
-                CodaDatasetConfiguration(
-                    coda_dataset_id="TEST_location",
-                    engagement_db_dataset="location",
+                    coda_dataset_id="Kenya_Pool_location",
+                    engagement_db_dataset="kenya_pool_location",
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_constituency"), auto_coder=None),
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_county"), auto_coder=None)
@@ -128,12 +129,20 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     coda_dataset_id="Kenya_Pool_age",
                     engagement_db_dataset="kenya_pool_age",
                     code_scheme_configurations=[
-                        # CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None)  # TODO
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None)  # TODO
                     ],
                     ws_code_string_value="age"
-                )
+                ),
+                CodaDatasetConfiguration(
+                    coda_dataset_id="Kenya_Pool_disabled",
+                    engagement_db_dataset="kenya_pool_disabled",
+                    code_scheme_configurations=[
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("disabled"), auto_coder=None)  # TODO
+                    ],
+                    ws_code_string_value="disabled"
+                ),
             ],
-            ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset")
+            ws_correct_dataset_code_scheme=load_code_scheme("kenya_pool_ws_correct_dataset")
         )
     ),
     rapid_pro_target=RapidProTarget(
