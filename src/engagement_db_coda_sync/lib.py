@@ -104,7 +104,14 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     for label in coda_message.get_latest_labels():
         if label.scheme_id == ws_scheme.scheme_id:
             ws_code = ws_scheme.get_code_with_code_id(label.code_id)
-            correct_dataset = coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset
+            try:
+                correct_dataset = coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset
+            except ValueError as e:
+                # No dataset configuration found with an appropriate ws_code_string_value to move the message to.
+                # Fallback to the default dataset if available, otherwise crash.
+                if coda_config.default_ws_dataset is None:
+                    raise e
+                correct_dataset = coda_config.default_ws_dataset
 
             # Ensure this message isn't being moved to a dataset which it has previously been assigned to.
             # This is because if the message has already been in this new dataset, there is a chance there is an

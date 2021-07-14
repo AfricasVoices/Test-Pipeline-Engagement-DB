@@ -22,6 +22,11 @@ class CodaDatasetConfiguration:
 class CodaSyncConfiguration:
     dataset_configurations: [CodaDatasetConfiguration]
     ws_correct_dataset_code_scheme: CodeScheme
+    default_ws_dataset: Optional[str] = None  # Engagement db dataset to move messages to if there is no dataset
+                                              # configuration for a particular ws_code_string_value. If None, crashes if
+                                              # a message is found with a WS label with a string value not in
+                                              # dataset_configurations. In most circumstances, this should be None as matching
+                                              # cases where there are no datasets usually indicates a missing piece of configuration.
 
     def get_dataset_config_by_engagement_db_dataset(self, dataset):
         for config in self.dataset_configurations:
