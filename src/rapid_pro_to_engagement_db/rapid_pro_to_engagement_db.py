@@ -1,7 +1,6 @@
 import json
 from datetime import timedelta
 
-import storage.google_cloud.google_cloud_utils
 from core_data_modules.cleaners import URNCleaner
 from core_data_modules.logging import Logger
 from engagement_database.data_models import Message, MessageDirections, MessageStatuses, HistoryEntryOrigin
