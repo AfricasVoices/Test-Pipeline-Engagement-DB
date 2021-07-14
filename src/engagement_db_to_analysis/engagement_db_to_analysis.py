@@ -6,6 +6,7 @@ from core_data_modules.traced_data import TracedData, Metadata
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
+from src.engagement_db_to_analysis.generate_production_file import generate_production_file
 
 log = Logger(__name__)
 
