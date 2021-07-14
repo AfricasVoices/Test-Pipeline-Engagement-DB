@@ -65,26 +65,27 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
     return filtered
 
 
-def filter_test_participants(user, participants_traced_data_map, test_contacts):
+def filter_test_participants(user, participants_traced_data_map, test_participant_uuids):
     """
     Filters a dict of participants who are not in pipeline_config.test_contacts e.g AVF/Aggregator staff
 
     :param participants_traced_data_map: A dict of TracedData individuals objects to filter.
     :type participants_traced_data_map: dict of TracedData
-    :param test_contacts: a list containing test participant uids.
-    :type test_contacts: list of str
+    :param test_participant_uuids: a list containing test participant uids.
+    :type test_participant_uuids: list of str
     :return: Filtered dict.
     :rtype: dict of participant_uid -> TracedData
     """
     log.debug("Filtering out test participants data...")
     filtered = {}
 
-    for uid, trace_data in participants_traced_data_map.items():
-        if uid in test_contacts:
+    for uid, participant_trace_data in participants_traced_data_map.items():
+        if uid in test_participant_uuids:
             continue
 
-        trace_data.append_data(trace_data, Metadata(user, Metadata.get_call_location(), time.time()))
-        filtered[uid] = trace_data
+        participant_trace_data.append_data(participant_trace_data, Metadata(user, Metadata.get_call_location(),
+                                                    TimeUtils.utc_now_as_iso_string()))
+        filtered[uid] = participant_trace_data
 
     log.info(f"Returning {len(filtered)}/{len(participants_traced_data_map)} participants data...")
     return filtered
@@ -99,8 +100,8 @@ def filter_messages(user, messages_data, pipeline_config):
 
 
 def filter_participants(user, participants_traced_data_map, pipeline_config):
-    if pipeline_config.filter_test_participants:
-        participants_traced_data_map = filter_test_participants(user, participants_traced_data_map, pipeline_config.test_participant_uids)
+    if pipeline_config.test_participant_uuids is not None:
+        participants_traced_data_map = filter_test_participants(user, participants_traced_data_map, pipeline_config.test_participant_uuids)
     else:
         log.debug(
             "Not filtering out test participants data (because the pipeline_config.filter_test_participants was set to `False`)")

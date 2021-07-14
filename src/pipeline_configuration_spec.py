@@ -40,12 +40,12 @@ class RapidProTarget:
 @dataclass
 class PipelineConfiguration:
     pipeline_name: str
-    test_participant_uids: []
+
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
     project_start_date: datetime = None
     project_end_date: datetime = None
-    filter_test_participants: bool = None
+    test_participant_uuids: [] = None
     description: str = None
     rapid_pro_sources: [RapidProSource] = None
     coda_sync: CodaConfiguration = None
