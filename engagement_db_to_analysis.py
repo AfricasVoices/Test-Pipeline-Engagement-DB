@@ -35,4 +35,3 @@ if __name__ == "__main__":
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
 
     generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir)
-
