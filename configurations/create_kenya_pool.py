@@ -27,7 +27,6 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         uuid_prefix="avf-participant-uuid-"
     ),
     rapid_pro_sources=[
-        # TODO: Filter the rapid pro sources for contacts
         RapidProSource(
             rapid_pro=RapidProClientConfiguration(
                 domain="textit.com",
