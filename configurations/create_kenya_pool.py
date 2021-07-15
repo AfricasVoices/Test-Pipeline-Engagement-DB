@@ -141,7 +141,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     ws_code_string_value="disabled"
                 ),
             ],
-            ws_correct_dataset_code_scheme=load_code_scheme("kenya_pool_ws_correct_dataset")
+            ws_correct_dataset_code_scheme=load_code_scheme("kenya_pool_ws_correct_dataset"),
+            default_ws_dataset="kenya_pool_rqa"  # These can be manually archived later.
         )
     ),
     rapid_pro_target=RapidProTarget(
@@ -154,9 +155,11 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 DatasetConfiguration(engagement_db_datasets=["kenya_pool_gender"],   rapid_pro_contact_field=ContactField(key="gender",   label="Gender")),
                 DatasetConfiguration(engagement_db_datasets=["kenya_pool_location"], rapid_pro_contact_field=ContactField(key="location", label="Location")),
                 DatasetConfiguration(engagement_db_datasets=["kenya_pool_age"],      rapid_pro_contact_field=ContactField(key="age",      label="Age")),
+                DatasetConfiguration(engagement_db_datasets=["kenya_pool_disabled"], rapid_pro_contact_field=ContactField(key="disabled", label="Disabled")),
             ],
             consent_withdrawn_dataset=DatasetConfiguration(
-                engagement_db_datasets=["kenya_pool_gender", "kenya_pool_location", "kenya_pool_age"],
+                engagement_db_datasets=["kenya_pool_gender", "kenya_pool_location", "kenya_pool_age",
+                                        "kenya_pool_disabled", "kenya_pool_rqa"],
                 rapid_pro_contact_field=ContactField(key="engagement_db_consent_withdrawn", label="Engagement DB Consent Withdrawn")
             ),
             write_mode=WriteModes.CONCATENATE_TEXTS
