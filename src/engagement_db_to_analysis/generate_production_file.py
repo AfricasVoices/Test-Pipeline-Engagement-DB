@@ -12,10 +12,8 @@ def generate_production_file(user, analysis_dataset_config, participants_traced_
             demographic_datasets.extend(config.engagement_db_datasets)
         if config.dataset_type == DatasetTypes.RESEARCH_QUESTION_ANSWER:
             rqa_datasets.extend(config.engagement_db_datasets)
-
-    headers = ["uid", *demographic_datasets, *rqa_datasets]
+    
     traced_data_iterable = []
-
     for uuid, dataset_messages_map in participants_traced_data_map.items():
         demog_columns, rqa_columns = {}, {}
         
@@ -35,5 +33,6 @@ def generate_production_file(user, analysis_dataset_config, participants_traced_
                     traced_data_iterable.append(TracedData(rqa_columns, Metadata(
                         user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())))
 
+    headers = ["uid", *demographic_datasets, *rqa_datasets]
     with open(f"{analysis_output_dir}/production.csv", "w") as f:
         TracedDataCSVIO.export_traced_data_iterable_to_csv(traced_data_iterable, f, headers=headers)
