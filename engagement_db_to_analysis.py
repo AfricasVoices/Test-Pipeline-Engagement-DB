@@ -1,6 +1,7 @@
 import argparse
 import importlib
 
+from core_data_modules.util import IOUtils
 from core_data_modules.logging import Logger
 
 from src.engagement_db_to_analysis.engagement_db_to_analysis import generate_analysis_files
