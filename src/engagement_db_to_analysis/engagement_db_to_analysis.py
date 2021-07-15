@@ -160,18 +160,19 @@ def _fold_messages_by_uid(user, messages_traced_data):
                                                  TimeUtils.utc_now_as_iso_string()))
     return  participants_traced_data_map
 
-def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir, production_csv_output_path):
+def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir, analysis_output_dir):
+    analysis_dataset_config = pipeline_config.analysis_config # TODO: rename analysis_config to analysis_dataset_config
 
-    messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_config, engagement_db,
+    messages_map = _get_project_messages_from_engagement_db(analysis_dataset_config, engagement_db,
                                                engagement_db_datasets_cache_dir)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    generate_production_file(messages_traced_data, production_csv_output_path)
-
     participants_traced_data_map = _fold_messages_by_uid(user, messages_traced_data)
+
+    generate_production_file(user, analysis_dataset_config, participants_traced_data_map, analysis_output_dir)
 
     participants_traced_data_map = filter_participants(user, participants_traced_data_map, pipeline_config)
 
