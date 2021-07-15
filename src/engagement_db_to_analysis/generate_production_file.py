@@ -28,7 +28,7 @@ def generate_production_file(user, analysis_dataset_config, participants_traced_
                 demog_columns.update({dataset: ";".join(demographic_answers)})
 
         for dataset, messages in dataset_messages_map.items():
-            if dataset not in rqa_datasets:
+            if dataset in rqa_datasets:
                 for msg in messages[0]:
                     rqa_columns = {dataset: msg['Data']['text']}
                     rqa_columns.update(demog_columns)
