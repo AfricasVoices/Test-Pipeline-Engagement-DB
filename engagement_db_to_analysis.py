@@ -21,9 +21,8 @@ if __name__ == "__main__":
     parser.add_argument("configuration_module",
                         help="Configuration module to import e.g. 'configurations.test_config'. "
                              "This module must contain a PIPELINE_CONFIGURATION property")
-    parser.add_argument("production_csv_output_path", metavar="production-csv-output-path",
-                        help="Path to a CSV file to write raw message and demographic responses to, for use in "
-                             "radio show production"),
+    parser.add_argument("analysis_output_dir", metavar="analysis-output-dir",
+                        help="Directory to write analysis outputs to")
 
     args = parser.parse_args()
 
@@ -31,11 +30,13 @@ if __name__ == "__main__":
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
     engagement_db_datasets_cache_dir = args.engagement_db_datasets_cache_dir
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
-    production_csv_output_path = args.production_csv_output_path
+    analysis_output_dir = args.analysis_output_dir
+
+    IOUtils.ensure_dirs_exist(analysis_output_dir)
 
     pipeline = pipeline_config.pipeline_name
 
     uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
 
-    generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir, production_csv_output_path)
+    generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir, analysis_output_dir)
