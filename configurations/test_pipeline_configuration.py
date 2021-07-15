@@ -91,11 +91,11 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         ),
         AnalysisDatasetConfiguration(
             engagement_db_datasets = ["gender"],
-            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
+            dataset_type = DatasetTypes.DEMOGRAPHIC
         ),
         AnalysisDatasetConfiguration(
             engagement_db_datasets = ["location"],
-            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
+            dataset_type = DatasetTypes.DEMOGRAPHIC
         ),
     ]
 )
