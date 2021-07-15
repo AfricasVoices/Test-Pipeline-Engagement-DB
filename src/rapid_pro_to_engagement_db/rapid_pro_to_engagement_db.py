@@ -3,7 +3,8 @@ from datetime import timedelta
 
 from core_data_modules.cleaners import URNCleaner
 from core_data_modules.logging import Logger
-from engagement_database.data_models import Message, MessageDirections, MessageStatuses, HistoryEntryOrigin
+from engagement_database.data_models import (Message, MessageDirections, MessageStatuses, HistoryEntryOrigin,
+                                             MessageOrigin)
 from storage.google_cloud import google_cloud_utils
 
 from src.rapid_pro_to_engagement_db.cache import RapidProSyncCache
@@ -151,6 +152,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     # TODO: Handle deleted contacts.
     # TODO: Optimise fetching fields from the same flows, so we don't have to download the same runs multiple times.
     workspace_name = rapid_pro.get_workspace_name()
+    workspace_uuid = rapid_pro.get_workspace_uuid()
 
     if rapid_pro_config.uuid_filter is not None:
         valid_participant_uuids = set(json.loads(google_cloud_utils.download_blob_to_string(
@@ -230,7 +232,10 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 channel_operator=URNCleaner.clean_operator(contact_urn),
                 status=MessageStatuses.LIVE,
                 dataset=flow_config.engagement_db_dataset,
-                labels=[]
+                labels=[],
+                origin=MessageOrigin(
+                    origin_id=f"rapid_pro.workspace_{workspace_uuid}.flow_{flow_id}.run_{run.id}.result_{rapid_pro_result.name}"
+                )
             )
             message_origin_details = {
                 "rapid_pro_workspace": workspace_name,
