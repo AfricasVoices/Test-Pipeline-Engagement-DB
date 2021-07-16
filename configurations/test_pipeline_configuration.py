@@ -60,6 +60,14 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     ws_code_string_value="location"
                 ),
                 CodaDatasetConfiguration(
+                    coda_dataset_id="TEST_age",
+                    engagement_db_dataset="age",
+                    code_scheme_configurations=[
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None), #Todo add auto_code function
+                    ],
+                    ws_code_string_value="age"
+                ),
+                CodaDatasetConfiguration(
                     coda_dataset_id="TEST_s01e01",
                     engagement_db_dataset="s01e01",
                     code_scheme_configurations=[
@@ -87,15 +95,55 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     analysis_config=[
         AnalysisDatasetConfiguration(
             engagement_db_datasets = ["s01e01"],
-            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
+            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER,
+            analysis_dataset = "s01e01",
+            coding_configs = [
+                CodingConfiguration(
+                    code_scheme = load_code_scheme("s01e01"),
+                    analysis_file_key = 's01e01'
+                )
+            ]
         ),
         AnalysisDatasetConfiguration(
             engagement_db_datasets = ["gender"],
-            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
+            dataset_type = DatasetTypes.DEMOGRAPHIC,
+            analysis_dataset = "gender",
+            coding_configs = [
+                CodingConfiguration(
+                    code_scheme = load_code_scheme("gender"),
+                    analysis_file_key = "gender"
+                )
+            ]
         ),
         AnalysisDatasetConfiguration(
             engagement_db_datasets = ["location"],
-            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
+            dataset_type = DatasetTypes.DEMOGRAPHIC,
+            analysis_dataset = "location",
+            coding_configs = [
+                CodingConfiguration(
+                    code_scheme = load_code_scheme("kenya_county"),
+                    analysis_file_key = "kenya_county"
+                ),
+                CodingConfiguration(
+                    code_scheme = load_code_scheme("kenya_constituency"),
+                    analysis_file_key = "kenya_constituency"
+                )
+            ]
         ),
+        AnalysisDatasetConfiguration(
+            engagement_db_datasets = ["age"],
+            dataset_type = DatasetTypes.DEMOGRAPHIC,
+            analysis_dataset = "age",
+            coding_configs = [
+                CodingConfiguration(
+                    code_scheme = load_code_scheme("age"),
+                    analysis_file_key = "age"
+                ),
+                CodingConfiguration(
+                    code_scheme = load_code_scheme("age_category"),
+                    analysis_file_key = "age_category"
+                ),
+            ]
+        )
     ]
 )
