@@ -2,6 +2,9 @@ from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.cleaners import Codes
 from core_data_modules.traced_data import Metadata
 from core_data_modules.util import TimeUtils
+from core_data_modules.logging import Logger
+
+log = Logger(__name__)
 
 
 def _impute_true_missing_labels(user, participants_traced_data_map, analysis_dataset_config):
@@ -19,7 +22,8 @@ def _impute_true_missing_labels(user, participants_traced_data_map, analysis_dat
     :rtype: dict of uuid -> participant TracedData objects.
 
     """
-
+    
+    log.info("Imputing true missing analysis_dataset...")
     true_missing_imputed_data = {}
     for uuid, participant_traced_data in participants_traced_data_map.items():
 
