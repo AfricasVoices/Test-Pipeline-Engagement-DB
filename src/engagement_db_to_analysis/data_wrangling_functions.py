@@ -11,8 +11,8 @@ def _impute_true_missing_labels(user, participants_traced_data_map, analysis_con
 
     :param user: Identifier of user running the pipeline.
     :type user: str
-    :param participants_traced_data_map: Participant TracedData objects map.
-    :type participants_traced_data_map: list of TracedData
+    :param participants_traced_data_map: Participant TracedData objects map to check and impute TRUE_MISSING.
+    :type participants_traced_data_map: dict of uuid -> participant TracedData objects.
     :return: Participant TracedData map.
     :rtype: dict of uuid -> participant TracedData objects.
 
