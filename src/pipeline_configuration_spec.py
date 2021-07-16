@@ -51,4 +51,4 @@ class PipelineConfiguration:
     rapid_pro_sources: [RapidProSource] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
-    analysis_config: [AnalysisDatasetConfiguration] = None
+    analysis_dataset_config: [AnalysisDatasetConfiguration] = None

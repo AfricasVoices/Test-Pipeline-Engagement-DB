@@ -20,14 +20,14 @@ def serialise_message(msg):
     return msg
 
 
-def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path):
+def _get_project_messages_from_engagement_db(analysis_dataset_config, engagement_db, cache_path):
     """
 
     Downloads project messages from engagement database. It performs a full download if there is no previous export and
     incrementally otherwise.
 
-    :param analysis_config: Analysis dataset configuration in pipeline configuration module.
-    :type analysis_config: pipeline_config.analysis_config
+    :param analysis_dataset_config: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_config: pipeline_config.analysis_dataset_config
     :param engagement_db: Engagement database to download the messages from.
     :type engagement_db: engagement_database.EngagementDatabase
     :param cache_path: Directory to use for the fetch cache, containing engagement_db dataset files and a timestamp generated from a previous run.
@@ -40,8 +40,8 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
     cache = AnalysisCache(cache_path)
 
     engagement_db_dataset_messages_map = {}  # of engagement_db_dataset to list of messages
-    for config in analysis_configurations:
-        for engagement_db_dataset in config.engagement_db_datasets:
+    for dataset_config in analysis_dataset_config:
+        for engagement_db_dataset in dataset_config.engagement_db_datasets:
 
             messages = []
             latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
@@ -119,7 +119,7 @@ def _convert_messages_to_traced_data(user, messages_map):
 
     return messages_traced_data
 
-def _fold_messages_by_uid(user, messages_traced_data, analysis_config):
+def _fold_messages_by_uid(user, messages_traced_data, analysis_dataset_config):
     """
     Groups Messages TracedData objects into Individual TracedData objects.
 
@@ -127,6 +127,8 @@ def _fold_messages_by_uid(user, messages_traced_data, analysis_config):
     :type user: str
     :param messages_traced_data: Messages TracedData objects to group.
     :type messages_traced_data: list of TracedData
+    :param analysis_dataset_config: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_config: pipeline_config.analysis_dataset_config 
     :return: Participant TracedData objects.
     :rtype: dict of uid -> participant TracedData objects.
     """
@@ -136,7 +138,7 @@ def _fold_messages_by_uid(user, messages_traced_data, analysis_config):
         
         participant_uuid = message["participant_uuid"]
 
-        for dataset_config in analysis_config:
+        for dataset_config in analysis_dataset_config:
             if message["dataset"] in dataset_config.engagement_db_datasets:
                 message_analysis_dataset = dataset_config.analysis_dataset
 
@@ -163,17 +165,17 @@ def _fold_messages_by_uid(user, messages_traced_data, analysis_config):
 
 def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
 
-    messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_config, engagement_db,
+    messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_dataset_config, engagement_db,
                                                engagement_db_datasets_cache_dir)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    participants_traced_data_map = _fold_messages_by_uid(user, messages_traced_data, pipeline_config.analysis_config)
+    participants_traced_data_map = _fold_messages_by_uid(user, messages_traced_data, pipeline_config.analysis_dataset_config)
 
     participants_traced_data_map = filter_participants(user, participants_traced_data_map, pipeline_config)
 
-    participants_traced_data_map = run_data_wrangling_functions(user, participants_traced_data_map, pipeline_config.analysis_config)
+    participants_traced_data_map = run_data_wrangling_functions(user, participants_traced_data_map, pipeline_config.analysis_dataset_config)
 
     return participants_traced_data_map
