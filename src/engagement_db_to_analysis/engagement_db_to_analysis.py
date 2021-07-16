@@ -2,10 +2,11 @@ from dateutil.parser import isoparse
 
 from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
-from core_data_modules.traced_data import TracedData, Metadata
+from core_data_modules.traced_data import TracedData, Metadata, TracedData
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages, filter_participants
+from src.engagement_db_to_analysis.data_wrangling_functions import run_data_wrangling_functions
 
 
 log = Logger(__name__)
@@ -118,7 +119,7 @@ def _convert_messages_to_traced_data(user, messages_map):
 
     return messages_traced_data
 
-def _fold_messages_by_uid(user, messages_traced_data):
+def _fold_messages_by_uid(user, messages_traced_data, analysis_config):
     """
     Groups Messages TracedData objects into Individual TracedData objects.
 
@@ -126,36 +127,38 @@ def _fold_messages_by_uid(user, messages_traced_data):
     :type user: str
     :param messages_traced_data: Messages TracedData objects to group.
     :type messages_traced_data: list of TracedData
-    :return: Individual TracedData objects.
-    :rtype: dict of uid -> individual TracedData objects.
+    :return: Participant TracedData objects.
+    :rtype: dict of uid -> participant TracedData objects.
     """
 
     participants_traced_data_map = {}
     for message in messages_traced_data:
+        
         participant_uuid = message["participant_uuid"]
-        message_dataset = message["dataset"]
 
-        if message["participant_uuid"] not in participants_traced_data_map.keys():
+        for dataset_config in analysis_config:
+            if message["dataset"] in dataset_config.engagement_db_datasets:
+                message_analysis_dataset = dataset_config.analysis_dataset
 
-            participant_td = TracedData({message_dataset: [message.serialize()]},
+        if participant_uuid not in participants_traced_data_map.keys():
+
+            participant_td = TracedData({message_analysis_dataset: [message.serialize()]},
                                         Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
             participants_traced_data_map[participant_uuid] = participant_td
 
         else:
 
-            if message_dataset in participants_traced_data_map[participant_uuid].keys():
-                message_dataset_map = participants_traced_data_map[participant_uuid].get(message_dataset)
+            if message_analysis_dataset in participants_traced_data_map[participant_uuid].keys():
+                message_dataset_map = participants_traced_data_map[participant_uuid].get(message_analysis_dataset)
                 message_dataset_map_copy = message_dataset_map.copy()
                 message_dataset_map_copy.append(message.serialize())
 
-                participants_traced_data_map[participant_uuid].append_data({message_dataset: message_dataset_map_copy},
+                participants_traced_data_map[participant_uuid].append_data({message_analysis_dataset: message_dataset_map_copy},
                                                                        Metadata(user, Metadata.get_call_location(),
                                                                                 TimeUtils.utc_now_as_iso_string()))
             else:
-                participants_traced_data_map[participant_uuid].append_data({message_dataset: [message.serialize()]},
-                                        Metadata(user,
-                                                 Metadata.get_call_location(),
-                                                 TimeUtils.utc_now_as_iso_string()))
+                participants_traced_data_map[participant_uuid].append_data({message_analysis_dataset: [message.serialize()]},
+                                        Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
     return  participants_traced_data_map
 
 def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
@@ -167,8 +170,10 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    participants_traced_data_map = _fold_messages_by_uid(user, messages_traced_data)
+    participants_traced_data_map = _fold_messages_by_uid(user, messages_traced_data, pipeline_config.analysis_config)
 
     participants_traced_data_map = filter_participants(user, participants_traced_data_map, pipeline_config)
+
+    participants_traced_data_map = run_data_wrangling_functions(user, participants_traced_data_map, pipeline_config.analysis_config)
 
     return participants_traced_data_map
