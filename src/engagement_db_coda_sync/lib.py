@@ -127,6 +127,8 @@ def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_sche
     # If there isn't, don't attempt any redirect, so we can impute a CE code later.
     if ws_code_in_normal_scheme != code_in_ws_scheme:
         # TODO: Impute CE here?
+        log.warning(f"Not WS-correcting message because ws_code_in_normal_scheme ({ws_code_in_normal_scheme}) "
+                    f"!= code_in_ws_scheme ({code_in_ws_scheme})")
         ws_code = None
 
     return ws_code
@@ -154,17 +156,17 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     """
     coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(engagement_db_message.dataset)
 
-    # Check if the labels in the engagement database message already match those from the coda message.
+    # Check if the labels in the engagement database message already match those from the coda message, and that
+    # we don't need to WS-correct (in other words, that the dataset is correct).
     # If they do, return without updating anything.
-    # TODO: Validate if the dataset is correct too?
-    if engagement_db_message.labels == coda_message.labels:
+    ws_code = _get_ws_code(coda_message, coda_dataset_config, coda_config.ws_correct_dataset_code_scheme)
+    if engagement_db_message.labels == coda_message.labels and ws_code is None:
         log.debug("Labels match")
         return
 
     log.debug("Updating database message labels to match those in Coda")
 
-    # WS Correction
-    ws_code = _get_ws_code(coda_message, coda_dataset_config, coda_config.ws_correct_dataset_code_scheme)
+    # WS-correct if there is a valid ws_code
     if ws_code is not None:
         try:
             correct_dataset = coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset
