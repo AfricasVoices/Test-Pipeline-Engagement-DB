@@ -1,3 +1,4 @@
+from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.data_models import Message as CodaMessage
 from core_data_modules.logging import Logger
@@ -67,6 +68,70 @@ def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_sche
     coda.add_message_to_dataset(coda_dataset_config.coda_dataset_id, coda_message)
 
 
+def _code_for_label(label, code_schemes):
+    """
+    Returns the code for the given label.
+
+    Handles duplicated scheme ids (i.e. schemes ending in '-1', '-2' etc.).
+    Raises a ValueError if the label isn't for any of the given code schemes.
+
+    :param label: Label to get the code for.
+    :type label: core_data_modules.data_models.Label
+    :param code_schemes: Code schemes to check for the given label.
+    :type code_schemes: list of core_data_modules.data_models.CodeScheme
+    :return: Code for the label.
+    :rtype: core_data_modules.data_models.Code
+    """
+    for code_scheme in code_schemes:
+        if label.scheme_id.startswith(code_scheme.scheme_id):
+            return code_scheme.get_code_with_code_id(label.code_id)
+
+    raise ValueError(f"Label's scheme id '{label.scheme_id}' is not in any of the given `code_schemes` "
+                     f"(these have ids {[scheme.id for scheme in code_schemes]})")
+
+
+def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_scheme):
+    """
+    Gets the WS code assigned to a Coda message, if it exists, otherwise returns None.
+
+    :param coda_message: Coda message to check for a WS code.
+    :type coda_message: core_data_modules.data_models.Message
+    :param coda_dataset_config: Dataset configuration to use to interpret this message's labels.
+    :type coda_dataset_config: src.engagement_db_coda_sync.configuration.CodaDatasetConfiguration
+    :param ws_correct_dataset_code_scheme: WS - Correct Dataset code scheme.
+    :type ws_correct_dataset_code_scheme: core_data_modules.data_models.CodeScheme
+    :return: WS code assigned to this message, if it exists.
+    :rtype: core_data_modules.data_models.Code | None
+    """
+    normal_code_schemes = [c.code_scheme for c in coda_dataset_config.code_scheme_configurations]
+    ws_code_scheme = ws_correct_dataset_code_scheme
+
+    # Check for a WS code in any of the normal code schemes
+    ws_code_in_normal_scheme = False
+    for label in coda_message.get_latest_labels():
+        if label.scheme_id == ws_code_scheme.scheme_id:
+            continue
+        code = _code_for_label(label, normal_code_schemes)
+        if code.control_code == Codes.WRONG_SCHEME:
+            ws_code_in_normal_scheme = True
+
+    # Check for a code in the WS code scheme
+    code_in_ws_scheme = False
+    ws_code = None
+    for label in coda_message.get_latest_labels():
+        if label.scheme_id == ws_code_scheme.scheme_id:
+            code_in_ws_scheme = True
+            ws_code = ws_code_scheme.get_code_with_code_id(label.code_id)
+
+    # Ensure there is a WS code in a normal scheme and a code in the WS scheme.
+    # If there isn't, don't attempt any redirect, so we can impute a CE code later.
+    if ws_code_in_normal_scheme != code_in_ws_scheme:
+        # TODO: Impute CE here?
+        ws_code = None
+
+    return ws_code
+
+
 def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db_message, coda_message, coda_config,
                                                     transaction=None):
     """
@@ -98,50 +163,47 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
 
     log.debug("Updating database message labels to match those in Coda")
 
-    # Check the currently assigned labels for one in the WS - Correct Dataset scheme.
-    # If we find one, move this message to the correct dataset and return.
-    ws_scheme = coda_config.ws_correct_dataset_code_scheme
-    for label in coda_message.get_latest_labels():
-        if label.scheme_id == ws_scheme.scheme_id:
-            ws_code = ws_scheme.get_code_with_code_id(label.code_id)
-            try:
-                correct_dataset = coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset
-            except ValueError as e:
-                # No dataset configuration found with an appropriate ws_code_string_value to move the message to.
-                # Fallback to the default dataset if available, otherwise crash.
-                if coda_config.default_ws_dataset is None:
-                    raise e
-                correct_dataset = coda_config.default_ws_dataset
+    # WS Correction
+    ws_code = _get_ws_code(coda_message, coda_dataset_config, coda_config.ws_correct_dataset_code_scheme)
+    if ws_code is not None:
+        try:
+            correct_dataset = coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset
+        except ValueError as e:
+            # No dataset configuration found with an appropriate ws_code_string_value to move the message to.
+            # Fallback to the default dataset if available, otherwise crash.
+            if coda_config.default_ws_dataset is None:
+                raise e
+            correct_dataset = coda_config.default_ws_dataset
 
-            # Ensure this message isn't being moved to a dataset which it has previously been assigned to.
-            # This is because if the message has already been in this new dataset, there is a chance there is an
-            # infinite loop in the WS labels, which could get very expensive if we end up cycling this message through
-            # the same datasets at high frequency.
-            # If this message has been in this dataset before, crash and wait for this to be manually corrected.
-            # Note that this is a simple but heavy-handed approach to handling what should be a rare edge case.
-            # If we encounter this problem more frequently than expected, upgrade this to a more sophisticated loop
-            # detector/handler.
-            assert correct_dataset not in engagement_db_message.previous_datasets, \
-                f"Engagement db message '{engagement_db_message.message_id}' (text '{engagement_db_message.text}') " \
-                f"is being WS-corrected to dataset '{correct_dataset}', but already has this dataset in its " \
-                f"previous_datasets ({engagement_db_message.previous_datasets}). " \
-                f"This suggests an infinite loop in the WS labels."
+        # Ensure this message isn't being moved to a dataset which it has previously been assigned to.
+        # This is because if the message has already been in this new dataset, there is a chance there is an
+        # infinite loop in the WS labels, which could get very expensive if we end up cycling this message through
+        # the same datasets at high frequency.
+        # If this message has been in this dataset before, crash and wait for this to be manually corrected.
+        # Note that this is a simple but heavy-handed approach to handling what should be a rare edge case.
+        # If we encounter this problem more frequently than expected, upgrade this to a more sophisticated loop
+        # detector/handler.
+        assert correct_dataset not in engagement_db_message.previous_datasets, \
+            f"Engagement db message '{engagement_db_message.message_id}' (text '{engagement_db_message.text}') " \
+            f"is being WS-corrected to dataset '{correct_dataset}', but already has this dataset in its " \
+            f"previous_datasets ({engagement_db_message.previous_datasets}). " \
+            f"This suggests an infinite loop in the WS labels."
 
-            # Clear the labels and correct the dataset (the message will sync with the new dataset on the next sync)
-            log.debug(f"WS correcting from {engagement_db_message.dataset} to {correct_dataset}")
-            engagement_db_message.labels = []
-            engagement_db_message.previous_datasets.append(engagement_db_message.dataset)
-            engagement_db_message.dataset = correct_dataset
+        # Clear the labels and correct the dataset (the message will sync with the new dataset on the next sync)
+        log.debug(f"WS correcting from {engagement_db_message.dataset} to {correct_dataset}")
+        engagement_db_message.labels = []
+        engagement_db_message.previous_datasets.append(engagement_db_message.dataset)
+        engagement_db_message.dataset = correct_dataset
 
-            origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
-                              "coda_message": coda_message.to_firebase_map()}
-            engagement_db.set_message(
-                message=engagement_db_message,
-                origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync (WS Correction)", details=origin_details),
-                transaction=transaction
-            )
+        origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
+                          "coda_message": coda_message.to_firebase_map()}
+        engagement_db.set_message(
+            message=engagement_db_message,
+            origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync (WS Correction)", details=origin_details),
+            transaction=transaction
+        )
 
-            return
+        return
 
     # We didn't find a WS label, so simply update the engagement database message to have the same labels as the
     # message in Coda.
