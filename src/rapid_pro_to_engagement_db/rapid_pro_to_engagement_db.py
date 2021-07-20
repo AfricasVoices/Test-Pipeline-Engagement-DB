@@ -162,8 +162,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
         log.info(f"Loaded {len(valid_participant_uuids)} valid contacts to filter for")
 
     if cache_path is not None:
-        log.info(f"Initialising Rapid Pro sync cache at '{cache_path}/{workspace_name}'")
-        cache = RapidProSyncCache(f"{cache_path}/{workspace_name}")
+        log.info(f"Initialising Rapid Pro sync cache at '{cache_path}/rapid_pro_to_engagement_db/{workspace_name}'")
+        cache = RapidProSyncCache(f"{cache_path}/rapid_pro_to_engagement_db/{workspace_name}")
     else:
         log.warning("No `cache_path` provided. This tool will process all relevant runs from Rapid Pro from all of time")
         cache = None

@@ -61,7 +61,8 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None
         cache = None
         log.warning(f"No `cache_path` provided. This tool will process all relevant Coda messages from all of time")
     else:
-        cache = CodaSyncCache(cache_path)
+        log.info(f"Initialising Coda sync cache at '{cache_path}/coda_to_engagement_db'")
+        cache = CodaSyncCache(f"{cache_path}/coda_to_engagement_db")
 
     for coda_dataset_config in coda_config.dataset_configurations:
         log.info(f"Getting messages from Coda dataset {coda_dataset_config.coda_dataset_id}...")
