@@ -7,7 +7,7 @@ name = "pypi"
 CoreDataModules = {editable = true,git = "https://www.github.com/AfricasVoices/CoreDataModules",ref = "master"}
 RapidProTools = {editable = true,git = "https://www.github.com/AfricasVoices/RapidProTools",ref = "master"}
 CodaV2PythonClient = {editable = true,git = "https://www.github.com/AfricasVoices/CodaV2PythonClient",ref = "main"}
-PipelineInfrastructure = {editable = true,git = "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",ref = "master"}
+PipelineInfrastructure = {editable = true,git = "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",ref = "serialize-datetimes-to-str"}
 
 [dev-packages]
 
