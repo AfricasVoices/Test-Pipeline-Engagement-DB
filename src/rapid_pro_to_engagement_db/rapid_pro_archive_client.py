@@ -23,6 +23,11 @@ class RapidProArchiveClient:
             org = Org.deserialize(json.load(f))
         return org.name
 
+    def get_workspace_uuid(self):
+        with open(f"{self.archive_dir}/org.json") as f:
+            org = Org.deserialize(json.load(f))
+        return org.uuid
+
     def get_flow_id(self, flow_name):
         with open(f"{self.archive_dir}/flows.jsonl") as f:
             flows = [Flow.deserialize(json.loads(d)) for d in f]
