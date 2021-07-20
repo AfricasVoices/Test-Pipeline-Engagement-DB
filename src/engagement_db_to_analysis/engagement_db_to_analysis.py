@@ -135,28 +135,32 @@ def _fold_messages_by_uid(user, messages_traced_data):
         participant_uuid = message["participant_uuid"]
         message_dataset = message["dataset"]
 
-        if message["participant_uuid"] not in participants_traced_data_map.keys():
+        # Create an empty TracedData for this participant if this participant hasn't been seen yet.
+        if participant_uuid not in participants_traced_data_map.keys():
+            participants_traced_data_map[participant_uuid] = \
+                TracedData({}, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
 
-            participant_td = TracedData({message_dataset: [message.serialize()]},
-                                        Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
-            participants_traced_data_map[participant_uuid] = participant_td
+        # Get the existing list of messages for this dataset, if it exists, otherwise initialise with []
+        participant_td = participants_traced_data_map[participant_uuid]
+        dataset_messages = participant_td.get(message_dataset, [])
 
-        else:
+        # Append this message to the list of messages for this dataset, and write-back to TracedData.
+        dataset_messages = dataset_messages.copy()
+        dataset_messages.append(dict(message))
+        participant_td.append_data(
+            {message_dataset: dataset_messages},
+            Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
+        )
+        # TODO: Consider not converting messages to TracedData before this function, as that would remove the need
+        #       for this complicated append step.
+        message.hide_keys(message.keys(), Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+        participant_td.append_traced_data(
+            "message_history", message,
+            Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
+        )
 
-            if message_dataset in participants_traced_data_map[participant_uuid].keys():
-                message_dataset_map = participants_traced_data_map[participant_uuid].get(message_dataset)
-                message_dataset_map_copy = message_dataset_map.copy()
-                message_dataset_map_copy.append(message.serialize())
+    return participants_traced_data_map
 
-                participants_traced_data_map[participant_uuid].append_data({message_dataset: message_dataset_map_copy},
-                                                                       Metadata(user, Metadata.get_call_location(),
-                                                                                TimeUtils.utc_now_as_iso_string()))
-            else:
-                participants_traced_data_map[participant_uuid].append_data({message_dataset: [message.serialize()]},
-                                        Metadata(user,
-                                                 Metadata.get_call_location(),
-                                                 TimeUtils.utc_now_as_iso_string()))
-    return  participants_traced_data_map
 
 def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
 
