@@ -88,7 +88,7 @@ def _convert_messages_to_traced_data(user, messages_map):
 
     :param user: Identifier of user running the pipeline.
     :type user: str
-    :param messages_map: Dict containing messages data.
+    :param messages_map: Dict of engagement db dataset -> list of Messages in that dataset.
     :type messages_map: dict of str -> list of engagement_database.data_models.Message
     :return: A list of Traced data message objects.
     :type: list of Traced data
