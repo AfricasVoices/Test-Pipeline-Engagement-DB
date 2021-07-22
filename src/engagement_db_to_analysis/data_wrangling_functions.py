@@ -36,9 +36,9 @@ def _impute_true_missing_labels(user, participants_traced_data_map, analysis_dat
                                                                                     coding_config.code_scheme.get_code_with_control_code(Codes.TRUE_MISSING),
                                                                                      Metadata.get_call_location()).to_dict()
 
-                participant_traced_data.append_data({dataset_config.analysis_dataset: {"labels": true_missing_label}}, Metadata(user,
-                                                                                                                                Metadata.get_call_location(),
-                                                                                                                                TimeUtils.utc_now_as_iso_string()))
+                participant_traced_data.append_data({dataset_config.analysis_dataset: {"labels": true_missing_label}}, 
+                                                                                                    Metadata(user, Metadata.get_call_location(),
+                                                                                                    TimeUtils.utc_now_as_iso_string()))
 
         true_missing_imputed_data[uuid] = participant_traced_data
 

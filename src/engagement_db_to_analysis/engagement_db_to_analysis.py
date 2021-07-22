@@ -93,7 +93,7 @@ def _convert_messages_to_traced_data(user, messages_map):
     :param messages_map: Dict of engagement db dataset -> list of Messages in that dataset.
     :type messages_map: dict of str -> list of engagement_database.data_models.Message
     :return: A list of Traced data message objects.
-    :type: list of Traced data
+    :type: list of Traced data.
     """
     messages_traced_data = []
     for engagement_db_dataset in messages_map:
