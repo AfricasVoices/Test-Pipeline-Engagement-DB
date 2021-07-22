@@ -43,9 +43,9 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
 
     # Filter a list of td for research question messages received within the given time range.
     rqa_engagement_db_datasets = []
-    for analysis_config in pipeline_config.analysis_config:
-        if analysis_config.dataset_type == DatasetTypes.RESEARCH_QUESTION_ANSWER:
-            for engagement_db_dataset in analysis_config.engagement_db_datasets:
+    for dataset_config in pipeline_config.analysis_dataset_config:
+        if dataset_config.dataset_type == DatasetTypes.RESEARCH_QUESTION_ANSWER:
+            for engagement_db_dataset in dataset_config.engagement_db_datasets:
                 rqa_engagement_db_datasets.append(engagement_db_dataset)
 
     filtered = []

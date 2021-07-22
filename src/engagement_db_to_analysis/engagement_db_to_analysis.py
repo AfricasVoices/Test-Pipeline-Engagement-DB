@@ -1,22 +1,23 @@
 from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
-from core_data_modules.traced_data import TracedData, Metadata
+from core_data_modules.traced_data import TracedData, Metadata, TracedData
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages, filter_participants
+from src.engagement_db_to_analysis.data_wrangling_functions import run_data_wrangling_functions
 
 
 log = Logger(__name__)
 
 
-def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path):
+def _get_project_messages_from_engagement_db(analysis_dataset_config, engagement_db, cache_path):
     """
 
     Downloads project messages from engagement database. It performs a full download if there is no previous export and
     incrementally otherwise.
 
-    :param analysis_config: Analysis dataset configuration in pipeline configuration module.
-    :type analysis_config: pipeline_config.analysis_config
+    :param analysis_dataset_config: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_config: pipeline_config.analysis_dataset_config
     :param engagement_db: Engagement database to download the messages from.
     :type engagement_db: engagement_database.EngagementDatabase
     :param cache_path: Directory to use for the fetch cache, containing engagement_db dataset files and a timestamp generated from a previous run.
@@ -29,8 +30,9 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
     cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
 
     engagement_db_dataset_messages_map = {}  # of engagement_db_dataset to list of messages
-    for config in analysis_configurations:
-        for engagement_db_dataset in config.engagement_db_datasets:
+    for dataset_config in analysis_dataset_config:
+        for engagement_db_dataset in dataset_config.engagement_db_datasets:
+
             messages = []
             latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
             if latest_message_timestamp is not None:
@@ -107,7 +109,7 @@ def _convert_messages_to_traced_data(user, messages_map):
     return messages_traced_data
 
 
-def _fold_messages_by_uid(user, messages_traced_data):
+def _fold_messages_by_uid(user, messages_traced_data, analysis_dataset_config):
     """
     Groups Messages TracedData objects into Individual TracedData objects.
 
@@ -115,14 +117,19 @@ def _fold_messages_by_uid(user, messages_traced_data):
     :type user: str
     :param messages_traced_data: Messages TracedData objects to group.
     :type messages_traced_data: list of TracedData
-    :return: Individual TracedData objects.
-    :rtype: dict of uid -> individual TracedData objects.
+    :param analysis_dataset_config: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_config: pipeline_config.analysis_dataset_config 
+    :return: Participant TracedData objects.
+    :rtype: dict of uid -> participant TracedData objects.
     """
 
     participants_traced_data_map = {}
     for message in messages_traced_data:
+        
         participant_uuid = message["participant_uuid"]
-        message_dataset = message["dataset"]
+        for dataset_config in analysis_dataset_config:
+            if message["dataset"] in dataset_config.engagement_db_datasets:
+                message_analysis_dataset = dataset_config.analysis_dataset
 
         # Create an empty TracedData for this participant if this participant hasn't been seen yet.
         if participant_uuid not in participants_traced_data_map.keys():
@@ -131,13 +138,13 @@ def _fold_messages_by_uid(user, messages_traced_data):
 
         # Get the existing list of messages for this dataset, if it exists, otherwise initialise with []
         participant_td = participants_traced_data_map[participant_uuid]
-        participant_dataset_messages = participant_td.get(message_dataset, [])
+        participant_dataset_messages = participant_td.get(message_analysis_dataset, [])
 
         # Append this message to the list of messages for this dataset, and write-back to TracedData.
         participant_dataset_messages = participant_dataset_messages.copy()
         participant_dataset_messages.append(dict(message))
         participant_td.append_data(
-            {message_dataset: participant_dataset_messages},
+            {message_analysis_dataset: participant_dataset_messages},
             Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
         )
         # Append the message's traced data, as it contains the history of which filters were passed.
@@ -152,15 +159,17 @@ def _fold_messages_by_uid(user, messages_traced_data):
 
 def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
 
-    messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_config, engagement_db,
+    messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_dataset_config, engagement_db,
                                                engagement_db_datasets_cache_dir)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    participants_traced_data_map = _fold_messages_by_uid(user, messages_traced_data)
+    participants_traced_data_map = _fold_messages_by_uid(user, messages_traced_data, pipeline_config.analysis_dataset_config)
 
     participants_traced_data_map = filter_participants(user, participants_traced_data_map, pipeline_config)
+
+    participants_traced_data_map = run_data_wrangling_functions(user, participants_traced_data_map, pipeline_config.analysis_dataset_config)
 
     return participants_traced_data_map

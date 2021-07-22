@@ -12,7 +12,7 @@ from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidPro
                                                           WriteModes, ContactField)
 from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration, UuidFilter, \
     RapidProToEngagementDBConfiguration
-from src.engagement_db_to_analysis.configuration import AnalysisDatasetConfiguration, DatasetTypes
+from src.engagement_db_to_analysis.configuration import AnalysisDatasetConfiguration, DatasetTypes, CodingConfiguration
 
 
 def load_code_scheme(fname):
@@ -51,4 +51,4 @@ class PipelineConfiguration:
     rapid_pro_sources: [RapidProSource] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
-    analysis_config: [AnalysisDatasetConfiguration] = None
+    analysis_dataset_config: [AnalysisDatasetConfiguration] = None
