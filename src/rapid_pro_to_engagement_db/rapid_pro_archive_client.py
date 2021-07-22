@@ -18,10 +18,15 @@ class RapidProArchiveClient:
         """
         self.archive_dir = archive_dir
 
-    def get_workspace_name(self):
+    def _get_org(self):
         with open(f"{self.archive_dir}/org.json") as f:
-            org = Org.deserialize(json.load(f))
-        return org.name
+            return Org.deserialize(json.load(f))
+
+    def get_workspace_name(self):
+        return self._get_org().name
+
+    def get_workspace_uuid(self):
+        return self._get_org().uuid
 
     def get_flow_id(self, flow_name):
         with open(f"{self.archive_dir}/flows.jsonl") as f:
