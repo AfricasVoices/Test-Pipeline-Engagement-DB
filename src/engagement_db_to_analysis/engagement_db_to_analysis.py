@@ -142,13 +142,13 @@ def _fold_messages_by_uid(user, messages_traced_data):
 
         # Get the existing list of messages for this dataset, if it exists, otherwise initialise with []
         participant_td = participants_traced_data_map[participant_uuid]
-        dataset_messages = participant_td.get(message_dataset, [])
+        participant_dataset_messages = participant_td.get(message_dataset, [])
 
         # Append this message to the list of messages for this dataset, and write-back to TracedData.
-        dataset_messages = dataset_messages.copy()
-        dataset_messages.append(dict(message))
+        participant_dataset_messages = participant_dataset_messages.copy()
+        participant_dataset_messages.append(dict(message))
         participant_td.append_data(
-            {message_dataset: dataset_messages},
+            {message_dataset: participant_dataset_messages},
             Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
         )
         # TODO: Consider not converting messages to TracedData before this function, as that would remove the need
