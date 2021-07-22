@@ -1,5 +1,3 @@
-from dateutil.parser import isoparse
-
 from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
 from core_data_modules.traced_data import TracedData, Metadata
@@ -9,14 +7,6 @@ from src.engagement_db_to_analysis.traced_data_filters import filter_messages, f
 
 
 log = Logger(__name__)
-
-# Todo move to Pipeline Infrastructure
-def serialise_message(msg):
-    msg = msg.to_dict()
-    msg["timestamp"] = msg["timestamp"].isoformat()
-    msg["last_updated"] = msg["last_updated"].isoformat()
-
-    return msg
 
 
 def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path):
@@ -32,7 +22,7 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
     :param cache_path: Directory to use for the fetch cache, containing engagement_db dataset files and a timestamp generated from a previous run.
     :type cache_path: str
     :return: engagement_db_dataset_messages_map of engagement_db_dataset to list of messages.
-    :rtype: dict of str -> list of Message
+    :rtype: dict of str -> list of engagement_database.data_models.Message
     """
 
     log.info(f"Initialising EngagementAnalysisCache at '{cache_path}/engagement_db_to_analysis'")
@@ -41,7 +31,6 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
     engagement_db_dataset_messages_map = {}  # of engagement_db_dataset to list of messages
     for config in analysis_configurations:
         for engagement_db_dataset in config.engagement_db_datasets:
-
             messages = []
             latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
             if latest_message_timestamp is not None:
@@ -52,8 +41,7 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
                     .where("dataset", "==", engagement_db_dataset) \
                     .where("last_updated", ">", latest_message_timestamp)
 
-                messages.extend(
-                    serialise_message(msg) for msg in engagement_db.get_messages(filter=incremental_messages_filter))
+                messages.extend(engagement_db.get_messages(filter=incremental_messages_filter))
 
                 # Check and remove cache messages that have been ws corrected after the previous run
                 ws_corrected_messages_filter = lambda q: q \
@@ -62,9 +50,9 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
 
                 ws_corrected_messages = engagement_db.get_messages(filter=ws_corrected_messages_filter)
 
-                cache_messages = cache.get_previous_export_messages(engagement_db_dataset)
+                cache_messages = cache.get_messages(engagement_db_dataset)
                 for msg in cache_messages:
-                    if msg["message_id"] in {msg.message_id for msg in ws_corrected_messages}:
+                    if msg.message_id in {msg.message_id for msg in ws_corrected_messages}:
                         continue
                     messages.append(msg)
 
@@ -74,14 +62,13 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
                 full_download_filter = lambda q: q \
                     .where("dataset", "==", engagement_db_dataset)
 
-                messages.extend(
-                    serialise_message(msg) for msg in engagement_db.get_messages(filter=full_download_filter))
+                messages.extend(engagement_db.get_messages(filter=full_download_filter))
 
             engagement_db_dataset_messages_map[engagement_db_dataset] = messages
 
             # Update latest_message_timestamp
             for msg in messages:
-                msg_last_updated = isoparse(msg["last_updated"])
+                msg_last_updated = msg.last_updated
                 if latest_message_timestamp is None or msg_last_updated > latest_message_timestamp:
                     latest_message_timestamp = msg_last_updated
 
@@ -90,9 +77,10 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
                 cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
 
             # Export project engagement_dataset files
-            cache.export_engagement_db_dataset(engagement_db_dataset, messages)
+            cache.set_messages(engagement_db_dataset, messages)
 
     return engagement_db_dataset_messages_map
+
 
 def _convert_messages_to_traced_data(user, messages_map):
     """
@@ -100,23 +88,24 @@ def _convert_messages_to_traced_data(user, messages_map):
 
     :param user: Identifier of user running the pipeline.
     :type user: str
-    :param messages_map: Dict containing messages data.
-    :type messages_map: dict
+    :param messages_map: Dict of engagement db dataset -> list of Messages in that dataset.
+    :type messages_map: dict of str -> list of engagement_database.data_models.Message
     :return: A list of Traced data message objects.
     :type: list of Traced data
     """
-
     messages_traced_data = []
     for engagement_db_dataset in messages_map:
-
         engagement_db_dataset_messages = messages_map[engagement_db_dataset]
         for msg in engagement_db_dataset_messages:
-            messages_traced_data.append(
-                TracedData(msg, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())))
+            messages_traced_data.append(TracedData(
+                msg.to_dict(serialize_datetimes_to_str=True),
+                Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
+            ))
 
     log.info(f"Converted {len(messages_traced_data)} raw messages to TracedData")
 
     return messages_traced_data
+
 
 def _fold_messages_by_uid(user, messages_traced_data):
     """
