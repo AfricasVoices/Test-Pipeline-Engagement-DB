@@ -151,8 +151,7 @@ def _fold_messages_by_uid(user, messages_traced_data):
             {message_dataset: participant_dataset_messages},
             Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
         )
-        # TODO: Consider not converting messages to TracedData before this function, as that would remove the need
-        #       for this complicated append step.
+        # Append the message's traced data, as it contains the history of which filters were passed.
         message.hide_keys(message.keys(), Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
         participant_td.append_traced_data(
             "message_history", message,
