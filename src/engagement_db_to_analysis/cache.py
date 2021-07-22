@@ -7,7 +7,7 @@ from core_data_modules.util import IOUtils
 from engagement_database.data_models import Message
 
 
-class AnalysisCache(object):
+class AnalysisCache:
     def __init__(self, cache_dir):
         """
         Initialises an Engagement to Analysis cache at the given directory.
