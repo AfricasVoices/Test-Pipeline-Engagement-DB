@@ -77,7 +77,7 @@ class AnalysisCache(object):
 
         :param engagement_db_dataset: Engagement db dataset name for this context.
         :type engagement_db_dataset: str
-        :param messages: Messages to set.
+        :param messages: Messages to set, for the given engagement db dataset.
         :type messages: list of engagement_database.data_models.Message
         """
         export_file_path = path.join(f"{self.cache_dir}/{engagement_db_dataset}.jsonl")
