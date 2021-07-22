@@ -109,11 +109,10 @@ def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_sche
     # Check for a WS code in any of the normal code schemes
     ws_code_in_normal_scheme = False
     for label in coda_message.get_latest_labels():
-        if label.scheme_id == ws_code_scheme.scheme_id:
-            continue
-        code = _code_for_label(label, normal_code_schemes)
-        if code.control_code == Codes.WRONG_SCHEME:
-            ws_code_in_normal_scheme = True
+        if label.scheme_id != ws_code_scheme.scheme_id:
+            code = _code_for_label(label, normal_code_schemes)
+            if code.control_code == Codes.WRONG_SCHEME:
+                ws_code_in_normal_scheme = True
 
     # Check for a code in the WS code scheme
     code_in_ws_scheme = False
