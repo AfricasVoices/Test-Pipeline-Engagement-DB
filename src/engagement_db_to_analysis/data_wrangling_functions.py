@@ -1,8 +1,8 @@
-from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.cleaners import Codes
+from core_data_modules.cleaners.cleaning_utils import CleaningUtils
+from core_data_modules.logging import Logger
 from core_data_modules.traced_data import Metadata
 from core_data_modules.util import TimeUtils
-from core_data_modules.logging import Logger
 
 log = Logger(__name__)
 
@@ -22,7 +22,6 @@ def _impute_true_missing_labels(user, participants_traced_data_map, analysis_dat
     :rtype: dict of uuid -> participant TracedData objects.
 
     """
-    
     log.info("Imputing true missing analysis_dataset...")
     true_missing_imputed_data = {}
     for uuid, participant_traced_data in participants_traced_data_map.items():
@@ -34,11 +33,12 @@ def _impute_true_missing_labels(user, participants_traced_data_map, analysis_dat
 
                     true_missing_label = CleaningUtils.make_label_from_cleaner_code(coding_config.code_scheme,
                                                                                     coding_config.code_scheme.get_code_with_control_code(Codes.TRUE_MISSING),
-                                                                                     Metadata.get_call_location()).to_dict()
+                                                                                    Metadata.get_call_location()
+                                                                                    ).to_dict()
 
-                participant_traced_data.append_data({dataset_config.analysis_dataset: {"labels": true_missing_label}}, 
-                                                                                                    Metadata(user, Metadata.get_call_location(),
-                                                                                                    TimeUtils.utc_now_as_iso_string()))
+                participant_traced_data.append_data({dataset_config.analysis_dataset: {"labels": true_missing_label}},
+                                                    Metadata(user, Metadata.get_call_location(),
+                                                             TimeUtils.utc_now_as_iso_string()))
 
         true_missing_imputed_data[uuid] = participant_traced_data
 
