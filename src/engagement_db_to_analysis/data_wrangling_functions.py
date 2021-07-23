@@ -26,7 +26,8 @@ def _impute_true_missing_labels(user, participants_traced_data_map, analysis_dat
     true_missing_imputed_data = {}
     for uuid, participant_traced_data in participants_traced_data_map.items():
         for dataset_config in analysis_dataset_config:
-            if dataset_config.analysis_dataset not in participants_traced_data_map:
+            if dataset_config.messages_analysis_dataset not in participants_traced_data_map:
+                true_missing_label = None
                 for coding_config in dataset_config.coding_configs:
 
                     true_missing_label = CleaningUtils.make_label_from_cleaner_code(coding_config.code_scheme,
@@ -34,7 +35,7 @@ def _impute_true_missing_labels(user, participants_traced_data_map, analysis_dat
                                                                                     Metadata.get_call_location()
                                                                                     ).to_dict()
 
-                participant_traced_data.append_data({dataset_config.analysis_dataset: {"true_missing": true_missing_label}},
+                participant_traced_data.append_data({dataset_config.messages_analysis_dataset: true_missing_label},
                                                     Metadata(user, Metadata.get_call_location(),
                                                              TimeUtils.utc_now_as_iso_string()))
 
