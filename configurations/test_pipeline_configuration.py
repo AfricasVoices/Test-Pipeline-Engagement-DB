@@ -96,7 +96,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         AnalysisDatasetConfiguration(
             engagement_db_datasets = ["s01e01"],
             dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER,
-            analysis_dataset = "s01e01",
+            messages_analysis_dataset = "s01e01",
             coding_configs = [
                 CodingConfiguration(
                     code_scheme = load_code_scheme("s01e01"),
@@ -107,7 +107,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         AnalysisDatasetConfiguration(
             engagement_db_datasets = ["gender"],
             dataset_type = DatasetTypes.DEMOGRAPHIC,
-            analysis_dataset = "gender",
+            messages_analysis_dataset = "gender",
             coding_configs = [
                 CodingConfiguration(
                     code_scheme = load_code_scheme("gender"),
@@ -118,7 +118,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         AnalysisDatasetConfiguration(
             engagement_db_datasets = ["location"],
             dataset_type = DatasetTypes.DEMOGRAPHIC,
-            analysis_dataset = "location",
+            messages_analysis_dataset = "location",
             coding_configs = [
                 CodingConfiguration(
                     code_scheme = load_code_scheme("kenya_county"),
@@ -133,7 +133,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         AnalysisDatasetConfiguration(
             engagement_db_datasets = ["age"],
             dataset_type = DatasetTypes.DEMOGRAPHIC,
-            analysis_dataset = "age",
+            messages_analysis_dataset = "age",
             coding_configs = [
                 CodingConfiguration(
                     code_scheme = load_code_scheme("age"),

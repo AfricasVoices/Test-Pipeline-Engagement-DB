@@ -18,5 +18,5 @@ class CodingConfiguration:
 class AnalysisDatasetConfiguration:
     engagement_db_datasets: [str]
     dataset_type: DatasetTypes
-    analysis_dataset: str
+    messages_analysis_dataset: str
     coding_configs: [CodingConfiguration]

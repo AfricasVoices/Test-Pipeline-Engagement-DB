@@ -125,11 +125,12 @@ def _fold_messages_by_uid(user, messages_traced_data, analysis_dataset_config):
 
     participants_traced_data_map = {}
     for message in messages_traced_data:
-        
+
         participant_uuid = message["participant_uuid"]
+        message_analysis_dataset = None
         for dataset_config in analysis_dataset_config:
             if message["dataset"] in dataset_config.engagement_db_datasets:
-                message_analysis_dataset = dataset_config.analysis_dataset
+                message_analysis_dataset = dataset_config.messages_analysis_dataset
 
         # Create an empty TracedData for this participant if this participant hasn't been seen yet.
         if participant_uuid not in participants_traced_data_map.keys():
