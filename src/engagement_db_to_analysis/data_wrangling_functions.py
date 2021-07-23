@@ -25,9 +25,7 @@ def _impute_true_missing_labels(user, participants_traced_data_map, analysis_dat
     log.info("Imputing true missing analysis_dataset...")
     true_missing_imputed_data = {}
     for uuid, participant_traced_data in participants_traced_data_map.items():
-
         for dataset_config in analysis_dataset_config:
-
             if dataset_config.analysis_dataset not in participants_traced_data_map:
                 for coding_config in dataset_config.coding_configs:
 
