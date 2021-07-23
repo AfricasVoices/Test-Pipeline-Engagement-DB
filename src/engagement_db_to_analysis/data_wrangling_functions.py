@@ -10,7 +10,7 @@ log = Logger(__name__)
 def _impute_true_missing_labels(user, participants_traced_data_map, analysis_dataset_config):
     """
 
-    Labels analysis_dataset for which there is no response as TRUE_MISSING.
+    Labels analysis_dataset for which there is no message as TRUE_MISSING.
 
     :param user: Identifier of user running the pipeline.
     :type user: str
@@ -36,7 +36,7 @@ def _impute_true_missing_labels(user, participants_traced_data_map, analysis_dat
                                                                                     Metadata.get_call_location()
                                                                                     ).to_dict()
 
-                participant_traced_data.append_data({dataset_config.analysis_dataset: {"labels": true_missing_label}},
+                participant_traced_data.append_data({dataset_config.analysis_dataset: {"true_missing": true_missing_label}},
                                                     Metadata(user, Metadata.get_call_location(),
                                                              TimeUtils.utc_now_as_iso_string()))
 
