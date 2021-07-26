@@ -103,4 +103,3 @@ def filter_messages(user, messages_traced_data, pipeline_config):
             "Not filtering out test participants data (because the pipeline_config.filter_test_participants was set to `False`)")
 
     return messages_traced_data
-
