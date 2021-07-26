@@ -105,7 +105,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             engagement_db_datasets = ["location"],
             dataset_type = DatasetTypes.DEMOGRAPHIC
         ),
-AnalysisDatasetConfiguration(
+        AnalysisDatasetConfiguration(
             engagement_db_datasets = ["age"],
             dataset_type = DatasetTypes.DEMOGRAPHIC
         )
