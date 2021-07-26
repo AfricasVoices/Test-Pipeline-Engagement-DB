@@ -3,7 +3,7 @@ from core_data_modules.util import TimeUtils
 from core_data_modules.traced_data import TracedData, Metadata
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
-from src.engagement_db_to_analysis.traced_data_filters import filter_messages, filter_participants
+from src.engagement_db_to_analysis.traced_data_filters import filter_messages
 
 
 log = Logger(__name__)
@@ -160,7 +160,5 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
     participants_traced_data_map = _fold_messages_by_uid(user, messages_traced_data)
-
-    participants_traced_data_map = filter_participants(user, participants_traced_data_map, pipeline_config)
 
     return participants_traced_data_map
