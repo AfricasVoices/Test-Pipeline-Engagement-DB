@@ -12,11 +12,10 @@ def load_code_scheme(fname):
 rapid_pro_uuid_filter = UuidFilter(uuid_file_url="gs://avf-project-datasets/Test/2021/Kenya-Pool/opt_in_uuids.json")
 
 
-# TODO: Add GPSDD to pool
 PIPELINE_CONFIGURATION = PipelineConfiguration(
     pipeline_name="Create-Kenya-Pool",
     description="Creates the initial Kenya Pool from demographics responses to COVID19, COVID19-Ke-Urban, "
-                "UNDP-Kenya, UNICEF-KENYA, OXFAM-KENYA, and World Vision.",
+                "UNDP-Kenya, UNICEF-KENYA, OXFAM-KENYA, World Vision, and GPSDD.",
     engagement_database=EngagementDatabaseClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
         database_path="engagement_db_experiments/kenya_pool_test"
@@ -98,6 +97,51 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     FlowResultConfiguration("worldvision_s01_demog", "constituency", "kenya_pool_location"),
                     FlowResultConfiguration("worldvision_s01_demog", "gender", "kenya_pool_gender"),
                     FlowResultConfiguration("worldvision_s01_demog", "age", "kenya_pool_age"),
+                ],
+                uuid_filter=rapid_pro_uuid_filter
+            )
+        ),
+        RapidProSource(
+            rapid_pro=RapidProClientConfiguration(
+                domain="textit.com",
+                token_file_url="gs://avf-credentials/gpsdd-kilifi-textit-token.txt"
+            ),
+            sync_config=RapidProToEngagementDBConfiguration(
+                flow_result_configurations=[
+                    FlowResultConfiguration("gpsdd_kilifi_s01_demog", "constituency", "kenya_pool_location"),
+                    FlowResultConfiguration("gpsdd_kilifi_s01_demog", "gender", "kenya_pool_gender"),
+                    FlowResultConfiguration("gpsdd_kilifi_s01_demog", "age", "kenya_pool_age"),
+                    FlowResultConfiguration("gpsdd_kilifi_s01_demog", "disabled", "kenya_pool_disabled"),
+                ],
+                uuid_filter=rapid_pro_uuid_filter
+            )
+        ),
+        RapidProSource(
+            rapid_pro=RapidProClientConfiguration(
+                domain="textit.com",
+                token_file_url="gs://avf-credentials/gpsdd-kiambu-textit-token.txt"
+            ),
+            sync_config=RapidProToEngagementDBConfiguration(
+                flow_result_configurations=[
+                    FlowResultConfiguration("gpsdd_kiambu_s01_demog", "constituency", "kenya_pool_location"),
+                    FlowResultConfiguration("gpsdd_kiambu_s01_demog", "gender", "kenya_pool_gender"),
+                    FlowResultConfiguration("gpsdd_kiambu_s01_demog", "age", "kenya_pool_age"),
+                    FlowResultConfiguration("gpsdd_kiambu_s01_demog", "disabled", "kenya_pool_disabled"),
+                ],
+                uuid_filter=rapid_pro_uuid_filter
+            )
+        ),
+        RapidProSource(
+            rapid_pro=RapidProClientConfiguration(
+                domain="textit.com",
+                token_file_url="gs://avf-credentials/gpsdd-bungoma-textit-token.txt"
+            ),
+            sync_config=RapidProToEngagementDBConfiguration(
+                flow_result_configurations=[
+                    FlowResultConfiguration("gpsdd_bungoma_s01_demog", "constituency", "kenya_pool_location"),
+                    FlowResultConfiguration("gpsdd_bungoma_s01_demog", "gender", "kenya_pool_gender"),
+                    FlowResultConfiguration("gpsdd_bungoma_s01_demog", "age", "kenya_pool_age"),
+                    FlowResultConfiguration("gpsdd_bungoma_s01_demog", "disabled", "kenya_pool_disabled"),
                 ],
                 uuid_filter=rapid_pro_uuid_filter
             )
