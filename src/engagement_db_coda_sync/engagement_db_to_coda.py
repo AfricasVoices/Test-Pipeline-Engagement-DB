@@ -37,7 +37,7 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
     :type last_seen_message: engagement_database.data_models.Message | None
     :return: A tuple of:
              1. The engagement database message that was synced. If there was no new message to sync, returns None.
-             2. Sync stats for the next synced message.
+             2. Sync stats.
     :rtype: (engagement_database.data_models.Message | None, src.engagement_db_coda_sync.sync_stats.CodaSyncStats)
     """
     if last_seen_message is None:
