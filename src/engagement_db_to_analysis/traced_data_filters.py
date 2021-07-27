@@ -79,8 +79,10 @@ def filter_test_messages(user, messages_traced_data, test_participant_uuids):
     log.debug("Filtering out test participants data...")
     filtered = []
 
+    filtered_test_messages = 0
     for td in messages_traced_data:
         if td["participant_uuid"] in test_participant_uuids:
+            filtered_test_messages +=1
             continue
 
         # Updates the td object with new Metadata for this filter function.
@@ -89,7 +91,9 @@ def filter_test_messages(user, messages_traced_data, test_participant_uuids):
                                                     TimeUtils.utc_now_as_iso_string()))
         filtered.append(td)
 
-    log.info(f"Returning {len(filtered)}/{len(filtered)} participants data...")
+    log.info(f"Filtered out {filtered_test_messages} test messages...")
+    log.info(f"Returning {len(filtered)}/{len(messages_traced_data)} messages...")
+
     return filtered
 
 
