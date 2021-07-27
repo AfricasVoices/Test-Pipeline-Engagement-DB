@@ -11,7 +11,6 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     project_start_date=isoparse("2021-03-01T10:30:00+03:00"),
     project_end_date=isoparse("2100-01-01T00:00:00+03:00"),
     test_participant_uuids=[
-        "avf-participant-uuid-51c15546-58a0-4ab1-b465-e65b71462a8f"
     ],
     engagement_database=EngagementDatabaseClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
@@ -92,22 +91,59 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             write_mode=WriteModes.CONCATENATE_TEXTS
         )
     ),
-    analysis_config=[
-        AnalysisDatasetConfiguration(
-            engagement_db_datasets = ["s01e01"],
-            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
-        ),
-        AnalysisDatasetConfiguration(
-            engagement_db_datasets = ["gender"],
-            dataset_type = DatasetTypes.DEMOGRAPHIC
-        ),
-        AnalysisDatasetConfiguration(
-            engagement_db_datasets = ["location"],
-            dataset_type = DatasetTypes.DEMOGRAPHIC
-        ),
-        AnalysisDatasetConfiguration(
-            engagement_db_datasets = ["age"],
-            dataset_type = DatasetTypes.DEMOGRAPHIC
-        )
-    ]
+    analysis_configs=AnalysisConfigurations(
+        dataset_configurations=[
+            AnalysisDatasetConfiguration(
+                engagement_db_datasets=["s01e01"],
+                dataset_type=DatasetTypes.RESEARCH_QUESTION_ANSWER,
+                raw_field="s01e01_raw",
+                coding_configs=[
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("s01e01"),
+                        analysis_file_key="s01e01"
+                    )
+                ]
+            ),
+            AnalysisDatasetConfiguration(
+                engagement_db_datasets=["gender"],
+                dataset_type=DatasetTypes.DEMOGRAPHIC,
+                raw_field="gender_raw",
+                coding_configs=[
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("gender"),
+                        analysis_file_key="gender"
+                    )
+                ]
+            ),
+            AnalysisDatasetConfiguration(
+                engagement_db_datasets=["location"],
+                dataset_type=DatasetTypes.DEMOGRAPHIC,
+                raw_field="location_raw",
+                coding_configs=[
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("kenya_county"),
+                        analysis_file_key="kenya_county"
+                    ),
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("kenya_constituency"),
+                        analysis_file_key="kenya_constituency"
+                    )
+                ]
+            ),
+            AnalysisDatasetConfiguration(
+                engagement_db_datasets=["age"],
+                dataset_type=DatasetTypes.DEMOGRAPHIC,
+                raw_field="age_raw",
+                coding_configs=[
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("age"),
+                        analysis_file_key="age"
+                    ),
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("age_category"),
+                        analysis_file_key="age_category"
+                    ),
+                ]
+            )
+        ])
 )
