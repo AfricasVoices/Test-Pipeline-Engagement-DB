@@ -76,13 +76,13 @@ def filter_test_messages(user, messages_traced_data, test_participant_uuids):
     :return: Filtered dict.
     :rtype: dict of participant_uid -> TracedData
     """
-    log.debug("Filtering out test participants data...")
+    log.debug("Filtering test messages data...")
     filtered = []
 
-    filtered_test_messages = 0
+    filtered_participants_uuids = set()
     for td in messages_traced_data:
         if td["participant_uuid"] in test_participant_uuids:
-            filtered_test_messages +=1
+            filtered_participants_uuids.add(td["participant_uuid"])
             continue
 
         # Updates the td object with new Metadata for this filter function.
@@ -91,7 +91,7 @@ def filter_test_messages(user, messages_traced_data, test_participant_uuids):
                                                     TimeUtils.utc_now_as_iso_string()))
         filtered.append(td)
 
-    log.info(f"Filtered out {filtered_test_messages} test messages...")
+    log.info(f"Filtered out {len(filtered_participants_uuids)}/{len(test_participant_uuids)} test participants messages...")
     log.info(f"Returning {len(filtered)}/{len(messages_traced_data)} messages...")
 
     return filtered
