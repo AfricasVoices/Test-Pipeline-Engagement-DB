@@ -65,7 +65,7 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
     return filtered
 
 
-def filter_test_participants_messages(user, messages_traced_data, test_participant_uuids):
+def filter_test_messages(user, messages_traced_data, test_participant_uuids):
     """
     Filters a dict of participants who are not in pipeline_config.test_contacts e.g AVF/Aggregator staff
 
@@ -97,7 +97,7 @@ def filter_messages(user, messages_traced_data, pipeline_config):
     messages_traced_data = rqa_time_range_filter(user, messages_traced_data, pipeline_config)
 
     if pipeline_config.test_participant_uuids is not None:
-        messages_traced_data = filter_test_participants_messages(user, messages_traced_data, pipeline_config.test_participant_uuids)
+        messages_traced_data = filter_test_messages(user, messages_traced_data, pipeline_config.test_participant_uuids)
     else:
         log.debug(
             "Not filtering out test participants data (because the pipeline_config.filter_test_participants was set to `False`)")
