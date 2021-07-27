@@ -65,7 +65,7 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
         return None, sync_stats
     else:
         engagement_db_message = next_message_results[0]
-        sync_stats.add_event(CodaSyncEvents.READ_MESSAGE)
+        sync_stats.add_event(CodaSyncEvents.READ_MESSAGE_FROM_ENGAGEMENT_DB)
 
     log.info(f"Syncing message {engagement_db_message.message_id}...")
 
@@ -94,7 +94,7 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
         return engagement_db_message, sync_stats
 
     # The message isn't in Coda, so add it
-    sync_stats.add_event(CodaSyncEvents.ADD_TO_CODA)
+    sync_stats.add_event(CodaSyncEvents.ADD_MESSAGE_TO_CODA)
     _add_message_to_coda(coda, dataset_config, coda_config.ws_correct_dataset_code_scheme, engagement_db_message)
 
     return engagement_db_message, sync_stats

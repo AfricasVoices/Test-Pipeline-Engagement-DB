@@ -4,9 +4,9 @@ log = Logger(__name__)
 
 
 class CodaSyncEvents:
-    READ_MESSAGE = "read_message"
+    READ_MESSAGE_FROM_ENGAGEMENT_DB = "read_message_from_engagement_db"
     SET_CODA_ID = "set_coda_id"
-    ADD_TO_CODA = "add_to_coda"
+    ADD_MESSAGE_TO_CODA = "add_message_to_coda"
     LABELS_MATCH = "labels_match"
     UPDATE_ENGAGEMENT_DB_LABELS = "update_engagement_db_labels"
     WS_CORRECTION = "ws_correction"
@@ -15,9 +15,9 @@ class CodaSyncEvents:
 class CodaSyncStats:
     def __init__(self):
         self.event_counts = {
-            CodaSyncEvents.READ_MESSAGE: 0,
+            CodaSyncEvents.READ_MESSAGE_FROM_ENGAGEMENT_DB: 0,
             CodaSyncEvents.SET_CODA_ID: 0,
-            CodaSyncEvents.ADD_TO_CODA: 0,
+            CodaSyncEvents.ADD_MESSAGE_TO_CODA: 0,
             CodaSyncEvents.LABELS_MATCH: 0,
             CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS: 0,
             CodaSyncEvents.WS_CORRECTION: 0
@@ -33,9 +33,9 @@ class CodaSyncStats:
             self.event_counts[k] += v
 
     def print_summary(self):
-        log.info(f"Messages read: {self.event_counts[CodaSyncEvents.READ_MESSAGE]}")
+        log.info(f"Messages read from engagement db: {self.event_counts[CodaSyncEvents.READ_MESSAGE_FROM_ENGAGEMENT_DB]}")
         log.info(f"Coda ids set: {self.event_counts[CodaSyncEvents.SET_CODA_ID]}")
-        log.info(f"Messages added to Coda: {self.event_counts[CodaSyncEvents.ADD_TO_CODA]}")
+        log.info(f"Messages added to Coda: {self.event_counts[CodaSyncEvents.ADD_MESSAGE_TO_CODA]}")
         log.info(f"Messages updated with labels from Coda: {self.event_counts[CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS]}")
         log.info(f"Messages with labels already matching Coda: {self.event_counts[CodaSyncEvents.LABELS_MATCH]}")
         log.info(f"Messages WS-corrected: {self.event_counts[CodaSyncEvents.WS_CORRECTION]}")
