@@ -60,6 +60,14 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     ws_code_string_value="location"
                 ),
                 CodaDatasetConfiguration(
+                    coda_dataset_id="TEST_age",
+                    engagement_db_dataset="age",
+                    code_scheme_configurations=[
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None), #Todo add auto_code function
+                    ],
+                    ws_code_string_value="age"
+                ),
+                CodaDatasetConfiguration(
                     coda_dataset_id="TEST_s01e01",
                     engagement_db_dataset="s01e01",
                     code_scheme_configurations=[
@@ -91,11 +99,15 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         ),
         AnalysisDatasetConfiguration(
             engagement_db_datasets = ["gender"],
-            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
+            dataset_type = DatasetTypes.DEMOGRAPHIC
         ),
         AnalysisDatasetConfiguration(
             engagement_db_datasets = ["location"],
-            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
+            dataset_type = DatasetTypes.DEMOGRAPHIC
         ),
+        AnalysisDatasetConfiguration(
+            engagement_db_datasets = ["age"],
+            dataset_type = DatasetTypes.DEMOGRAPHIC
+        )
     ]
 )
