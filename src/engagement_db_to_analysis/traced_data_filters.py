@@ -83,6 +83,8 @@ def filter_test_messages(user, messages_traced_data, test_participant_uuids):
         if td["participant_uuid"] in test_participant_uuids:
             continue
 
+        # Updates the td object with new Metadata for this filter function.
+        # The allows us to hold history of the td update for easy traceback.
         td.append_data(td, Metadata(user, Metadata.get_call_location(),
                                                     TimeUtils.utc_now_as_iso_string()))
         filtered.append(td)
