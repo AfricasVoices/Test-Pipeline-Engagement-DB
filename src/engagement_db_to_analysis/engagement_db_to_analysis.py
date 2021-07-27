@@ -17,7 +17,8 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
     :type analysis_config: pipeline_config.analysis_config
     :param engagement_db: Engagement database to download the messages from.
     :type engagement_db: engagement_database.EngagementDatabase
-    :param cache_path: Directory to use for the fetch cache, containing engagement_db dataset files and a timestamp generated from a previous run.
+    :param cache_path: Path to a directory to use to cache results needed for incremental operation.
+                       If None, runs in non-incremental mode.
     :type cache_path: str
     :return: engagement_db_dataset_messages_map of engagement_db_dataset to list of messages.
     :rtype: dict of str -> list of engagement_database.data_models.Message
