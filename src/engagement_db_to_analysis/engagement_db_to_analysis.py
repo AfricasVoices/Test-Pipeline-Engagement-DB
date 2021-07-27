@@ -11,7 +11,7 @@ log = Logger(__name__)
 
 def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path=None):
     """
-    Downloads project messages from engagement database.
+    Gets project messages from engagement database.
 
     :param analysis_config: Analysis dataset configuration in pipeline configuration module.
     :type analysis_config: pipeline_config.analysis_config
@@ -24,14 +24,18 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
     :rtype: dict of str -> list of engagement_database.data_models.Message
     """
 
-    log.info(f"Initialising EngagementAnalysisCache at '{cache_path}/engagement_db_to_analysis'")
-    cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
+    if cache_path is None:
+        cache = None
+        log.warning(f"No `cache_path` provided. This tool will perform a full download of project messages from engagement database")
+    else:
+        log.info(f"Initialising EngagementAnalysisCache at '{cache_path}/engagement_db_to_analysis'")
+        cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
 
     engagement_db_dataset_messages_map = {}  # of engagement_db_dataset to list of messages
     for config in analysis_configurations:
         for engagement_db_dataset in config.engagement_db_datasets:
             messages = []
-            latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
+            latest_message_timestamp = None if cache is None else cache.get_latest_message_timestamp(engagement_db_dataset)
             if latest_message_timestamp is not None:
                 log.info(f"Performing incremental download for {engagement_db_dataset} messages...")
 
@@ -71,12 +75,13 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
                 if latest_message_timestamp is None or msg_last_updated > latest_message_timestamp:
                     latest_message_timestamp = msg_last_updated
 
-            # Export latest message timestamp to cache
-            if latest_message_timestamp is not None or len(messages) > 0:
-                cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
+            if cache is not None:
+                # Export latest message timestamp to cache
+                if latest_message_timestamp is not None or len(messages) > 0:
+                    cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
 
-            # Export project engagement_dataset files
-            cache.set_messages(engagement_db_dataset, messages)
+                # Export project engagement_dataset files
+                cache.set_messages(engagement_db_dataset, messages)
 
     return engagement_db_dataset_messages_map
 
