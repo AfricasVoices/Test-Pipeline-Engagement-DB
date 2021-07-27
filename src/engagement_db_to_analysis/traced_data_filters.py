@@ -67,7 +67,7 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
 
 def filter_test_messages(user, messages_traced_data, test_participant_uuids):
     """
-    Filters a dict of participants who are not in pipeline_config.test_contacts e.g AVF/Aggregator staff
+    Filters out test messages sent by pipeline_config.test_participant_uuids i.e AVF/Aggregator staff
 
     :param messages_traced_data: List of message objects to filter.
     :type messages_traced_data: list of TracedData
@@ -106,6 +106,6 @@ def filter_messages(user, messages_traced_data, pipeline_config):
         messages_traced_data = filter_test_messages(user, messages_traced_data, pipeline_config.test_participant_uuids)
     else:
         log.debug(
-            "Not filtering out test participants data (because the pipeline_config.filter_test_participants was set to `False`)")
+            "Not filtering out test participants messages (because the pipeline_config.filter_test_participants was set to `False`)")
 
     return messages_traced_data
