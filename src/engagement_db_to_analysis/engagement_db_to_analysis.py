@@ -9,7 +9,7 @@ from src.engagement_db_to_analysis.traced_data_filters import filter_messages
 log = Logger(__name__)
 
 
-def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path):
+def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path=None):
     """
 
     Downloads project messages from engagement database. It performs a full download if there is no previous export and
