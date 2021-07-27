@@ -77,8 +77,7 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
 
             if cache is not None:
                 # Export latest message timestamp to cache
-                if latest_message_timestamp is not None or len(messages) > 0:
-                    cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
+                cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
 
                 # Export project engagement_dataset files
                 cache.set_messages(engagement_db_dataset, messages)
