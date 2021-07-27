@@ -5,6 +5,8 @@ from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
 from engagement_database.data_models import HistoryEntryOrigin
 
+from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, CodaSyncStats
+
 log = Logger(__name__)
 
 
@@ -152,8 +154,11 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     :type coda_config:  src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param transaction: Transaction in the engagement database to perform the update in.
     :type transaction: google.cloud.firestore.Transaction | None
+    :return: Sync stats for the update.
+    :rtype: src.engagement_db_coda_sync.sync_stats.CodaSyncStats
     """
     coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(engagement_db_message.dataset)
+    sync_stats = CodaSyncStats()
 
     # Check if the labels in the engagement database message already match those from the coda message, and that
     # we don't need to WS-correct (in other words, that the dataset is correct).
@@ -161,7 +166,8 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     ws_code = _get_ws_code(coda_message, coda_dataset_config, coda_config.ws_correct_dataset_code_scheme)
     if engagement_db_message.labels == coda_message.labels and ws_code is None:
         log.debug("Labels match")
-        return
+        sync_stats.add_event(CodaSyncEvents.LABELS_MATCH)
+        return sync_stats
 
     log.debug("Updating database message labels to match those in Coda")
 
@@ -205,7 +211,8 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
             transaction=transaction
         )
 
-        return
+        sync_stats.add_event(CodaSyncEvents.WS_CORRECTION)
+        return sync_stats
 
     # We didn't find a WS label, so simply update the engagement database message to have the same labels as the
     # message in Coda.
@@ -217,3 +224,6 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
         origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync", details=origin_details),
         transaction=transaction
     )
+
+    sync_stats.add_event(CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS)
+    return sync_stats
