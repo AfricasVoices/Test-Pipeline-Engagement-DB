@@ -200,6 +200,13 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 continue
 
             # De-identify the contact's full urn.
+            if run.contact.uuid not in contacts_lut:
+                log.warning(f"Found a run from a contact that isn't present in the contacts export; skipping. "
+                            f"This is most likely because the contact was deleted, but could suggest a more serious "
+                            f"problem.")
+                if cache is not None:
+                    cache.set_latest_run_timestamp(flow_id, flow_config.flow_result_field, run.modified_on)
+                continue
             contact = contacts_lut[run.contact.uuid]
             assert len(contact.urns) == 1, len(contact.urns)
             contact_urn = _normalise_and_validate_contact_urn(contact.urns[0])
