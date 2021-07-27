@@ -11,6 +11,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     project_start_date=isoparse("2021-03-01T10:30:00+03:00"),
     project_end_date=isoparse("2100-01-01T00:00:00+03:00"),
     test_participant_uuids=[
+        "avf-participant-uuid-51c15546-58a0-4ab1-b465-e65b71462a8f"
     ],
     engagement_database=EngagementDatabaseClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
