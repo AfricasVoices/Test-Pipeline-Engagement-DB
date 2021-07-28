@@ -92,7 +92,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             write_mode=WriteModes.CONCATENATE_TEXTS
         )
     ),
-    analysis_configs=AnalysisConfigurations(
+    analysis_configs=AnalysisConfiguration(
         dataset_configurations=[
             AnalysisDatasetConfiguration(
                 engagement_db_datasets=["s01e01"],
