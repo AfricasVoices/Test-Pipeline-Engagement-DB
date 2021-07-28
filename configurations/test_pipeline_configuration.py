@@ -92,22 +92,59 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             write_mode=WriteModes.CONCATENATE_TEXTS
         )
     ),
-    analysis_config=[
-        AnalysisDatasetConfiguration(
-            engagement_db_datasets = ["s01e01"],
-            dataset_type = DatasetTypes.RESEARCH_QUESTION_ANSWER
-        ),
-        AnalysisDatasetConfiguration(
-            engagement_db_datasets = ["gender"],
-            dataset_type = DatasetTypes.DEMOGRAPHIC
-        ),
-        AnalysisDatasetConfiguration(
-            engagement_db_datasets = ["location"],
-            dataset_type = DatasetTypes.DEMOGRAPHIC
-        ),
-        AnalysisDatasetConfiguration(
-            engagement_db_datasets = ["age"],
-            dataset_type = DatasetTypes.DEMOGRAPHIC
-        )
-    ]
+    analysis_configs=AnalysisConfiguration(
+        dataset_configurations=[
+            AnalysisDatasetConfiguration(
+                engagement_db_datasets=["s01e01"],
+                dataset_type=DatasetTypes.RESEARCH_QUESTION_ANSWER,
+                raw_dataset="s01e01_raw",
+                coding_configs=[
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("s01e01"),
+                        analysis_dataset="s01e01"
+                    )
+                ]
+            ),
+            AnalysisDatasetConfiguration(
+                engagement_db_datasets=["gender"],
+                dataset_type=DatasetTypes.DEMOGRAPHIC,
+                raw_dataset="gender_raw",
+                coding_configs=[
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("gender"),
+                        analysis_dataset="gender"
+                    )
+                ]
+            ),
+            AnalysisDatasetConfiguration(
+                engagement_db_datasets=["location"],
+                dataset_type=DatasetTypes.DEMOGRAPHIC,
+                raw_dataset="location_raw",
+                coding_configs=[
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("kenya_county"),
+                        analysis_dataset="kenya_county"
+                    ),
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("kenya_constituency"),
+                        analysis_dataset="kenya_constituency"
+                    )
+                ]
+            ),
+            AnalysisDatasetConfiguration(
+                engagement_db_datasets=["age"],
+                dataset_type=DatasetTypes.DEMOGRAPHIC,
+                raw_dataset="age_raw",
+                coding_configs=[
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("age"),
+                        analysis_dataset="age"
+                    ),
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("age_category"),
+                        analysis_dataset="age_category"
+                    ),
+                ]
+            )
+        ])
 )
