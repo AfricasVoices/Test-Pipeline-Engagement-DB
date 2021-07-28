@@ -10,10 +10,10 @@ from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, Co
                                                        CodeSchemeConfiguration)
 from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidProConfiguration, DatasetConfiguration,
                                                           WriteModes, ContactField)
-from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration, UuidFilter, \
-    RapidProToEngagementDBConfiguration
-from src.engagement_db_to_analysis.configuration import AnalysisDatasetConfiguration, DatasetTypes, \
-    CodingConfiguration, AnalysisConfigurations
+from src.rapid_pro_to_engagement_db.configuration import (FlowResultConfiguration, UuidFilter,
+    RapidProToEngagementDBConfiguration)
+from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfiguration, DatasetTypes,
+    CodingConfiguration, AnalysisConfiguration)
 
 
 def load_code_scheme(fname):
@@ -45,7 +45,7 @@ class PipelineConfiguration:
 
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
-    analysis_configs: AnalysisConfigurations
+    analysis_configs: AnalysisConfiguration
     project_start_date: datetime = None
     project_end_date: datetime = None
     test_participant_uuids: [] = None
