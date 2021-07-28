@@ -156,9 +156,9 @@ def _fold_messages_by_uid(user, messages_traced_data):
 
 
 def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
+    analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
+    messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
 
-    messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_configs.dataset_configurations, engagement_db, cache_path)
-  
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
