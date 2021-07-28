@@ -97,52 +97,52 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             AnalysisDatasetConfiguration(
                 engagement_db_datasets=["s01e01"],
                 dataset_type=DatasetTypes.RESEARCH_QUESTION_ANSWER,
-                raw_field="s01e01_raw",
+                raw_dataset="s01e01_raw",
                 coding_configs=[
                     CodingConfiguration(
                         code_scheme=load_code_scheme("s01e01"),
-                        analysis_file_key="s01e01"
+                        analysis_dataset="s01e01"
                     )
                 ]
             ),
             AnalysisDatasetConfiguration(
                 engagement_db_datasets=["gender"],
                 dataset_type=DatasetTypes.DEMOGRAPHIC,
-                raw_field="gender_raw",
+                raw_dataset="gender_raw",
                 coding_configs=[
                     CodingConfiguration(
                         code_scheme=load_code_scheme("gender"),
-                        analysis_file_key="gender"
+                        analysis_dataset="gender"
                     )
                 ]
             ),
             AnalysisDatasetConfiguration(
                 engagement_db_datasets=["location"],
                 dataset_type=DatasetTypes.DEMOGRAPHIC,
-                raw_field="location_raw",
+                raw_dataset="location_raw",
                 coding_configs=[
                     CodingConfiguration(
                         code_scheme=load_code_scheme("kenya_county"),
-                        analysis_file_key="kenya_county"
+                        analysis_dataset="kenya_county"
                     ),
                     CodingConfiguration(
                         code_scheme=load_code_scheme("kenya_constituency"),
-                        analysis_file_key="kenya_constituency"
+                        analysis_dataset="kenya_constituency"
                     )
                 ]
             ),
             AnalysisDatasetConfiguration(
                 engagement_db_datasets=["age"],
                 dataset_type=DatasetTypes.DEMOGRAPHIC,
-                raw_field="age_raw",
+                raw_dataset="age_raw",
                 coding_configs=[
                     CodingConfiguration(
                         code_scheme=load_code_scheme("age"),
-                        analysis_file_key="age"
+                        analysis_dataset="age"
                     ),
                     CodingConfiguration(
                         code_scheme=load_code_scheme("age_category"),
-                        analysis_file_key="age_category"
+                        analysis_dataset="age_category"
                     ),
                 ]
             )

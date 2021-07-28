@@ -11,15 +11,15 @@ class DatasetTypes:
 @dataclass
 class CodingConfiguration:
     code_scheme: CodeScheme
-    analysis_file_key: str
+    analysis_dataset: str
 
 @dataclass
 class AnalysisDatasetConfiguration:
     engagement_db_datasets: [str]
     dataset_type: DatasetTypes
-    raw_field: str
+    raw_dataset: str
     coding_configs: [CodingConfiguration]
 
 @dataclass
-class AnalysisConfigurations:
+class AnalysisConfiguration:
     dataset_configurations: [AnalysisDatasetConfiguration]
