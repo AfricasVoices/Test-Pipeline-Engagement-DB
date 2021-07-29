@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from core_data_modules.data_models import CodeScheme
 
@@ -12,6 +13,7 @@ class DatasetTypes:
 class CodingConfiguration:
     code_scheme: CodeScheme
     analysis_dataset: str
+    age_categories: Optional[dict] = None
 
 @dataclass
 class AnalysisDatasetConfiguration:
