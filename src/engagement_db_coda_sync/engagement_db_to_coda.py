@@ -112,6 +112,8 @@ def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, datase
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param dataset_config: Configuration for the dataset to sync.
     :type dataset_config: src.engagement_db_coda_sync.configuration.CodaDatasetConfiguration
+    :param cache: Coda sync cache.
+    :type cache: src.engagement_db_coda_sync.cache.CodaSyncCache | None
     :return: Sync stats for the update.
     :rtype: src.engagement_db_coda_sync.sync_stats.CodaSyncStats
     """
