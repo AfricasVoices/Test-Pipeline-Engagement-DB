@@ -20,8 +20,7 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
     :type analysis_dataset_config: pipeline_config.analysis_configs.dataset_configurations
     """
 
-    log.info(f"Imputing age category for age dataset messages...")
-
+    log.info("Imputing age categories for age dataset messages...")
     # Get the configurations for age and age_category analysis datasets
     updated_messages_traced_data = []
     age_cc = None
