@@ -10,7 +10,6 @@ log = Logger(__name__)
 
 
 def _impute_not_reviewed(user, messages_traced_data, analysis_dataset_configs):
-
     """
     Imputes not reviewed label for messages that have not been manually labelled in coda.
 
