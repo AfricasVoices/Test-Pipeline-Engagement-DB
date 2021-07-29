@@ -45,7 +45,6 @@ class PipelineConfiguration:
 
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
-    analysis_configs: AnalysisConfiguration
     project_start_date: datetime = None
     project_end_date: datetime = None
     test_participant_uuids: [] = None
@@ -53,3 +52,4 @@ class PipelineConfiguration:
     rapid_pro_sources: [RapidProSource] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
+    analysis_configs: AnalysisConfiguration = None
