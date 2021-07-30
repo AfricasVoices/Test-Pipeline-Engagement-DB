@@ -1,10 +1,13 @@
+from core_data_modules.analysis import AnalysisConfiguration
 from core_data_modules.logging import Logger
-from core_data_modules.util import TimeUtils
 from core_data_modules.traced_data import TracedData, Metadata
+from core_data_modules.traced_data.io import TracedDataJsonIO, TracedDataCSVIO
+from core_data_modules.traced_data.util.fold_traced_data import FoldStrategies
+from core_data_modules.util import TimeUtils
+from engagement_database.data_models import Message
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
-
 
 log = Logger(__name__)
 
@@ -156,6 +159,84 @@ def _fold_messages_by_uid(user, messages_traced_data):
     return participants_traced_data_map
 
 
+def _analysis_dataset_config_to_column_config(analysis_dataset_config):
+    by_column_configs = []
+    for coding_config in analysis_dataset_config.coding_configs:
+        config = AnalysisConfiguration(
+            dataset_name=coding_config.analysis_dataset,
+            raw_field=analysis_dataset_config.raw_dataset,
+            coded_field=f"{coding_config.analysis_dataset}_labels",
+            code_scheme=coding_config.code_scheme
+        )
+        by_column_configs.append(config)
+    return by_column_configs
+
+
+def analysis_dataset_config_for_message(analysis_config, message):
+    for config in analysis_config.dataset_configurations:
+        if message.dataset in config.engagement_db_datasets:
+            return config
+    raise ValueError
+
+
+def _convert_to_column_format(user, analysis_config, messages_traced_data):
+    log.info(f"Converting to analysis formats")
+    # Construct views
+    participants_by_column = dict()  # of participant_uuid -> participant traced data
+    for msg_td in messages_traced_data:
+        msg = Message.from_dict(dict(msg_td))
+
+        # If we've not seen this participant before, create an empty Traced Data to represent them.
+        if msg.participant_uuid not in participants_by_column:
+            participants_by_column[msg.participant_uuid] = TracedData(
+                {"participant_uuid": msg.participant_uuid},
+                Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
+            )
+        participant = participants_by_column[msg.participant_uuid]
+
+        # Get the analysis dataset configuration for this message
+        analysis_dataset_config = analysis_dataset_config_for_message(analysis_config, msg)
+
+        # Convert the analysis dataset config to its column configurations
+        column_configs = _analysis_dataset_config_to_column_config(analysis_dataset_config)
+
+        new_data = dict()
+
+        # Append this message's raw text to the raw texts already seen for this message/participant by concatenation
+        if analysis_dataset_config.raw_dataset in participant:
+            new_data[analysis_dataset_config.raw_dataset] = FoldStrategies.concatenate(
+                participant[analysis_dataset_config.raw_dataset], msg.text
+            )
+        else:
+            new_data[analysis_dataset_config.raw_dataset] = msg.text
+
+        # Get the latest labels under the code scheme for each column config, and append them to the labels for that
+        # participant
+        for column_config in column_configs:
+            latest_labels = msg.get_latest_labels()
+            if len(latest_labels) == 0:
+                continue
+            relevant_labels = [label.to_dict() for label in latest_labels
+                               if label.scheme_id.startswith(column_config.code_scheme.scheme_id)]
+
+            if column_config.coded_field in participant:
+                existing_participant_labels = participant[column_config.coded_field]
+                new_data[column_config.coded_field] = FoldStrategies.list_of_labels(
+                    column_config.code_scheme, existing_participant_labels, relevant_labels
+                )
+            else:
+                new_data[column_config.coded_field] = relevant_labels
+
+        participant.append_data(new_data, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+
+    with open("analysis/tdp.json", "w") as f:
+        TracedDataJsonIO.export_traced_data_iterable_to_jsonl(participants_by_column.values(), f)
+
+    with open("analysis/participants.csv", "w") as f:
+        headers = ["participant_uuid"] + [c.raw_dataset for c in analysis_config.dataset_configurations]
+        TracedDataCSVIO.export_traced_data_iterable_to_csv(participants_by_column.values(), f, headers)
+
+
 def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
     analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
     messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
@@ -164,6 +245,4 @@ def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=Non
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    participants_traced_data_map = _fold_messages_by_uid(user, messages_traced_data)
-
-    return participants_traced_data_map
+    _convert_to_column_format(user, pipeline_config.analysis_configs, messages_traced_data)
