@@ -132,6 +132,12 @@ def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_sche
                     f"!= code_in_ws_scheme ({code_in_ws_scheme})")
         ws_code = None
 
+    # If the ws code is 'NC', that means the message was labelled as being in the wrong place, but the right place
+    # was unknown/could not be specified. In this case, don't redirect, so we can see the 'WS' in analysis.
+    if ws_code is not None and ws_code.control_code == Codes.NOT_CODED:
+        log.warning(f"Code in WS - Correct Dataset scheme has control code '{Codes.NOT_CODED}'; cannot redirect message")
+        ws_code = None
+
     return ws_code
 
 
