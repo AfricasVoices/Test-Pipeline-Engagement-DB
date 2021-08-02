@@ -228,7 +228,7 @@ def _get_normalised_labels_for_code_scheme(message, code_scheme):
     return relevant_labels
 
 
-def _add_message_to_column_td(user, message, column_td, analysis_config):
+def _add_message_to_column_td(user, message_td, column_td, analysis_config):
     """
     Adds a message to a "column-view" TracedData object in-place.
 
@@ -239,14 +239,16 @@ def _add_message_to_column_td(user, message, column_td, analysis_config):
 
     :param user: Identifier of user running the pipeline.
     :type user: str
-    :param message:
-    :type message: TODO
+    :param message_td: TracedData representing the message to add
+    :type message_td: core_data_modules.traced_data.TracedData
     :param column_td: An existing TracedData object in column-view format, to which the relevant data from this message
                       will be appended.
     :type column_td: core_data_modules.traced_data.TracedData
     :param analysis_config: Analysis configuration.
     :type analysis_config: src.engagement_db_to_analysis.configuration.AnalysisConfiguration
     """
+    message = Message.from_dict(dict(message_td))
+
     # Get the analysis dataset configuration for this message
     analysis_dataset_config = _analysis_dataset_config_for_message(analysis_config.dataset_configurations, message)
 
@@ -283,6 +285,13 @@ def _add_message_to_column_td(user, message, column_td, analysis_config):
                 column_config.code_scheme, existing_labels, relevant_message_labels
             )
 
+    # Append the TracedData history for this message to the column-view.
+    message_td = message_td.copy()
+    message_td.hide_keys(message_td.keys(), Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+    column_td.append_traced_data("appended_message", message_td, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+
+    # Write the new data to the column-view TracedData
+    # (we do this after appending the message_td so the TracedData is slightly easier to read)
     column_td.append_data(new_data, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
 
 
@@ -318,7 +327,7 @@ def _convert_to_messages_column_format(user, messages_traced_data, analysis_conf
             {"participant_uuid": message.participant_uuid},
             Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
         )
-        _add_message_to_column_td(user, message, column_td, analysis_config)
+        _add_message_to_column_td(user, msg_td, column_td, analysis_config)
 
         # Add to the list of converted rqa messages for this participant.
         if message.participant_uuid not in messages_by_column:
@@ -336,7 +345,7 @@ def _convert_to_messages_column_format(user, messages_traced_data, analysis_conf
         # Add this demographic to each of the column-view rqa message TracedData for this participant.
         # (Use messages_by_column.get() because we might have demographics for people who never sent an RQA message).
         for column_td in messages_by_column.get(message.participant_uuid, []):
-            _add_message_to_column_td(user, message, column_td, analysis_config)
+            _add_message_to_column_td(user, msg_td, column_td, analysis_config)
 
     flattened_messages = []
     for msgs in messages_by_column.values():
@@ -373,7 +382,7 @@ def _convert_to_participants_column_format(user, messages_traced_data, analysis_
 
         # Add this message to the relevant participant's column-view TracedData.
         participant = participants_by_column[message.participant_uuid]
-        _add_message_to_column_td(user, message, participant, analysis_config)
+        _add_message_to_column_td(user, msg_td, participant, analysis_config)
 
     return participants_by_column.values()
 
