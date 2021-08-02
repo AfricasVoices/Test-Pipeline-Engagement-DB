@@ -58,7 +58,7 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
             .start_after({"last_updated": last_seen_message.last_updated, "message_id": last_seen_message.message_id}) \
             .limit(1)
 
-    next_message_results = engagement_db.get_messages(filter=messages_filter, transaction=transaction)
+    next_message_results = engagement_db.get_messages(query_filter=messages_filter, transaction=transaction)
 
     sync_stats = CodaSyncStats()
     if len(next_message_results) == 0:

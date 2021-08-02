@@ -65,7 +65,7 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
     # TODO: This could get expensive as the number of datasets increases, in which case we can optimise by adding
     #       an array-contains filter on the dataset field, so we only need to download messages in the datasets we
     #       want to sync.
-    messages = engagement_db.get_messages(filter=lambda q: q.where("status", "in", [MessageStatuses.LIVE]))
+    messages = engagement_db.get_messages(query_filter=lambda q: q.where("status", "in", [MessageStatuses.LIVE]))
 
     # Organise messages by participant then by engagement db dataset.
     participants = dict()  # of participant_uuid -> (dict of dataset -> list of Message)
