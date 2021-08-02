@@ -11,7 +11,8 @@ log = Logger(__name__)
 
 def _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path=None):
     """
-    Gets project messages from engagement database.
+    Downloads project messages from engagement database. It performs a full download if there is no cache path and
+    incrementally otherwise.
 
     :param analysis_dataset_configurations: Analysis dataset configuration in pipeline configuration module.
     :type analysis_dataset_configurations: src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
