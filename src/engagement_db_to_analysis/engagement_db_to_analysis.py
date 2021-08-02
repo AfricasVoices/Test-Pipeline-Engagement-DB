@@ -1,4 +1,4 @@
-from core_data_modules.analysis import AnalysisConfiguration
+from core_data_modules.analysis import AnalysisConfiguration, engagement_counts
 from core_data_modules.logging import Logger
 from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO, TracedDataCSVIO
@@ -200,11 +200,15 @@ def _add_message_to_column_td(user, message, column_td, analysis_config):
     # Get the latest labels under the code scheme for each column config, and append them to the labels for that
     # participant
     for column_config in column_configs:
-        latest_labels = message.get_latest_labels()
-        if len(latest_labels) == 0:
+        relevant_labels = []
+        for label in message.get_latest_labels():
+            if label.scheme_id.startswith(column_config.code_scheme.scheme_id):
+                # Normalise scheme id
+                label.scheme_id = column_config.code_scheme.scheme_id
+                relevant_labels.append(label.to_dict())
+
+        if len(relevant_labels) == 0:
             continue
-        relevant_labels = [label.to_dict() for label in latest_labels
-                           if label.scheme_id.startswith(column_config.code_scheme.scheme_id)]
 
         if column_config.coded_field in column_td:
             existing_participant_labels = column_td[column_config.coded_field]
