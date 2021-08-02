@@ -161,7 +161,22 @@ def _fold_messages_by_uid(user, messages_traced_data):
 
 
 def _analysis_dataset_config_to_column_config(analysis_dataset_config):
-    by_column_configs = []
+    """
+    Converts an analysis dataset configuration to the relevant "column-view" configurations.
+
+    The analysis dataset configuration is the normalised configuration that's specified in the pipeline configuration
+    files, and works great for processing individual messages.
+
+    The "column-view" configurations describe how to reconfigure the dataset for the final stages of analysis, where
+    we are less interested in individual messages, but in the labelled opinions, collated by labelled dataset, by
+    participant, or by project.
+
+    :param analysis_dataset_config: Analysis dataset configuration to convert.
+    :type analysis_dataset_config: src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
+    :return: List of all the column configurations for this analysis dataset configuration.
+    :rtype: list of core_data_modules.analysis.analysis_utils.AnalysisConfiguration
+    """
+    column_configs = []
     for coding_config in analysis_dataset_config.coding_configs:
         config = AnalysisConfiguration(
             dataset_name=coding_config.analysis_dataset,
@@ -169,87 +184,159 @@ def _analysis_dataset_config_to_column_config(analysis_dataset_config):
             coded_field=f"{coding_config.analysis_dataset}_labels",
             code_scheme=coding_config.code_scheme
         )
-        by_column_configs.append(config)
-    return by_column_configs
+        column_configs.append(config)
+    return column_configs
 
 
-def analysis_dataset_config_for_message(analysis_config, message):
-    for config in analysis_config.dataset_configurations:
+def _analysis_dataset_config_for_message(analysis_dataset_configs, message):
+    """
+    Gets the analysis dataset configuration to use to process this message, by looking-up the configuration that refers
+    to this message's engagement db "dataset" property.
+
+    :param analysis_dataset_configs: Dataset configurations to search for the one that relates to the given message.
+    :type analysis_dataset_configs: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
+    :param message: Message to retrieve the analysis dataset configuration for.
+    :type message: engagement_database.data_models.Message
+    :return: Analysis dataset configuration to use for this message.
+    :rtype: src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
+    """
+    for config in analysis_dataset_configs:
         if message.dataset in config.engagement_db_datasets:
             return config
-    raise ValueError
+    raise ValueError(f"No analysis dataset configuration found for message '{message.message_id}', which has engagement"
+                     f"db dataset {message.dataset}")
+
+
+def _get_normalised_labels_for_code_scheme(message, code_scheme):
+    """
+    Gets the labels assigned to this message under the given `code_scheme` (or a duplicate of this code scheme),
+    with label scheme_id's normalised to the primary code scheme id in cases where the code scheme was duplicated
+    e.g. scheme_id 'scheme-abc123-1' will be re-written to 'scheme-abc123'.
+
+    :param message: Message to get the labels from.
+    :type message: engagement_database.data_models.Message
+    :param code_scheme: Code scheme to get the latest labels for.
+    :type code_scheme: core_data_modules.data_models.CodeScheme
+    :return: List of the relevant, normalised labels for the given code scheme.
+    :rtype: list of core_data_modules.data_models.Label
+    """
+    relevant_labels = []
+    for label in message.get_latest_labels():
+        if label.scheme_id.startswith(code_scheme.scheme_id):
+            label.scheme_id = code_scheme.scheme_id
+            relevant_labels.append(label)
+    return relevant_labels
 
 
 def _add_message_to_column_td(user, message, column_td, analysis_config):
-    # Get the analysis dataset configuration for this message
-    analysis_dataset_config = analysis_dataset_config_for_message(analysis_config, message)
+    """
+    Adds a message to a "column-view" TracedData object in-place.
 
-    # Convert the analysis dataset config to its column configurations
+    This function adds this message's text and labels fields to an existing TracedData object in column-view format.
+    In cases where data already exists in the column-view columns:
+     - Raw texts are handled by concatenation, by `core_data_modules.util.fold_traced_data.FoldStrategies.concatenate`.
+     - Labels are handled by `core_data_modules.util.fold_traced_data.FoldStrategies.list_of_labels`.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param message:
+    :type message: TODO
+    :param column_td: An existing TracedData object in column-view format, to which the relevant data from this message
+                      will be appended.
+    :type column_td: core_data_modules.traced_data.TracedData
+    :param analysis_config: Analysis configuration.
+    :type analysis_config: src.engagement_db_to_analysis.configuration.AnalysisConfiguration
+    """
+    # Get the analysis dataset configuration for this message
+    analysis_dataset_config = _analysis_dataset_config_for_message(analysis_config.dataset_configurations, message)
+
+    # Convert the analysis dataset config to its "column-view" configurations
     column_configs = _analysis_dataset_config_to_column_config(analysis_dataset_config)
 
     new_data = dict()
 
-    # Append this message's raw text to the raw texts already seen for this message/participant by concatenation
-    if analysis_dataset_config.raw_dataset in column_td:
-        new_data[analysis_dataset_config.raw_dataset] = FoldStrategies.concatenate(
-            column_td[analysis_dataset_config.raw_dataset], message.text
-        )
-    else:
+    # Add this message's raw text to the the raw_dataset column in the column-view TracedData.
+    # If the TracedData already contains data here, append this text to the existing, previously added texts by
+    # concatenating.
+    existing_text = column_td.get(analysis_dataset_config.raw_dataset)
+    if existing_text is None:
         new_data[analysis_dataset_config.raw_dataset] = message.text
+    else:
+        new_data[analysis_dataset_config.raw_dataset] = FoldStrategies.concatenate(existing_text, message.text)
 
-    # Get the latest labels under the code scheme for each column config, and append them to the labels for that
-    # participant
+    # For each column config, get the latest, normalised labels under that column config's code scheme, and them
+    # to the column-view TracedData.
+    # If the TracedData already contains data here, combine the labels with the existing labels using
+    # FoldStrategies.list_of_labels.
     for column_config in column_configs:
-        relevant_labels = []
-        for label in message.get_latest_labels():
-            if label.scheme_id.startswith(column_config.code_scheme.scheme_id):
-                # Normalise scheme id
-                label.scheme_id = column_config.code_scheme.scheme_id
-                relevant_labels.append(label.to_dict())
+        relevant_message_labels = _get_normalised_labels_for_code_scheme(message, column_config.code_scheme)
 
-        if len(relevant_labels) == 0:
+        if len(relevant_message_labels) == 0:
             continue
 
-        if column_config.coded_field in column_td:
-            existing_participant_labels = column_td[column_config.coded_field]
-            new_data[column_config.coded_field] = FoldStrategies.list_of_labels(
-                column_config.code_scheme, existing_participant_labels, relevant_labels
-            )
+        relevant_message_labels = [label.to_dict() for label in relevant_message_labels]  # serialize for TracedData
+        existing_labels = column_td.get(column_config.coded_field)
+        if existing_labels is None:
+            new_data[column_config.coded_field] = relevant_message_labels
         else:
-            new_data[column_config.coded_field] = relevant_labels
+            new_data[column_config.coded_field] = FoldStrategies.list_of_labels(
+                column_config.code_scheme, existing_labels, relevant_message_labels
+            )
 
     column_td.append_data(new_data, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
 
 
 def _convert_to_messages_column_format(user, messages_traced_data, analysis_config):
+    """
+    Converts a list of messages traced data into "column-view" format by rqa-message.
+
+    Returns one "column-view" TracedData object for each rqa message, with all demographic messages from the same
+    participant appended to each TracedData.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param messages_traced_data: Messages traced data to convert.
+    :type messages_traced_data: list of core_data_modules.traced_data.TracedData
+    :param analysis_config: Configuration for the conversion.
+    :type analysis_config: src.engagement_db_to_analysis.configuration.AnalysisConfiguration
+    :return: Messages organised by rqa message into column-view format suitable for further analysis.
+    :rtype: list of core_data_modules.traced_data.TracedData
+    """
     messages_by_column = dict()  # of participant_uuid -> list of rqa messages in column view
 
     # Conduct the conversion in 2 passes.
-    # Pass 1: Convert each message from an rqa dataset to column view
+    # Pass 1: Convert each rqa message to a new TracedData object in column-view.
     for msg_td in messages_traced_data:
+        # Skip this message if it's not an RQA
         message = Message.from_dict(dict(msg_td))
-        analysis_dataset_config = analysis_dataset_config_for_message(analysis_config, message)
-        if analysis_dataset_config.dataset_type == DatasetTypes.DEMOGRAPHIC:
+        analysis_dataset_config = _analysis_dataset_config_for_message(analysis_config.dataset_configurations, message)
+        if analysis_dataset_config.dataset_type != DatasetTypes.RESEARCH_QUESTION_ANSWER:
             continue
 
-        col_td = TracedData(
+        # Convert to column-view TracedData
+        column_td = TracedData(
             {"participant_uuid": message.participant_uuid},
             Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
         )
-        _add_message_to_column_td(user, message, col_td, analysis_config)
+        _add_message_to_column_td(user, message, column_td, analysis_config)
+
+        # Add to the list of converted rqa messages for this participant.
         if message.participant_uuid not in messages_by_column:
             messages_by_column[message.participant_uuid] = []
-        messages_by_column[message.participant_uuid].append(col_td)
+        messages_by_column[message.participant_uuid].append(column_td)
 
     # Pass 2: Update each converted rqa message with the demographic messages
     for msg_td in messages_traced_data:
+        # Skip this message if it's not a demographic.
         message = Message.from_dict(dict(msg_td))
-        analysis_dataset_config = analysis_dataset_config_for_message(analysis_config, message)
-        if analysis_dataset_config.dataset_type == DatasetTypes.RESEARCH_QUESTION_ANSWER:
+        analysis_dataset_config = _analysis_dataset_config_for_message(analysis_config.dataset_configurations, message)
+        if analysis_dataset_config.dataset_type != DatasetTypes.DEMOGRAPHIC:
             continue
 
-        for col_td in messages_by_column.get(message.participant_uuid, []):  # .get because we can have demogs but no rqas
-            _add_message_to_column_td(user, message, col_td, analysis_config)
+        # Add this demographic to each of the column-view rqa message TracedData for this participant.
+        # (Use messages_by_column.get() because we might have demographics for people who never sent an RQA message).
+        for column_td in messages_by_column.get(message.participant_uuid, []):
+            _add_message_to_column_td(user, message, column_td, analysis_config)
 
     flattened_messages = []
     for msgs in messages_by_column.values():
@@ -258,6 +345,21 @@ def _convert_to_messages_column_format(user, messages_traced_data, analysis_conf
 
 
 def _convert_to_participants_column_format(user, messages_traced_data, analysis_config):
+    """
+    Converts a list of messages traced data into "column-view" format by participant.
+
+    Returns one "column-view" TracedData object for each participant, with all rqa and demographic messages from the
+    same participant appended to each TracedData.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param messages_traced_data: Messages traced data to convert.
+    :type messages_traced_data: list of core_data_modules.traced_data.TracedData
+    :param analysis_config: Configuration for the conversion.
+    :type analysis_config: src.engagement_db_to_analysis.configuration.AnalysisConfiguration
+    :return: Messages organised by participant into column-view format  suitable for further analysis.
+    :rtype: list of core_data_modules.traced_data.TracedData
+    """
     participants_by_column = dict()  # of participant_uuid -> participant traced data in column view
     for msg_td in messages_traced_data:
         message = Message.from_dict(dict(msg_td))
@@ -268,8 +370,11 @@ def _convert_to_participants_column_format(user, messages_traced_data, analysis_
                 {"participant_uuid": message.participant_uuid},
                 Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
             )
+
+        # Add this message to the relevant participant's column-view TracedData.
         participant = participants_by_column[message.participant_uuid]
         _add_message_to_column_td(user, message, participant, analysis_config)
+
     return participants_by_column.values()
 
 
