@@ -3,7 +3,7 @@ from core_data_modules.logging import Logger
 from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO, TracedDataCSVIO
 from core_data_modules.traced_data.util.fold_traced_data import FoldStrategies
-from core_data_modules.util import TimeUtils
+from core_data_modules.util import TimeUtils, IOUtils
 from engagement_database.data_models import Message
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
@@ -387,10 +387,28 @@ def _convert_to_participants_column_format(user, messages_traced_data, analysis_
     return participants_by_column.values()
 
 
-def export_production_file(traced_data, analysis_config, export_path):
+def export_production_file(traced_data_iterable, analysis_config, export_path):
+    """
+    Exports a column-view TracedData to a production file.
+
+    The production file contains the participant uuid and all the raw_datasets only.
+
+    :param traced_data_iterable: Data to export.
+    :type traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
+    :param analysis_config: Configuration for the export.
+    :type analysis_config: src.engagement_db_to_analysis.configuration.AnalysisConfiguration
+    :param export_path: Path to export the file to.
+    :type export_path: str
+    """
+    IOUtils.ensure_dirs_exist_for_file(export_path)
     with open(export_path, "w") as f:
         headers = ["participant_uuid"] + [c.raw_dataset for c in analysis_config.dataset_configurations]
-        TracedDataCSVIO.export_traced_data_iterable_to_csv(traced_data, f, headers)
+        TracedDataCSVIO.export_traced_data_iterable_to_csv(traced_data_iterable, f, headers)
+
+
+def export_traced_data(traced_data, export_path):
+    with open(export_path, "w") as f:
+        TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
 def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
@@ -404,5 +422,11 @@ def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=Non
     messages_by_column = _convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
     participants_by_column = _convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
 
+    # Export to hard-coded files for now.
+    # TODO: Only export a production file for messages (exporting both for now to aid with debugging)
+    # TODO: Export to a directory passed in on the command line rather than a hard-coded analysis folder.
     export_production_file(messages_by_column, pipeline_config.analysis_configs, "analysis/messages-production.csv")
     export_production_file(participants_by_column, pipeline_config.analysis_configs, "analysis/participants-production.csv")
+
+    export_traced_data(messages_by_column, "analysis/messages.jsonl")
+    export_traced_data(participants_by_column, "analysis/participants.jsonl")
