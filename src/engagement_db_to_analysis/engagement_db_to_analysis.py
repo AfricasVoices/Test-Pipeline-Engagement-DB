@@ -1,4 +1,4 @@
-from core_data_modules.analysis import AnalysisConfiguration, engagement_counts
+from core_data_modules.analysis import AnalysisConfiguration
 from core_data_modules.logging import Logger
 from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO, TracedDataCSVIO
