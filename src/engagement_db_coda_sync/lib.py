@@ -89,7 +89,7 @@ def _code_for_label(label, code_schemes):
             return code_scheme.get_code_with_code_id(label.code_id)
 
     raise ValueError(f"Label's scheme id '{label.scheme_id}' is not in any of the given `code_schemes` "
-                     f"(these have ids {[scheme.id for scheme in code_schemes]})")
+                     f"(these have ids {[scheme.scheme_id for scheme in code_schemes]})")
 
 
 def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_scheme):
