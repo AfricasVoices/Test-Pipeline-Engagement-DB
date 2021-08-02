@@ -9,30 +9,34 @@ from src.engagement_db_to_analysis.traced_data_filters import filter_messages
 log = Logger(__name__)
 
 
-def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path):
+def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path=None):
     """
-
-    Downloads project messages from engagement database. It performs a full download if there is no previous export and
+    Downloads project messages from engagement database. It performs a full download if there is no cache path and
     incrementally otherwise.
 
     :param analysis_config: Analysis dataset configuration in pipeline configuration module.
     :type analysis_config: pipeline_config.analysis_configs
     :param engagement_db: Engagement database to download the messages from.
     :type engagement_db: engagement_database.EngagementDatabase
-    :param cache_path: Directory to use for the fetch cache, containing engagement_db dataset files and a timestamp generated from a previous run.
+    :param cache_path: Path to a directory to use to cache results needed for incremental operation.
+                       If None, runs in non-incremental mode.
     :type cache_path: str
     :return: engagement_db_dataset_messages_map of engagement_db_dataset to list of messages.
     :rtype: dict of str -> list of engagement_database.data_models.Message
     """
 
-    log.info(f"Initialising EngagementAnalysisCache at '{cache_path}/engagement_db_to_analysis'")
-    cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
+    if cache_path is None:
+        cache = None
+        log.warning(f"No `cache_path` provided. This tool will perform a full download of project messages from engagement database")
+    else:
+        log.info(f"Initialising EngagementAnalysisCache at '{cache_path}/engagement_db_to_analysis'")
+        cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
 
     engagement_db_dataset_messages_map = {}  # of engagement_db_dataset to list of messages
     for analysis_dataset_config in analysis_configurations:
         for engagement_db_dataset in analysis_dataset_config.engagement_db_datasets:
             messages = []
-            latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
+            latest_message_timestamp = None if cache is None else cache.get_latest_message_timestamp(engagement_db_dataset)
             if latest_message_timestamp is not None:
                 log.info(f"Performing incremental download for {engagement_db_dataset} messages...")
 
@@ -72,12 +76,14 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
                 if latest_message_timestamp is None or msg_last_updated > latest_message_timestamp:
                     latest_message_timestamp = msg_last_updated
 
-            # Export latest message timestamp to cache
-            if latest_message_timestamp is not None or len(messages) > 0:
-                cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
+            if cache is not None:
+                # Export latest message timestamp to cache
+                if latest_message_timestamp is not None:
+                    cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
 
-            # Export project engagement_dataset files
-            cache.set_messages(engagement_db_dataset, messages)
+                # Export project engagement_dataset files
+                if len(messages) > 0:
+                    cache.set_messages(engagement_db_dataset, messages)
 
     return engagement_db_dataset_messages_map
 
@@ -150,10 +156,9 @@ def _fold_messages_by_uid(user, messages_traced_data):
     return participants_traced_data_map
 
 
-def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
-
-    messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_configs.dataset_configurations, engagement_db,
-                                               engagement_db_datasets_cache_dir)
+def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
+    analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
+    messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
