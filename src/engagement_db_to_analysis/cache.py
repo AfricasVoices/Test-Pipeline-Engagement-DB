@@ -81,6 +81,7 @@ class AnalysisCache:
         :type messages: list of engagement_database.data_models.Message
         """
         export_file_path = path.join(f"{self.cache_dir}/{engagement_db_dataset}.jsonl")
+        IOUtils.ensure_dirs_exist_for_file(export_file_path)
         with open(export_file_path, "w") as f:
             for msg in messages:
                 f.write(f"{json.dumps(msg.to_dict(serialize_datetimes_to_str=True))}\n")
