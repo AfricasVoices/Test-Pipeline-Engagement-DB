@@ -15,7 +15,7 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
     incrementally otherwise.
 
     :param analysis_dataset_configurations: Analysis dataset configuration in pipeline configuration module.
-    :type analysis_dataset_configurations: src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
+    :type analysis_dataset_configurations: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
     :param engagement_db: Engagement database to download the messages from.
     :type engagement_db: engagement_database.EngagementDatabase
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
