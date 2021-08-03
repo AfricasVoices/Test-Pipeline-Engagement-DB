@@ -160,7 +160,7 @@ def _fold_messages_by_uid(user, messages_traced_data):
     return participants_traced_data_map
 
 
-def _analysis_dataset_config_to_column_config(analysis_dataset_config):
+def _analysis_dataset_config_to_column_configs(analysis_dataset_config):
     """
     Converts an analysis dataset configuration to the relevant "column-view" configurations.
 
@@ -253,7 +253,7 @@ def _add_message_to_column_td(user, message_td, column_td, analysis_config):
     analysis_dataset_config = _analysis_dataset_config_for_message(analysis_config.dataset_configurations, message)
 
     # Convert the analysis dataset config to its "column-view" configurations
-    column_configs = _analysis_dataset_config_to_column_config(analysis_dataset_config)
+    column_configs = _analysis_dataset_config_to_column_configs(analysis_dataset_config)
 
     new_data = dict()
 
@@ -404,6 +404,11 @@ def export_production_file(traced_data_iterable, analysis_config, export_path):
     with open(export_path, "w") as f:
         headers = ["participant_uuid"] + [c.raw_dataset for c in analysis_config.dataset_configurations]
         TracedDataCSVIO.export_traced_data_iterable_to_csv(traced_data_iterable, f, headers)
+
+
+def export_analysis_file(traced_data_iterable, analysis_config, export_path):
+    headers = ["participant_uuid"]
+    column_configs = analysis_config.dataset_configurations
 
 
 def export_traced_data(traced_data, export_path):
