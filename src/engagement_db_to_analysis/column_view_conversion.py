@@ -42,6 +42,16 @@ def analysis_dataset_config_to_column_configs(analysis_dataset_config):
     return column_configs
 
 
+def analysis_dataset_configs_to_column_configs(analysis_dataset_configs):
+    """
+    TODO
+    """
+    column_configs = []
+    for analysis_dataset_config in analysis_dataset_configs:
+        column_configs.extend(analysis_dataset_config_to_column_configs(analysis_dataset_config))
+    return column_configs
+
+
 def analysis_dataset_config_for_message(analysis_dataset_configs, message):
     """
     Gets the analysis dataset configuration to use to process this message, by looking-up the configuration that refers
