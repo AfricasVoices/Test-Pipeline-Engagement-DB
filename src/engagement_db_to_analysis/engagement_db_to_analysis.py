@@ -208,21 +208,21 @@ def _add_message_to_column_td(user, message_td, column_td, analysis_config):
     message = Message.from_dict(dict(message_td))
 
     # Get the analysis dataset configuration for this message
-    analysis_dataset_config = _analysis_dataset_config_for_message(analysis_config.dataset_configurations, message)
+    message_analysis_dataset_config = _analysis_dataset_config_for_message(analysis_config.dataset_configurations, message)
 
     # Convert the analysis dataset config to its "column-view" configurations
-    column_configs = _analysis_dataset_config_to_column_configs(analysis_dataset_config)
+    column_configs = _analysis_dataset_config_to_column_configs(message_analysis_dataset_config)
 
     updated_column_data = dict()
 
     # Add this message's raw text to the the raw_dataset column in the column-view TracedData.
     # If the TracedData already contains data here, append this text to the existing, previously added texts by
     # concatenating.
-    existing_text = column_td.get(analysis_dataset_config.raw_dataset)
+    existing_text = column_td.get(message_analysis_dataset_config.raw_dataset)
     if existing_text is None:
-        updated_column_data[analysis_dataset_config.raw_dataset] = message.text
+        updated_column_data[message_analysis_dataset_config.raw_dataset] = message.text
     else:
-        updated_column_data[analysis_dataset_config.raw_dataset] = FoldStrategies.concatenate(existing_text, message.text)
+        updated_column_data[message_analysis_dataset_config.raw_dataset] = FoldStrategies.concatenate(existing_text, message.text)
 
     # For each column config, get the latest, normalised labels under that column config's code scheme, and them
     # to the column-view TracedData.
