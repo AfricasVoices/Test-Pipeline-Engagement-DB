@@ -15,7 +15,7 @@ class CodaSyncEvents:
     WS_CORRECTION = "ws_correction"
 
 
-class CodaSyncStats(SyncStats):
+class EngagementDBToCodaSyncStats(SyncStats):
     def __init__(self):
         super().__init__({
             CodaSyncEvents.READ_MESSAGE_FROM_ENGAGEMENT_DB: 0,

@@ -5,7 +5,7 @@ from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
 from engagement_database.data_models import HistoryEntryOrigin
 
-from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, CodaSyncStats
+from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, EngagementDBToCodaSyncStats
 
 log = Logger(__name__)
 
@@ -161,10 +161,10 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     :param transaction: Transaction in the engagement database to perform the update in.
     :type transaction: google.cloud.firestore.Transaction | None
     :return: Sync stats for the update.
-    :rtype: src.engagement_db_coda_sync.sync_stats.CodaSyncStats
+    :rtype: src.engagement_db_coda_sync.sync_stats.EngagementDBToCodaSyncStats
     """
     coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(engagement_db_message.dataset)
-    sync_stats = CodaSyncStats()
+    sync_stats = EngagementDBToCodaSyncStats()
 
     # Check if the labels in the engagement database message already match those from the coda message, and that
     # we don't need to WS-correct (in other words, that the dataset is correct).
