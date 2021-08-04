@@ -213,16 +213,16 @@ def _add_message_to_column_td(user, message_td, column_td, analysis_config):
     # Convert the analysis dataset config to its "column-view" configurations
     column_configs = _analysis_dataset_config_to_column_configs(analysis_dataset_config)
 
-    new_data = dict()
+    updated_column_data = dict()
 
     # Add this message's raw text to the the raw_dataset column in the column-view TracedData.
     # If the TracedData already contains data here, append this text to the existing, previously added texts by
     # concatenating.
     existing_text = column_td.get(analysis_dataset_config.raw_dataset)
     if existing_text is None:
-        new_data[analysis_dataset_config.raw_dataset] = message.text
+        updated_column_data[analysis_dataset_config.raw_dataset] = message.text
     else:
-        new_data[analysis_dataset_config.raw_dataset] = FoldStrategies.concatenate(existing_text, message.text)
+        updated_column_data[analysis_dataset_config.raw_dataset] = FoldStrategies.concatenate(existing_text, message.text)
 
     # For each column config, get the latest, normalised labels under that column config's code scheme, and them
     # to the column-view TracedData.
@@ -237,9 +237,9 @@ def _add_message_to_column_td(user, message_td, column_td, analysis_config):
         latest_labels_with_code_scheme = [label.to_dict() for label in latest_labels_with_code_scheme]
         existing_labels = column_td.get(column_config.coded_field)
         if existing_labels is None:
-            new_data[column_config.coded_field] = latest_labels_with_code_scheme
+            updated_column_data[column_config.coded_field] = latest_labels_with_code_scheme
         else:
-            new_data[column_config.coded_field] = FoldStrategies.list_of_labels(
+            updated_column_data[column_config.coded_field] = FoldStrategies.list_of_labels(
                 column_config.code_scheme, existing_labels, latest_labels_with_code_scheme
             )
 
@@ -250,7 +250,7 @@ def _add_message_to_column_td(user, message_td, column_td, analysis_config):
 
     # Write the new data to the column-view TracedData
     # (we do this after appending the message_td so the TracedData is slightly easier to read)
-    column_td.append_data(new_data, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+    column_td.append_data(updated_column_data, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
 
 
 def _convert_to_messages_column_format(user, messages_traced_data, analysis_config):
