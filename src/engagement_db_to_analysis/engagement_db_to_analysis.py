@@ -117,49 +117,6 @@ def _convert_messages_to_traced_data(user, messages_map):
     return messages_traced_data
 
 
-def _fold_messages_by_uid(user, messages_traced_data):
-    """
-    Groups Messages TracedData objects into Individual TracedData objects.
-
-    :param user: Identifier of user running the pipeline.
-    :type user: str
-    :param messages_traced_data: Messages TracedData objects to group.
-    :type messages_traced_data: list of TracedData
-    :return: Individual TracedData objects.
-    :rtype: dict of uid -> individual TracedData objects.
-    """
-
-    participants_traced_data_map = {}
-    for message in messages_traced_data:
-        participant_uuid = message["participant_uuid"]
-        message_dataset = message["dataset"]
-
-        # Create an empty TracedData for this participant if this participant hasn't been seen yet.
-        if participant_uuid not in participants_traced_data_map.keys():
-            participants_traced_data_map[participant_uuid] = \
-                TracedData({}, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
-
-        # Get the existing list of messages for this dataset, if it exists, otherwise initialise with []
-        participant_td = participants_traced_data_map[participant_uuid]
-        participant_dataset_messages = participant_td.get(message_dataset, [])
-
-        # Append this message to the list of messages for this dataset, and write-back to TracedData.
-        participant_dataset_messages = participant_dataset_messages.copy()
-        participant_dataset_messages.append(dict(message))
-        participant_td.append_data(
-            {message_dataset: participant_dataset_messages},
-            Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
-        )
-        # Append the message's traced data, as it contains the history of which filters were passed.
-        message.hide_keys(message.keys(), Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
-        participant_td.append_traced_data(
-            "message_history", message,
-            Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
-        )
-
-    return participants_traced_data_map
-
-
 def _analysis_dataset_config_to_column_configs(analysis_dataset_config):
     """
     Converts an analysis dataset configuration to the relevant "column-view" configurations.
