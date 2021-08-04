@@ -178,13 +178,13 @@ def _analysis_dataset_config_to_column_configs(analysis_dataset_config):
     """
     column_configs = []
     for coding_config in analysis_dataset_config.coding_configs:
-        config = AnalysisConfiguration(
+        column_config = AnalysisConfiguration(
             dataset_name=coding_config.analysis_dataset,
             raw_field=analysis_dataset_config.raw_dataset,
             coded_field=f"{coding_config.analysis_dataset}_labels",
             code_scheme=coding_config.code_scheme
         )
-        column_configs.append(config)
+        column_configs.append(column_config)
     return column_configs
 
 
