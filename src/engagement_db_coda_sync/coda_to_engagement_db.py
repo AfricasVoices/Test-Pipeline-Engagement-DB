@@ -27,7 +27,7 @@ def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db
     """
     # Get the messages in the engagement database that match this dataset and coda message id
     engagement_db_messages = engagement_db.get_messages(
-        query_filter=lambda q: q
+        firestore_query_filter=lambda q: q
             .where("dataset", "==", engagement_db_dataset)
             .where("coda_id", "==", coda_message.message_id)
             .where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]),

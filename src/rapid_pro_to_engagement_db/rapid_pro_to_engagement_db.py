@@ -100,7 +100,7 @@ def _engagement_db_has_message(engagement_db, message):
         .where("timestamp", "==", message.timestamp) \
         .where("participant_uuid", "==", message.participant_uuid)
 
-    matching_messages = engagement_db.get_messages(query_filter=messages_filter)
+    matching_messages = engagement_db.get_messages(firestore_query_filter=messages_filter)
     assert len(matching_messages) < 2
 
     return len(matching_messages) > 0
