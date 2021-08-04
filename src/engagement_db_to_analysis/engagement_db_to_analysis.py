@@ -164,11 +164,12 @@ def _analysis_dataset_config_for_message(analysis_dataset_configs, message):
                      f"db dataset {message.dataset}")
 
 
-def _get_normalised_labels_for_code_scheme(message, code_scheme):
+def _get_latest_labels_with_code_scheme(message, code_scheme):
     """
-    Gets the labels assigned to this message under the given `code_scheme` (or a duplicate of this code scheme),
-    with label scheme_id's normalised to the primary code scheme id in cases where the code scheme was duplicated
-    e.g. scheme_id 'scheme-abc123-1' will be re-written to 'scheme-abc123'.
+    Gets the labels assigned to this message under the given `code_scheme` (or a duplicate of this code scheme).
+
+    Labels assigned under duplicate code schemes are normalised to have the primary code scheme id e.g. scheme_id
+    'scheme-abc123-1' will be re-written to 'scheme-abc123'.
 
     :param message: Message to get the labels from.
     :type message: engagement_database.data_models.Message
@@ -177,12 +178,12 @@ def _get_normalised_labels_for_code_scheme(message, code_scheme):
     :return: List of the relevant, normalised labels for the given code scheme.
     :rtype: list of core_data_modules.data_models.Label
     """
-    relevant_labels = []
+    latest_labels_with_code_scheme = []
     for label in message.get_latest_labels():
         if label.scheme_id.startswith(code_scheme.scheme_id):
             label.scheme_id = code_scheme.scheme_id
-            relevant_labels.append(label)
-    return relevant_labels
+            latest_labels_with_code_scheme.append(label)
+    return latest_labels_with_code_scheme
 
 
 def _add_message_to_column_td(user, message_td, column_td, analysis_config):
@@ -228,18 +229,18 @@ def _add_message_to_column_td(user, message_td, column_td, analysis_config):
     # If the TracedData already contains data here, combine the labels with the existing labels using
     # FoldStrategies.list_of_labels.
     for column_config in column_configs:
-        relevant_message_labels = _get_normalised_labels_for_code_scheme(message, column_config.code_scheme)
+        latest_labels_with_code_scheme = _get_latest_labels_with_code_scheme(message, column_config.code_scheme)
 
-        if len(relevant_message_labels) == 0:
+        if len(latest_labels_with_code_scheme) == 0:
             continue
 
-        relevant_message_labels = [label.to_dict() for label in relevant_message_labels]  # serialize for TracedData
+        latest_labels_with_code_scheme = [label.to_dict() for label in latest_labels_with_code_scheme]
         existing_labels = column_td.get(column_config.coded_field)
         if existing_labels is None:
-            new_data[column_config.coded_field] = relevant_message_labels
+            new_data[column_config.coded_field] = latest_labels_with_code_scheme
         else:
             new_data[column_config.coded_field] = FoldStrategies.list_of_labels(
-                column_config.code_scheme, existing_labels, relevant_message_labels
+                column_config.code_scheme, existing_labels, latest_labels_with_code_scheme
             )
 
     # Append the TracedData history for this message to the column-view.
