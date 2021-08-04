@@ -95,12 +95,12 @@ def _engagement_db_has_message(engagement_db, message):
     """
     # TODO: Rapid Pro has a bug where timestamps occasionally drift by 1us when runs are archived.
     #       Confirm this is resolved before entering production with an '==' check on timestamps.
-    filter = lambda q: q \
+    matching_messages_filter = lambda q: q \
         .where("text", "==", message.text) \
         .where("timestamp", "==", message.timestamp) \
         .where("participant_uuid", "==", message.participant_uuid)
 
-    matching_messages = engagement_db.get_messages(filter=filter)
+    matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
     assert len(matching_messages) < 2
 
     return len(matching_messages) > 0

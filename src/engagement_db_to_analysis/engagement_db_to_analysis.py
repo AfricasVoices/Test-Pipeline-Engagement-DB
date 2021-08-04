@@ -45,14 +45,14 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                     .where("dataset", "==", engagement_db_dataset) \
                     .where("last_updated", ">", latest_message_timestamp)
 
-                messages.extend(engagement_db.get_messages(filter=incremental_messages_filter))
+                messages.extend(engagement_db.get_messages(firestore_query_filter=incremental_messages_filter))
 
                 # Check and remove cache messages that have been ws corrected after the previous run
                 ws_corrected_messages_filter = lambda q: q \
                     .where("previous_datasets", "array_contains", engagement_db_dataset) \
                     .where("last_updated", ">", latest_message_timestamp)
 
-                ws_corrected_messages = engagement_db.get_messages(filter=ws_corrected_messages_filter)
+                ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
 
                 cache_messages = cache.get_messages(engagement_db_dataset)
                 for msg in cache_messages:
@@ -66,7 +66,7 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                 full_download_filter = lambda q: q \
                     .where("dataset", "==", engagement_db_dataset)
 
-                messages.extend(engagement_db.get_messages(filter=full_download_filter))
+                messages.extend(engagement_db.get_messages(firestore_query_filter=full_download_filter))
 
             engagement_db_dataset_messages_map[engagement_db_dataset] = messages
 
