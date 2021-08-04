@@ -9,13 +9,13 @@ from src.engagement_db_to_analysis.traced_data_filters import filter_messages
 log = Logger(__name__)
 
 
-def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path=None):
+def _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path=None):
     """
     Downloads project messages from engagement database. It performs a full download if there is no cache path and
     incrementally otherwise.
 
-    :param analysis_config: Analysis dataset configuration in pipeline configuration module.
-    :type analysis_config: pipeline_config.analysis_configs
+    :param analysis_dataset_configurations: Analysis dataset configurations in pipeline configuration module.
+    :type analysis_dataset_configurations: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
     :param engagement_db: Engagement database to download the messages from.
     :type engagement_db: engagement_database.EngagementDatabase
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
@@ -33,7 +33,7 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
         cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
 
     engagement_db_dataset_messages_map = {}  # of engagement_db_dataset to list of messages
-    for analysis_dataset_config in analysis_configurations:
+    for analysis_dataset_config in analysis_dataset_configurations:
         for engagement_db_dataset in analysis_dataset_config.engagement_db_datasets:
             messages = []
             latest_message_timestamp = None if cache is None else cache.get_latest_message_timestamp(engagement_db_dataset)
