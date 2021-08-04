@@ -384,7 +384,7 @@ def _convert_to_participants_column_format(user, messages_traced_data, analysis_
         participant = participants_by_column[message.participant_uuid]
         _add_message_to_column_td(user, msg_td, participant, analysis_config)
 
-    return participants_by_column.values()
+    return list(participants_by_column.values())
 
 
 def export_production_file(traced_data_iterable, analysis_config, export_path):
