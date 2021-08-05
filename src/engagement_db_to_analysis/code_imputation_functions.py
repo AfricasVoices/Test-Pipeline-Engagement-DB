@@ -16,8 +16,8 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
     :type user: str
     :param messages_traced_data: Messages TracedData objects to impute age_category.
     :type messages_traced_data: list of TracedData
-    :param analysis_dataset_config: Analysis dataset configuration in pipeline configuration module.
-    :type analysis_dataset_config: pipeline_config.analysis_configs.dataset_configurations
+    :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
     """
 
     # Get the coding configurations for age and age_category analysis datasets
