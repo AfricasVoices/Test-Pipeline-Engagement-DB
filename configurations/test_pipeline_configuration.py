@@ -151,7 +151,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                                                                          (36, 54): "36 to 54",
                                                                          (55, 99): "55 to 99"
                                                                      }
-                    )
+                                                                     )
                     ),
                 ]
             )
