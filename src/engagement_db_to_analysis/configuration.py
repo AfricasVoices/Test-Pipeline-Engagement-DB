@@ -10,10 +10,15 @@ class DatasetTypes:
     RESEARCH_QUESTION_ANSWER = "research_question_answer"
 
 @dataclass
+class AgeCategoryConfiguration:
+    age_analysis_dataset: str
+    categories: dict
+
+@dataclass
 class CodingConfiguration:
     code_scheme: CodeScheme
     analysis_dataset: str
-    age_categories: Optional[dict] = None
+    age_category_config: Optional[AgeCategoryConfiguration] = None
 
 @dataclass
 class AnalysisDatasetConfiguration:
