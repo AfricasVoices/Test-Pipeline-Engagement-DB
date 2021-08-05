@@ -21,7 +21,6 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
     """
 
     # Get the coding configurations for age and age_category analysis datasets
-
     age_category_cc = None
     for analysis_dataset_config in analysis_dataset_configs:
         for coding_config in analysis_dataset_config.coding_configs:
