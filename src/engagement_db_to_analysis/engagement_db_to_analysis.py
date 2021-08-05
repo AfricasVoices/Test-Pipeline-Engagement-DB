@@ -186,7 +186,7 @@ def _get_latest_labels_with_code_scheme(message, code_scheme):
     return latest_labels_with_code_scheme
 
 
-def _add_message_to_column_td(user, message_td, column_td, analysis_config):
+def _add_message_to_column_td(user, message_td, column_td, analysis_dataset_configs):
     """
     Adds a message to a "column-view" TracedData object in-place.
 
@@ -202,13 +202,13 @@ def _add_message_to_column_td(user, message_td, column_td, analysis_config):
     :param column_td: An existing TracedData object in column-view format, to which the relevant data from this message
                       will be appended.
     :type column_td: core_data_modules.traced_data.TracedData
-    :param analysis_config: Analysis configuration.
-    :type analysis_config: src.engagement_db_to_analysis.configuration.AnalysisConfiguration
+    :param analysis_dataset_configs: Dataset configurations to use to decide how to process the message.
+    :type analysis_dataset_configs: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
     """
     message = Message.from_dict(dict(message_td))
 
     # Get the analysis dataset configuration for this message
-    message_analysis_dataset_config = _analysis_dataset_config_for_message(analysis_config.dataset_configurations, message)
+    message_analysis_dataset_config = _analysis_dataset_config_for_message(analysis_dataset_configs, message)
 
     # Convert the analysis dataset config to its "column-view" configurations
     column_configs = _analysis_dataset_config_to_column_configs(message_analysis_dataset_config)
@@ -285,7 +285,7 @@ def _convert_to_messages_column_format(user, messages_traced_data, analysis_conf
             {"participant_uuid": message.participant_uuid},
             Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
         )
-        _add_message_to_column_td(user, msg_td, column_td, analysis_config)
+        _add_message_to_column_td(user, msg_td, column_td, analysis_config.dataset_configurations)
 
         # Add to the list of converted rqa messages for this participant.
         if message.participant_uuid not in messages_by_column:
@@ -303,7 +303,7 @@ def _convert_to_messages_column_format(user, messages_traced_data, analysis_conf
         # Add this demographic to each of the column-view rqa message TracedData for this participant.
         # (Use messages_by_column.get() because we might have demographics for people who never sent an RQA message).
         for column_td in messages_by_column.get(message.participant_uuid, []):
-            _add_message_to_column_td(user, msg_td, column_td, analysis_config)
+            _add_message_to_column_td(user, msg_td, column_td, analysis_config.dataset_configurations)
 
     flattened_messages = []
     for msgs in messages_by_column.values():
@@ -340,7 +340,7 @@ def _convert_to_participants_column_format(user, messages_traced_data, analysis_
 
         # Add this message to the relevant participant's column-view TracedData.
         participant = participants_by_column[message.participant_uuid]
-        _add_message_to_column_td(user, msg_td, participant, analysis_config)
+        _add_message_to_column_td(user, msg_td, participant, analysis_config.dataset_configurations)
 
     return list(participants_by_column.values())
 
