@@ -20,9 +20,8 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
     :type analysis_dataset_config: pipeline_config.analysis_configs.dataset_configurations
     """
 
-    log.info("Imputing age categories for age dataset messages...")
-    # Get the configurations for age and age_category analysis datasets
-    updated_messages_traced_data = []
+
+    # Get the coding configurations for age and age_category analysis datasets
     age_cc = None
     age_category_cc = None
     age_engagement_db_datasets = None
@@ -34,41 +33,42 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
             elif coding_config.analysis_dataset == "age_category":
                 age_category_cc = coding_config
 
-    #Check and impute age_category in age messages only
+
+    # Check and impute age_category in age messages only
+    log.info(f"Imputing {age_category_cc.analysis_dataset} for {age_cc.analysis_dataset} messages...")
+    updated_messages_traced_data = []
     for message in messages_traced_data:
-        if message["dataset"] not in age_engagement_db_datasets:
-            updated_messages_traced_data.append(message)
-            continue
+        if message["dataset"] in age_engagement_db_datasets:
 
-        age_label = message["labels"][0]
-        age_code = age_cc.code_scheme.get_code_with_code_id(age_label["CodeID"])
+            age_label = message["labels"][0]
+            age_code = age_cc.code_scheme.get_code_with_code_id(age_label["CodeID"])
 
-        # Impute age_category for this age_code
-        if age_code.code_type == CodeTypes.NORMAL:
-            age_category = None
-            for age_range, category in age_category_cc.age_categories.items():
-                if age_range[0] <= age_code.numeric_value <= age_range[1]:
-                    age_category = category
-            assert age_category is not None
-            age_category_code = age_category_cc.code_scheme.get_code_with_match_value(age_category)
-        elif age_code.code_type == CodeTypes.META:
-            age_category_code = age_category_cc.code_scheme.get_code_with_meta_code(age_code.meta_code)
-        else:
-            assert age_code.code_type == CodeTypes.CONTROL
-            age_category_code = age_category_cc.code_scheme.get_code_with_control_code(
-                age_code.control_code)
+            # Impute age_category for this age_code
+            if age_code.code_type == CodeTypes.NORMAL:
+                age_category = None
+                for age_range, category in age_category_cc.age_categories.items():
+                    if age_range[0] <= age_code.numeric_value <= age_range[1]:
+                        age_category = category
+                assert age_category is not None
+                age_category_code = age_category_cc.code_scheme.get_code_with_match_value(age_category)
+            elif age_code.code_type == CodeTypes.META:
+                age_category_code = age_category_cc.code_scheme.get_code_with_meta_code(age_code.meta_code)
+            else:
+                assert age_code.code_type == CodeTypes.CONTROL
+                age_category_code = age_category_cc.code_scheme.get_code_with_control_code(
+                    age_code.control_code)
 
-        age_category_label = CleaningUtils.make_label_from_cleaner_code(
-            age_category_cc.code_scheme, age_category_code, Metadata.get_call_location()
-        )
+            age_category_label = CleaningUtils.make_label_from_cleaner_code(
+                age_category_cc.code_scheme, age_category_code, Metadata.get_call_location()
+            )
 
-        # Append this age_category_label to the list of labels for this message, and write-back to TracedData.
-        message_labels = message["labels"].copy()
-        message_labels.append(age_category_label.to_dict())
-        message.append_data(
-            {"labels": message_labels},
-            Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
-        )
+            # Append this age_category_label to the list of labels for this message, and write-back to TracedData.
+            message_labels = message["labels"].copy()
+            message_labels.insert(0, age_category_label.to_dict())
+            message.append_data(
+                {"labels": message_labels},
+                Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
+            )
 
         updated_messages_traced_data.append(message)
 
