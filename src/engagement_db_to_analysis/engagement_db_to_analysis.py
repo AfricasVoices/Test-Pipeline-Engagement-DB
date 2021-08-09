@@ -4,7 +4,7 @@ from core_data_modules.traced_data import TracedData, Metadata
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
-from src.engagement_db_to_analysis.code_imputation_functions import run_code_computation_functions
+from src.engagement_db_to_analysis.code_imputation_functions import impute_codes_by_message
 
 
 log = Logger(__name__)
@@ -161,8 +161,8 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    messages_traced_data = run_code_computation_functions(
-        user, messages_traced_data, 
+    messages_traced_data = impute_codes_by_message(
+        user, messages_traced_data,
         pipeline_config.analysis_configs.dataset_configurations)
 
     return messages_traced_data

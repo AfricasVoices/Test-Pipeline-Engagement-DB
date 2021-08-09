@@ -78,7 +78,7 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
 
         return messages_traced_data
 
-def run_code_computation_functions(user, messages_traced_data, analysis_dataset_config):
+def impute_codes_by_message(user, messages_traced_data, analysis_dataset_config):
 
     messages_traced_data = _impute_age_category(user, messages_traced_data, analysis_dataset_config)
 
