@@ -153,14 +153,16 @@ def _fold_messages_by_uid(user, messages_traced_data):
 
 def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
 
-    messages_map = _get_project_messages_from_engagement_db(pipeline_config.analysis_configs.dataset_configurations, engagement_db,
-                                               engagement_db_datasets_cache_dir)
+    messages_map = _get_project_messages_from_engagement_db(
+        pipeline_config.analysis_configs.dataset_configurations,
+        engagement_db, engagement_db_datasets_cache_dir)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    messages_traced_data = run_code_computation_functions(user, messages_traced_data,
-                                                        pipeline_config.analysis_configs.dataset_configurations)
+    messages_traced_data = run_code_computation_functions(
+        user, messages_traced_data, 
+        pipeline_config.analysis_configs.dataset_configurations)
 
     return messages_traced_data
