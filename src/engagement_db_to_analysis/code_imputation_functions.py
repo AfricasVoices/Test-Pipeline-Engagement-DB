@@ -42,8 +42,7 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
 
     # Check and impute age_category in age messages only
     log.info(f"Imputing {age_category_cc.analysis_dataset} from {age_coding_config.analysis_dataset} messages...")
-    updated_messages_traced_data = []
-    for message in messages_traced_data:
+    for message_index, message in enumerate(messages_traced_data):
         if message["dataset"] in age_engagement_db_datasets:
             age_label = message["labels"][0]
             age_code = age_coding_config.code_scheme.get_code_with_code_id(age_label["CodeID"])
@@ -75,9 +74,9 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
                 Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
             )
 
-        updated_messages_traced_data.append(message)
+            messages_traced_data[message_index] = message
 
-        return updated_messages_traced_data
+        return messages_traced_data
 
 def run_code_computation_functions(user, messages_traced_data, analysis_dataset_config):
 
