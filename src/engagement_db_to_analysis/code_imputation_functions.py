@@ -41,7 +41,7 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
                 age_engagement_db_datasets = analysis_dataset_config.engagement_db_datasets
 
     # Check and impute age_category in age messages only
-    log.info(f"Imputing {age_category_cc.analysis_dataset} for {age_coding_config.analysis_dataset} messages...")
+    log.info(f"Imputing {age_category_cc.analysis_dataset} from {age_coding_config.analysis_dataset} messages...")
     updated_messages_traced_data = []
     for message in messages_traced_data:
         if message["dataset"] in age_engagement_db_datasets:
