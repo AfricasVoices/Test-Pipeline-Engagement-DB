@@ -24,24 +24,29 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
     age_category_cc = None
     for analysis_dataset_config in analysis_dataset_configs:
         for coding_config in analysis_dataset_config.coding_configs:
-            if coding_config.age_category_config is not None:
-                age_category_cc = coding_config
+            if coding_config.age_category_config is None:
+                log.info(f"No age_category config in {coding_config.analysis_dataset} skipping...")
+                continue
 
-    age_cc = None
+            log.info(f"Found age_category in {coding_config.analysis_dataset} coding config")
+            assert age_category_cc is None, f"Found more than one age_category configs"
+            age_category_cc = coding_config
+
+    age_coding_config = None
     age_engagement_db_datasets = None
     for analysis_dataset_config in analysis_dataset_configs:
         for coding_config in analysis_dataset_config.coding_configs:
             if coding_config.analysis_dataset == age_category_cc.age_category_config.age_analysis_dataset:
-                age_cc = coding_config
+                age_coding_config = coding_config
                 age_engagement_db_datasets = analysis_dataset_config.engagement_db_datasets
 
     # Check and impute age_category in age messages only
-    log.info(f"Imputing {age_category_cc.analysis_dataset} for {age_cc.analysis_dataset} messages...")
+    log.info(f"Imputing {age_category_cc.analysis_dataset} for {age_coding_config.analysis_dataset} messages...")
     updated_messages_traced_data = []
     for message in messages_traced_data:
         if message["dataset"] in age_engagement_db_datasets:
             age_label = message["labels"][0]
-            age_code = age_cc.code_scheme.get_code_with_code_id(age_label["CodeID"])
+            age_code = age_coding_config.code_scheme.get_code_with_code_id(age_label["CodeID"])
 
             # Impute age_category for this age_code
             if age_code.code_type == CodeTypes.NORMAL:
