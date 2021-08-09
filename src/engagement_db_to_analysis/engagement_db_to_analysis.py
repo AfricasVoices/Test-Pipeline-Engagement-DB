@@ -12,7 +12,8 @@ from src.engagement_db_to_analysis.column_view_conversion import (convert_to_mes
                                                                   analysis_dataset_configs_to_column_configs)
 
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
-from src.engagement_db_to_analysis.code_imputation_functions import impute_codes_by_message
+from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
+                                                                     impute_codes_by_column_traced_data)
 
 log = Logger(__name__)
 
@@ -194,8 +195,13 @@ def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=Non
         pipeline_config.analysis_configs.dataset_configurations)
 
     messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
-
     participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
+
+    log.info(f"Imputing messages column-view traced data...")
+    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis_configs.dataset_configurations)
+
+    log.info(f"Imputing participants column-view traced data...")
+    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis_configs.dataset_configurations)
 
     # Export to hard-coded files for now.
     # TODO: Only export a production file for messages (exporting both for now to aid with debugging)
