@@ -11,7 +11,7 @@ from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, Co
 from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidProConfiguration, DatasetConfiguration,
                                                           WriteModes, ContactField)
 from src.rapid_pro_to_engagement_db.configuration import (FlowResultConfiguration, UuidFilter,
-    RapidProToEngagementDBConfiguration)
+                                                          RapidProToEngagementDBConfiguration)
 from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfiguration, DatasetTypes,
     AgeCategoryConfiguration, CodingConfiguration, AnalysisConfiguration)
 

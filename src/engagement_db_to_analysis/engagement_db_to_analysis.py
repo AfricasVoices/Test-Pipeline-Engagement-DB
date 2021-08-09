@@ -1,39 +1,45 @@
 from core_data_modules.logging import Logger
-from core_data_modules.util import TimeUtils
 from core_data_modules.traced_data import TracedData, Metadata
+from core_data_modules.traced_data.io import TracedDataJsonIO, TracedDataCSVIO
+from core_data_modules.util import TimeUtils, IOUtils
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
+from src.engagement_db_to_analysis.column_view_conversion import (convert_to_messages_column_format,
+                                                                  convert_to_participants_column_format)
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
 from src.engagement_db_to_analysis.code_imputation_functions import impute_codes_by_message
-
 
 log = Logger(__name__)
 
 
-def _get_project_messages_from_engagement_db(analysis_configurations, engagement_db, cache_path):
+def _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path=None):
     """
-
-    Downloads project messages from engagement database. It performs a full download if there is no previous export and
+    Downloads project messages from engagement database. It performs a full download if there is no cache path and
     incrementally otherwise.
 
-    :param analysis_config: Analysis dataset configuration in pipeline configuration module.
-    :type analysis_config: pipeline_config.analysis_configs
+    :param analysis_dataset_configurations: Analysis dataset configurations in pipeline configuration module.
+    :type analysis_dataset_configurations: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
     :param engagement_db: Engagement database to download the messages from.
     :type engagement_db: engagement_database.EngagementDatabase
-    :param cache_path: Directory to use for the fetch cache, containing engagement_db dataset files and a timestamp generated from a previous run.
+    :param cache_path: Path to a directory to use to cache results needed for incremental operation.
+                       If None, runs in non-incremental mode.
     :type cache_path: str
     :return: engagement_db_dataset_messages_map of engagement_db_dataset to list of messages.
     :rtype: dict of str -> list of engagement_database.data_models.Message
     """
 
-    log.info(f"Initialising EngagementAnalysisCache at '{cache_path}/engagement_db_to_analysis'")
-    cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
+    if cache_path is None:
+        cache = None
+        log.warning(f"No `cache_path` provided. This tool will perform a full download of project messages from engagement database")
+    else:
+        log.info(f"Initialising EngagementAnalysisCache at '{cache_path}/engagement_db_to_analysis'")
+        cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
 
     engagement_db_dataset_messages_map = {}  # of engagement_db_dataset to list of messages
-    for analysis_dataset_config in analysis_configurations:
+    for analysis_dataset_config in analysis_dataset_configurations:
         for engagement_db_dataset in analysis_dataset_config.engagement_db_datasets:
             messages = []
-            latest_message_timestamp = cache.get_latest_message_timestamp(engagement_db_dataset)
+            latest_message_timestamp = None if cache is None else cache.get_latest_message_timestamp(engagement_db_dataset)
             if latest_message_timestamp is not None:
                 log.info(f"Performing incremental download for {engagement_db_dataset} messages...")
 
@@ -42,14 +48,14 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
                     .where("dataset", "==", engagement_db_dataset) \
                     .where("last_updated", ">", latest_message_timestamp)
 
-                messages.extend(engagement_db.get_messages(filter=incremental_messages_filter))
+                messages.extend(engagement_db.get_messages(firestore_query_filter=incremental_messages_filter))
 
                 # Check and remove cache messages that have been ws corrected after the previous run
                 ws_corrected_messages_filter = lambda q: q \
                     .where("previous_datasets", "array_contains", engagement_db_dataset) \
                     .where("last_updated", ">", latest_message_timestamp)
 
-                ws_corrected_messages = engagement_db.get_messages(filter=ws_corrected_messages_filter)
+                ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
 
                 cache_messages = cache.get_messages(engagement_db_dataset)
                 for msg in cache_messages:
@@ -63,7 +69,7 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
                 full_download_filter = lambda q: q \
                     .where("dataset", "==", engagement_db_dataset)
 
-                messages.extend(engagement_db.get_messages(filter=full_download_filter))
+                messages.extend(engagement_db.get_messages(firestore_query_filter=full_download_filter))
 
             engagement_db_dataset_messages_map[engagement_db_dataset] = messages
 
@@ -73,12 +79,14 @@ def _get_project_messages_from_engagement_db(analysis_configurations, engagement
                 if latest_message_timestamp is None or msg_last_updated > latest_message_timestamp:
                     latest_message_timestamp = msg_last_updated
 
-            # Export latest message timestamp to cache
-            if latest_message_timestamp is not None or len(messages) > 0:
-                cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
+            if cache is not None:
+                # Export latest message timestamp to cache
+                if latest_message_timestamp is not None:
+                    cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
 
-            # Export project engagement_dataset files
-            cache.set_messages(engagement_db_dataset, messages)
+                # Export project engagement_dataset files
+                if len(messages) > 0:
+                    cache.set_messages(engagement_db_dataset, messages)
 
     return engagement_db_dataset_messages_map
 
@@ -108,54 +116,33 @@ def _convert_messages_to_traced_data(user, messages_map):
     return messages_traced_data
 
 
-def _fold_messages_by_uid(user, messages_traced_data):
+def export_production_file(traced_data_iterable, analysis_config, export_path):
     """
-    Groups Messages TracedData objects into Individual TracedData objects.
+    Exports a column-view TracedData to a production file.
 
-    :param user: Identifier of user running the pipeline.
-    :type user: str
-    :param messages_traced_data: Messages TracedData objects to group.
-    :type messages_traced_data: list of TracedData
-    :return: Individual TracedData objects.
-    :rtype: dict of uid -> individual TracedData objects.
+    The production file contains the participant uuid and all the raw_datasets only.
+
+    :param traced_data_iterable: Data to export.
+    :type traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
+    :param analysis_config: Configuration for the export.
+    :type analysis_config: src.engagement_db_to_analysis.configuration.AnalysisConfiguration
+    :param export_path: Path to export the file to.
+    :type export_path: str
     """
-
-    participants_traced_data_map = {}
-    for message in messages_traced_data:
-        participant_uuid = message["participant_uuid"]
-        message_dataset = message["dataset"]
-
-        # Create an empty TracedData for this participant if this participant hasn't been seen yet.
-        if participant_uuid not in participants_traced_data_map.keys():
-            participants_traced_data_map[participant_uuid] = \
-                TracedData({}, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
-
-        # Get the existing list of messages for this dataset, if it exists, otherwise initialise with []
-        participant_td = participants_traced_data_map[participant_uuid]
-        participant_dataset_messages = participant_td.get(message_dataset, [])
-
-        # Append this message to the list of messages for this dataset, and write-back to TracedData.
-        participant_dataset_messages = participant_dataset_messages.copy()
-        participant_dataset_messages.append(dict(message))
-        participant_td.append_data(
-            {message_dataset: participant_dataset_messages},
-            Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
-        )
-        # Append the message's traced data, as it contains the history of which filters were passed.
-        message.hide_keys(message.keys(), Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
-        participant_td.append_traced_data(
-            "message_history", message,
-            Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
-        )
-
-    return participants_traced_data_map
+    IOUtils.ensure_dirs_exist_for_file(export_path)
+    with open(export_path, "w") as f:
+        headers = ["participant_uuid"] + [c.raw_dataset for c in analysis_config.dataset_configurations]
+        TracedDataCSVIO.export_traced_data_iterable_to_csv(traced_data_iterable, f, headers)
 
 
-def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_datasets_cache_dir):
+def export_traced_data(traced_data, export_path):
+    with open(export_path, "w") as f:
+        TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
-    messages_map = _get_project_messages_from_engagement_db(
-        pipeline_config.analysis_configs.dataset_configurations,
-        engagement_db, engagement_db_datasets_cache_dir)
+def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
+
+    analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
+    messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
@@ -165,4 +152,15 @@ def generate_analysis_files(user, pipeline_config, engagement_db, engagement_db_
         user, messages_traced_data,
         pipeline_config.analysis_configs.dataset_configurations)
 
-    return messages_traced_data
+    messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
+
+    participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
+
+    # Export to hard-coded files for now.
+    # TODO: Only export a production file for messages (exporting both for now to aid with debugging)
+    # TODO: Export to a directory passed in on the command line rather than a hard-coded analysis folder.
+    export_production_file(messages_by_column, pipeline_config.analysis_configs, "analysis/messages-production.csv")
+    export_production_file(participants_by_column, pipeline_config.analysis_configs, "analysis/participants-production.csv")
+
+    export_traced_data(messages_by_column, "analysis/messages.jsonl")
+    export_traced_data(participants_by_column, "analysis/participants.jsonl")

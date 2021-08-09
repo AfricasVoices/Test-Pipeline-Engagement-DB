@@ -36,11 +36,19 @@ if __name__ == "__main__":
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
 
-    local_archives_map = dict()
+    # Parse any local archive arguments, validating that all arguments do override a Rapid Pro source
+    local_archives_map = dict()  # of gs url -> local path
+    rapid_pro_urls = {rapid_pro_source.rapid_pro.token_file_url for rapid_pro_source in pipeline_config.rapid_pro_sources}
+    overridden_urls = 0
     for archive_arg in local_archives:
         gs_url = archive_arg.split("=")[0]
         local_path = archive_arg.split("=")[1]
         local_archives_map[gs_url] = local_path
+
+        assert gs_url in rapid_pro_urls, f"--local-archive url {gs_url} not found in any Rapid Pro sources"
+        overridden_urls += 1
+    log.info(f"{overridden_urls}/{len(pipeline_config.rapid_pro_sources)} Rapid Pro source urls will be overridden "
+             f"with --local-archives")
 
     pipeline = pipeline_config.pipeline_name
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()

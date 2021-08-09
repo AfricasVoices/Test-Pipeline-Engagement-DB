@@ -5,7 +5,7 @@ from google.cloud import firestore
 
 from src.engagement_db_coda_sync.cache import CodaSyncCache
 from src.engagement_db_coda_sync.lib import _update_engagement_db_message_from_coda_message, _add_message_to_coda
-from src.engagement_db_coda_sync.sync_stats import CodaSyncStats, CodaSyncEvents
+from src.engagement_db_coda_sync.sync_stats import EngagementDBToCodaSyncStats, CodaSyncEvents
 
 log = Logger(__name__)
 
@@ -38,7 +38,7 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
     :return: A tuple of:
              1. The engagement database message that was synced. If there was no new message to sync, returns None.
              2. Sync stats.
-    :rtype: (engagement_database.data_models.Message | None, src.engagement_db_coda_sync.sync_stats.CodaSyncStats)
+    :rtype: (engagement_database.data_models.Message | None, src.engagement_db_coda_sync.sync_stats.EngagementDBToCodaSyncStats)
     """
     if last_seen_message is None:
         messages_filter = lambda q: q \
@@ -58,9 +58,9 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
             .start_after({"last_updated": last_seen_message.last_updated, "message_id": last_seen_message.message_id}) \
             .limit(1)
 
-    next_message_results = engagement_db.get_messages(filter=messages_filter, transaction=transaction)
+    next_message_results = engagement_db.get_messages(firestore_query_filter=messages_filter, transaction=transaction)
 
-    sync_stats = CodaSyncStats()
+    sync_stats = EngagementDBToCodaSyncStats()
     if len(next_message_results) == 0:
         return None, sync_stats
     else:
@@ -115,13 +115,13 @@ def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, datase
     :param cache: Coda sync cache.
     :type cache: src.engagement_db_coda_sync.cache.CodaSyncCache | None
     :return: Sync stats for the update.
-    :rtype: src.engagement_db_coda_sync.sync_stats.CodaSyncStats
+    :rtype: src.engagement_db_coda_sync.sync_stats.EngagementDBToCodaSyncStats
     """
     last_seen_message = None if cache is None else cache.get_last_seen_message(dataset_config.engagement_db_dataset)
     synced_messages = 0
     synced_message_ids = set()
 
-    sync_stats = CodaSyncStats()
+    sync_stats = EngagementDBToCodaSyncStats()
 
     first_run = True
     while first_run or last_seen_message is not None:
@@ -181,7 +181,7 @@ def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None
         dataset_to_sync_stats[dataset_config.engagement_db_dataset] = dataset_sync_stats
 
     # Log the summaries of actions taken for each dataset then for all datasets combined.
-    all_sync_stats = CodaSyncStats()
+    all_sync_stats = EngagementDBToCodaSyncStats()
     for dataset_config in coda_config.dataset_configurations:
         log.info(f"Summary of actions for engagement db dataset '{dataset_config.engagement_db_dataset}':")
         dataset_to_sync_stats[dataset_config.engagement_db_dataset].print_summary()

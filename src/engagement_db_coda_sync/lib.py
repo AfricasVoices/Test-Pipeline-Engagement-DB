@@ -5,7 +5,7 @@ from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
 from engagement_database.data_models import HistoryEntryOrigin
 
-from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, CodaSyncStats
+from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, EngagementDBToCodaSyncStats
 
 log = Logger(__name__)
 
@@ -89,7 +89,7 @@ def _code_for_label(label, code_schemes):
             return code_scheme.get_code_with_code_id(label.code_id)
 
     raise ValueError(f"Label's scheme id '{label.scheme_id}' is not in any of the given `code_schemes` "
-                     f"(these have ids {[scheme.id for scheme in code_schemes]})")
+                     f"(these have ids {[scheme.scheme_id for scheme in code_schemes]})")
 
 
 def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_scheme):
@@ -132,6 +132,12 @@ def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_sche
                     f"!= code_in_ws_scheme ({code_in_ws_scheme})")
         ws_code = None
 
+    # If the ws code is 'NC', that means the message was labelled as being in the wrong place, but the right place
+    # was unknown/could not be specified. In this case, don't redirect, so we can see the 'WS' in analysis.
+    if ws_code is not None and ws_code.control_code == Codes.NOT_CODED:
+        log.warning(f"Code in WS - Correct Dataset scheme has control code '{Codes.NOT_CODED}'; cannot redirect message")
+        ws_code = None
+
     return ws_code
 
 
@@ -155,10 +161,10 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     :param transaction: Transaction in the engagement database to perform the update in.
     :type transaction: google.cloud.firestore.Transaction | None
     :return: Sync stats for the update.
-    :rtype: src.engagement_db_coda_sync.sync_stats.CodaSyncStats
+    :rtype: src.engagement_db_coda_sync.sync_stats.EngagementDBToCodaSyncStats
     """
     coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(engagement_db_message.dataset)
-    sync_stats = CodaSyncStats()
+    sync_stats = EngagementDBToCodaSyncStats()
 
     # Check if the labels in the engagement database message already match those from the coda message, and that
     # we don't need to WS-correct (in other words, that the dataset is correct).

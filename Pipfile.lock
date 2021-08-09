@@ -91,11 +91,11 @@
         },
         "charset-normalizer": {
             "hashes": [
-                "sha256:88fce3fa5b1a84fdcb3f603d889f723d1dd89b26059d0123ca435570e848d5e1",
-                "sha256:c46c3ace2d744cfbdebceaa3c19ae691f53ae621b39fd7570f59d14fb7f2fd12"
+                "sha256:0c8911edd15d19223366a194a513099a302055a962bca2cec0f54b8b63175d8b",
+                "sha256:f23667ebe1084be45f6ae0538e4a5a865206544097e4e8bbcacf42cd02a348f3"
             ],
             "markers": "python_version >= '3'",
-            "version": "==2.0.3"
+            "version": "==2.0.4"
         },
         "codav2pythonclient": {
             "editable": true,
@@ -104,7 +104,7 @@
         },
         "coredatamodules": {
             "editable": true,
-            "git": "https://www.github.com/AfricasVoices/CoreDataModules",
+            "git": "https://github.com/AfricasVoices/CoreDataModules",
             "ref": "69a851e2229672b07d6c9eeaf2e30aab243035c9"
         },
         "firebase-admin": {
@@ -120,27 +120,27 @@
                 "grpc"
             ],
             "hashes": [
-                "sha256:7c8ba88e2b893ef4f67d67e229aade51a2db5053023b73b1394a5ee3dcdb561c",
-                "sha256:a9f979b5c6a9cad31a4120ca6be712df76adc32336a7bf4bc2f4331a1b527fe7"
+                "sha256:108cf94336aed7e614eafc53933ef02adf63b9f0fd87e8f8212acaa09eaca456",
+                "sha256:1d63e2b28057d79d64795c9a70abcecb5b7e96da732d011abf09606a39b48701"
             ],
             "markers": "platform_python_implementation != 'PyPy'",
-            "version": "==1.31.0"
+            "version": "==1.31.1"
         },
         "google-api-python-client": {
             "hashes": [
-                "sha256:2a8c34fccbf5c1636898c0dbaef6745f8f5150ba5304e6de0f8f0635dcf47847",
-                "sha256:30062b369623cb023592b7f721dd8463389f45bcf2713e56c7a3a509b65c250a"
+                "sha256:8375489232823f44c601196a960505e03ec58c95ddb6415c6b1d1d76b468f8ba",
+                "sha256:87af2462b922c976291fcd0d062a0011d4ac41b11cee04089aa9577dd7b44ae3"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==2.14.0"
+            "version": "==2.15.0"
         },
         "google-auth": {
             "hashes": [
-                "sha256:036dd68c1e8baa422b6b61619b8e02793da2e20f55e69514612de6c080468755",
-                "sha256:7665c04f2df13cc938dc7d9066cddb1f8af62b038bc8b2306848c1b23121865f"
+                "sha256:bd6aa5916970a823e76ffb3d5c3ad3f0bedafca0a7fa53bc15149ab21cb71e05",
+                "sha256:f1094088bae046fb06f3d1a3d7df14717e8d959e9105b79c57725bd4e17597a2"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==1.33.1"
+            "version": "==1.34.0"
         },
         "google-auth-httplib2": {
             "hashes": [
@@ -151,19 +151,19 @@
         },
         "google-cloud-core": {
             "hashes": [
-                "sha256:31e8c8596d3fbe2ecbe8708572b48741f8b247a78740aebfaf4da445487a1af5",
-                "sha256:3bd1e679a3d38b9da93c5919ae56239dda91fb32a2d954b2cd830392337c1cc9"
+                "sha256:5b77935f3d9573e27007749a3b522f08d764c5b5930ff1527b2ab2743e9f0c15",
+                "sha256:b1030aadcbb2aeb4ee51475426351af83c1072456b918fb8fdb80666c4bb63b5"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==1.7.1"
+            "version": "==1.7.2"
         },
         "google-cloud-firestore": {
             "hashes": [
-                "sha256:143a88ef2b90c98f16d2b0bc192631ca3e2b7c66a236d93ba9961de64e50870e",
-                "sha256:5befe5f157f50e5fd821f4af4d6374f102c8431b922e2b678f94c5c6d9f5d628"
+                "sha256:40cc2f30f79b0b66b4f5798a40a6053f05486d9967504697c5387c8659d2f49b",
+                "sha256:458a1eb4766cc91ef7473355645b22da501fb5a8c36c4ac9c7dab460f60b2966"
             ],
             "markers": "platform_python_implementation != 'PyPy'",
-            "version": "==2.1.3"
+            "version": "==2.2.0"
         },
         "google-cloud-storage": {
             "hashes": [
@@ -210,11 +210,11 @@
         },
         "google-resumable-media": {
             "hashes": [
-                "sha256:106db689574283a7d9d154d5a97ab384153c55a1195cecb8c01cad9e6e827628",
-                "sha256:1a1eb743d13f782d1405437c266b2c815ef13c2b141ba40835c74a3317539d01"
+                "sha256:092f39153cd67a4e409924edf08129f43cc72e630a1eb22abec93e80155df4ba",
+                "sha256:ce38555d250bd70b0c2598bf61e99003cb8c569b0176ec0e3f38b86f9ffff581"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==1.3.1"
+            "version": "==1.3.3"
         },
         "googleapis-common-protos": {
             "hashes": [
@@ -353,7 +353,7 @@
         "pipelineinfrastructure": {
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",
-            "ref": "0b987b4cc9a2ec268e323868c40616cb7db3fef7"
+            "ref": "a9ed1c185b07825d72010df7bfb200246cefea61"
         },
         "proto-plus": {
             "hashes": [
@@ -467,7 +467,7 @@
                 "sha256:6f41f1a34bc2e8df7bcc54f29b5f1db8e50b1e95221ecf7ec040952e845b1b1e",
                 "sha256:cf69357a037d7dd6a487631f1350fe8fca73ce6ea0ae75f2c86ae22545261225"
             ],
-            "markers": "python_version >= '3.6' and python_version < '4'",
+            "markers": "python_version >= '3.6' and python_version < '4.0'",
             "version": "==2.8.3"
         },
         "rapidprotools": {
@@ -512,7 +512,7 @@
                 "sha256:39fb8672126159acb139a7718dd10806104dec1e2f0f6c88aab05d17df10c8d4",
                 "sha256:f57b4c16c62fa2760b7e3d97c35b255512fb6b59a259730f36ba32ce9f8e342f"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4.0'",
             "version": "==1.26.6"
         }
     },
