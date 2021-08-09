@@ -143,15 +143,16 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     CodingConfiguration(
                         code_scheme=load_code_scheme("age_category"),
                         analysis_dataset="age_category",
-                        age_category_config=AgeCategoryConfiguration(age_analysis_dataset="age", #age_cc.analysis_dataset
-                                                                     categories={
-                                                                         (10, 14): "10 to 14",
-                                                                         (15, 17): "15 to 17",
-                                                                         (18, 35): "18 to 35",
-                                                                         (36, 54): "36 to 54",
-                                                                         (55, 99): "55 to 99"
-                                                                     }
-                                                                     )
+                        age_category_config=AgeCategoryConfiguration(
+                            age_analysis_dataset="age",
+                            categories={
+                                (10, 14): "10 to 14",
+                                (15, 17): "15 to 17",
+                                (18, 35): "18 to 35",
+                                (36, 54): "36 to 54",
+                                (55, 99): "55 to 99"
+                             }
+                      )
                     ),
                 ]
             )
