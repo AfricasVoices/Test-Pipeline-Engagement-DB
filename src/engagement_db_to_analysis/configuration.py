@@ -9,10 +9,12 @@ class DatasetTypes:
     DEMOGRAPHIC = "demographic"
     RESEARCH_QUESTION_ANSWER = "research_question_answer"
 
+
 @dataclass
 class AgeCategoryConfiguration:
     age_analysis_dataset: str
     categories: dict
+
 
 @dataclass
 class CodingConfiguration:
@@ -20,12 +22,14 @@ class CodingConfiguration:
     analysis_dataset: str
     age_category_config: Optional[AgeCategoryConfiguration] = None
 
+
 @dataclass
 class AnalysisDatasetConfiguration:
     engagement_db_datasets: [str]
     dataset_type: DatasetTypes
     raw_dataset: str
     coding_configs: [CodingConfiguration]
+
 
 @dataclass
 class AnalysisConfiguration:
