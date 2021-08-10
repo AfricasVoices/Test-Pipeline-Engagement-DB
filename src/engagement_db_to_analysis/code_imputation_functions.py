@@ -81,5 +81,18 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
 
 
 def impute_codes_by_message(user, messages_traced_data, analysis_dataset_config):
+    """
+    Imputes codes for messages TracedData in-place.
+
+    Runs the following imputations:
+     - Imputes Age category labels for age dataset messages.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param messages_traced_data: Messages TracedData objects to impute age_category.
+    :type messages_traced_data: list of TracedData
+    :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    """
 
     _impute_age_category(user, messages_traced_data, analysis_dataset_config)
