@@ -87,7 +87,7 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
     log.info(f"Imputed {imputed_labels} age category labels for {age_messages} age messages")
 
 
-def impute_codes_by_message(user, messages_traced_data, analysis_dataset_config):
+def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs):
     """
     Imputes codes for messages TracedData in-place.
 
@@ -102,4 +102,4 @@ def impute_codes_by_message(user, messages_traced_data, analysis_dataset_config)
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
     """
 
-    _impute_age_category(user, messages_traced_data, analysis_dataset_config)
+    _impute_age_category(user, messages_traced_data, analysis_dataset_configs)
