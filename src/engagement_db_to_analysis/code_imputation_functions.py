@@ -56,7 +56,7 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
             {"labels": message_labels},
             Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
 
-        imputed_labels +=1
+        imputed_labels += 1
 
     log.info(f"Imputed {imputed_labels} {Codes.NOT_REVIEWED} labels for {len(messages_traced_data)} "
              f"messages traced data")
