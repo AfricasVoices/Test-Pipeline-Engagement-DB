@@ -15,15 +15,15 @@ log = Logger(__name__)
 
 def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs):
     """
-        Imputes Codes.NOT_REVIEWED label for messages that have not been manually checked in coda.
+    Imputes Codes.NOT_REVIEWED label for messages that have not been manually checked in coda.
 
-        :param user: Identifier of user running the pipeline.
-        :type user: str
-        :param messages_traced_data: Messages TracedData objects to impute age_category.
-        :type messages_traced_data: list of TracedData
-        :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
-        :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
-        """
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param messages_traced_data: Messages TracedData objects to impute age_category.
+    :type messages_traced_data: list of TracedData
+    :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    """
 
     log.info(f"Imputing {Codes.NOT_REVIEWED} labels...")
     imputed_labels = 0
