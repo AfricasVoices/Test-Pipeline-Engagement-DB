@@ -10,6 +10,22 @@ from engagement_database.data_models import Message
 
 log = Logger(__name__)
 
+def _impute_not_reviewed_messages(user, messages_traced_data, analysis_dataset_configs):
+    """
+        Imputes Codes.NOT_REVIEWED for messages that have not been manually labelled.
+
+        :param user: Identifier of user running the pipeline.
+        :type user: str
+        :param messages_traced_data: Messages TracedData objects to impute age_category.
+        :type messages_traced_data: list of TracedData
+        :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
+        :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+        """
+
+
+
+
+
 def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
     """
     Imputes age category for age dataset messages.
