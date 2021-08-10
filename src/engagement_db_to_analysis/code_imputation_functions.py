@@ -27,9 +27,8 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
 
     log.info(f"Imputing {Codes.NOT_REVIEWED} labels...")
     imputed_labels = 0
-    for message in messages_traced_data:
-
-        message_object = Message.from_dict(dict(message))
+    for message_traced_data in messages_traced_data:
+        message = Message.from_dict(dict(message))
 
         message_analysis_config = analysis_dataset_config_for_message(analysis_dataset_configs, message_object)
 
