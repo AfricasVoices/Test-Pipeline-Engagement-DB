@@ -2,7 +2,7 @@ from core_data_modules.util import TimeUtils
 
 from core_data_modules.data_models.code_scheme import CodeTypes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
-from core_data_modules.traced_data import Metadata, TracedData
+from core_data_modules.traced_data import Metadata
 from core_data_modules.logging import Logger
 from src.engagement_db_to_analysis.column_view_conversion import get_latest_labels_with_code_scheme
 from engagement_database.data_models import Message
