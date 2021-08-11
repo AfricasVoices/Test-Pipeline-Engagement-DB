@@ -27,15 +27,15 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
 
     log.info(f"Imputing {Codes.NOT_REVIEWED} labels...")
     imputed_labels = 0
-    for message_traced_data in messages_traced_data:
-        message = Message.from_dict(dict(message))
+    for message_td in messages_traced_data:
+        message = Message.from_dict(dict(message_td))
 
-        message_analysis_config = analysis_dataset_config_for_message(analysis_dataset_configs, message_object)
+        message_analysis_config = analysis_dataset_config_for_message(analysis_dataset_configs, message)
 
         # Check if the message has a manual label and impute NOT_REVIEWED if it doesn't
         manually_labelled = False
         for coding_config in message_analysis_config.coding_configs:
-            latest_labels_with_code_scheme = get_latest_labels_with_code_scheme(message_object,
+            latest_labels_with_code_scheme = get_latest_labels_with_code_scheme(message,
                                                                                 coding_config.code_scheme)
             for label in latest_labels_with_code_scheme:
                 if label.checked:
@@ -52,7 +52,7 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
         # Insert not_reviewed_label to the list of labels for this message, and write-back to TracedData.
         message_labels = message["labels"].copy()
         message_labels.insert(0, not_reviewed_label)
-        message.append_data(
+        message_td.append_data(
             {"labels": message_labels},
             Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
 
