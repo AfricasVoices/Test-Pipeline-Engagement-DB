@@ -4,13 +4,6 @@ FROM python:3.8-slim
 RUN apt-get update && apt-get install -y git
 RUN pip install pipenv
 
-# Install memory_profiler if this script is run with PROFILE_MEMORY flag
-ARG INSTALL_MEMORY_PROFILER="false"
-RUN if [ "$INSTALL_MEMORY_PROFILER" = "true" ]; then \
-        apt-get update && apt-get install -y gcc && \
-        pip install memory_profiler; \
-    fi
-
 # Make a directory for private credentials files
 RUN mkdir /credentials
 
