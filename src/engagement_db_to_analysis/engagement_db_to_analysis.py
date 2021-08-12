@@ -6,6 +6,7 @@ from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO, TracedDataCSVIO
 from core_data_modules.util import TimeUtils, IOUtils
 
+from src.engagement_db_to_analysis.analysis_files import export_production_file, export_analysis_file
 from src.engagement_db_to_analysis.cache import AnalysisCache
 from src.engagement_db_to_analysis.column_view_conversion import (convert_to_messages_column_format,
                                                                   convert_to_participants_column_format,
@@ -122,64 +123,10 @@ def _convert_messages_to_traced_data(user, messages_map):
     return messages_traced_data
 
 
-def export_production_file(traced_data_iterable, analysis_config, export_path):
-    """
-    Exports a column-view TracedData to a production file.
-
-    The production file contains the participant uuid and all the raw_datasets only.
-
-    :param traced_data_iterable: Data to export.
-    :type traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
-    :param analysis_config: Configuration for the export.
-    :type analysis_config: src.engagement_db_to_analysis.configuration.AnalysisConfiguration
-    :param export_path: Path to export the file to.
-    :type export_path: str
-    """
-    IOUtils.ensure_dirs_exist_for_file(export_path)
-    with open(export_path, "w") as f:
-        headers = ["participant_uuid"] + [c.raw_dataset for c in analysis_config.dataset_configurations]
-        TracedDataCSVIO.export_traced_data_iterable_to_csv(traced_data_iterable, f, headers)
-
-
-def export_analysis_file(traced_data_iterable, analysis_config, export_path):
-    headers = ["participant_uuid"]
-    column_configs = analysis_dataset_configs_to_column_configs(analysis_config.dataset_configurations)
-
-    for config in column_configs:
-        for code in config.code_scheme.codes:
-            headers.append(f"{config.dataset_name}:{code.string_value}")
-        if config.raw_field not in headers:
-            headers.append(config.raw_field)
-
-    # Data
-    with open(export_path, "w") as f:
-        writer = csv.DictWriter(f, fieldnames=headers)
-        writer.writeheader()
-
-        for td in traced_data_iterable:
-            row = {
-                "participant_uuid": td["participant_uuid"]
-            }
-
-            for config in column_configs:
-                # TODO: Change/remove these checks once NA-imputation is complete
-                row[config.raw_field] = td.get(config.raw_field, "")
-                if config.coded_field not in td:
-                    continue
-
-                td_code_ids = [label["CodeID"] for label in td[config.coded_field]]
-                for code in config.code_scheme.codes:
-                    if code.code_id in td_code_ids:
-                        row[f"{config.dataset_name}:{code.string_value}"] = Codes.MATRIX_1
-                    else:
-                        row[f"{config.dataset_name}:{code.string_value}"] = Codes.MATRIX_0
-
-            writer.writerow(row)
-
-
 def export_traced_data(traced_data, export_path):
     with open(export_path, "w") as f:
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
+
 
 def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
 
@@ -204,12 +151,11 @@ def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=Non
     impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis_configs.dataset_configurations)
 
     # Export to hard-coded files for now.
-    # TODO: Only export a production file for messages (exporting both for now to aid with debugging)
     # TODO: Export to a directory passed in on the command line rather than a hard-coded analysis folder.
-    export_production_file(messages_by_column, pipeline_config.analysis_configs, "analysis/messages-production.csv")
-    export_production_file(participants_by_column, pipeline_config.analysis_configs, "analysis/participants-production.csv")
+    export_production_file(messages_by_column, pipeline_config.analysis_configs, "analysis/production.csv")
 
-    export_analysis_file(messages_by_column, pipeline_config.analysis_configs, "analysis/messages.csv")
+    export_analysis_file(messages_by_column, pipeline_config.analysis_configs.dataset_configurations, "analysis/messages.csv")
+    export_analysis_file(messages_by_column, pipeline_config.analysis_configs.dataset_configurations, "analysis/participants.csv")
 
     export_traced_data(messages_by_column, "analysis/messages.jsonl")
     export_traced_data(participants_by_column, "analysis/participants.jsonl")
