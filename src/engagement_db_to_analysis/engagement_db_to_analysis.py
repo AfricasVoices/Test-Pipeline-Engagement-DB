@@ -154,7 +154,7 @@ def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=Non
     export_production_file(messages_by_column, pipeline_config.analysis_configs, "analysis/production.csv")
 
     export_analysis_file(messages_by_column, pipeline_config.analysis_configs.dataset_configurations, "analysis/messages.csv")
-    export_analysis_file(messages_by_column, pipeline_config.analysis_configs.dataset_configurations, "analysis/participants.csv")
+    export_analysis_file(participants_by_column, pipeline_config.analysis_configs.dataset_configurations, "analysis/participants.csv")
 
     export_traced_data(messages_by_column, "analysis/messages.jsonl")
     export_traced_data(participants_by_column, "analysis/participants.jsonl")
