@@ -51,13 +51,13 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
         code_scheme = message_analysis_config.coding_configs[0].code_scheme
         not_reviewed_label = CleaningUtils.make_label_from_cleaner_code(
             code_scheme, code_scheme.get_code_with_control_code(Codes.NOT_REVIEWED),
-            Metadata.get_call_location()).to_dict()
+            Metadata.get_call_location())
 
         # Insert not_reviewed_label to the list of labels for this message, and write-back to TracedData.
-        message_labels = message["labels"].copy()
+        message_labels = message.labels.copy()
         message_labels.insert(0, not_reviewed_label)
         message_td.append_data(
-            {"labels": message_labels},
+            {"labels": [label.to_dict() for label in message_labels]},
             Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
 
         imputed_labels += 1
