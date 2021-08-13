@@ -1,14 +1,65 @@
 from core_data_modules.util import TimeUtils
-
 from core_data_modules.data_models.code_scheme import CodeTypes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.traced_data import Metadata
 from core_data_modules.logging import Logger
-from src.engagement_db_to_analysis.column_view_conversion import get_latest_labels_with_code_scheme
+from core_data_modules.cleaners import Codes
+
 from engagement_database.data_models import Message
+
+from src.engagement_db_to_analysis.column_view_conversion import (get_latest_labels_with_code_scheme,
+                                                                  analysis_dataset_config_for_message)
 
 
 log = Logger(__name__)
+
+def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs):
+    """
+    Imputes Codes.NOT_REVIEWED label for messages that have not been manually checked in coda.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param messages_traced_data: Messages TracedData objects to impute not reviewed labels.
+    :type messages_traced_data: list of TracedData
+    :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    """
+
+    log.info(f"Imputing {Codes.NOT_REVIEWED} labels...")
+    imputed_labels = 0
+    for message_td in messages_traced_data:
+        message = Message.from_dict(dict(message_td))
+
+        message_analysis_config = analysis_dataset_config_for_message(analysis_dataset_configs, message)
+
+        # Check if the message has a manual label and impute NOT_REVIEWED if it doesn't
+        manually_labelled = False
+        for coding_config in message_analysis_config.coding_configs:
+            latest_labels_with_code_scheme = get_latest_labels_with_code_scheme(message,
+                                                                                coding_config.code_scheme)
+            for label in latest_labels_with_code_scheme:
+                if label.checked:
+                    manually_labelled = True
+
+        if manually_labelled:
+            continue
+
+        code_scheme = message_analysis_config.coding_configs[0].code_scheme
+        not_reviewed_label = CleaningUtils.make_label_from_cleaner_code(
+            code_scheme, code_scheme.get_code_with_control_code(Codes.NOT_REVIEWED),
+            Metadata.get_call_location()).to_dict()
+
+        # Insert not_reviewed_label to the list of labels for this message, and write-back to TracedData.
+        message_labels = message["labels"].copy()
+        message_labels.insert(0, not_reviewed_label)
+        message_td.append_data(
+            {"labels": message_labels},
+            Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+
+        imputed_labels += 1
+
+    log.info(f"Imputed {imputed_labels} {Codes.NOT_REVIEWED} labels for {len(messages_traced_data)} "
+             f"messages traced data")
 
 def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
     """
@@ -93,6 +144,7 @@ def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs
 
     Runs the following imputations:
      - Imputes Age category labels for age dataset messages.
+     - Imputes Codes.NOT_REVIEWED for messages that have not been manually labelled in coda.
 
     :param user: Identifier of user running the pipeline.
     :type user: str
@@ -103,3 +155,5 @@ def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs
     """
 
     _impute_age_category(user, messages_traced_data, analysis_dataset_configs)
+
+    _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs)
