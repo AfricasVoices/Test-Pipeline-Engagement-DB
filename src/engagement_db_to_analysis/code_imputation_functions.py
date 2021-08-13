@@ -19,7 +19,7 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
 
     :param user: Identifier of user running the pipeline.
     :type user: str
-    :param messages_traced_data: Messages TracedData objects to impute age_category.
+    :param messages_traced_data: Messages TracedData objects to impute not reviewed labels.
     :type messages_traced_data: list of TracedData
     :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
