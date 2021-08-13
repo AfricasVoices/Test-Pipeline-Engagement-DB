@@ -1,3 +1,4 @@
+from core_data_modules.cleaners import Codes
 from core_data_modules.util import TimeUtils
 from core_data_modules.data_models.code_scheme import CodeTypes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
@@ -10,8 +11,11 @@ from engagement_database.data_models import Message
 from src.engagement_db_to_analysis.column_view_conversion import (get_latest_labels_with_code_scheme,
                                                                   analysis_dataset_config_for_message)
 
+from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_config_to_column_configs,
+                                                                  analysis_dataset_configs_to_column_configs)
 
 log = Logger(__name__)
+
 
 def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs):
     """
@@ -60,6 +64,7 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
 
     log.info(f"Imputed {imputed_labels} {Codes.NOT_REVIEWED} labels for {len(messages_traced_data)} "
              f"messages traced data")
+
 
 def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
     """
@@ -157,3 +162,60 @@ def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs
     _impute_age_category(user, messages_traced_data, analysis_dataset_configs)
 
     _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs)
+
+
+def _impute_true_missing(user, column_traced_data_iterable, analysis_dataset_configs):
+    """
+    Imputes TRUE_MISSING codes on column-view datasets.
+
+    TRUE_MISSING labels are applied to analysis datasets where the raw dataset doesn't exist in the given TracedData.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param column_traced_data_iterable: Column-view traced data objects to apply the impute function to.
+    :type column_traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
+    :param analysis_dataset_configs: Analysis dataset configurations for the imputation.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    """
+    imputed_codes = 0
+    log.info(f"Imputing {Codes.TRUE_MISSING} codes...")
+
+    column_configs = analysis_dataset_configs_to_column_configs(analysis_dataset_configs)
+
+    for td in column_traced_data_iterable:
+        na_dict = dict()
+
+        for column_config in column_configs:
+            if column_config.raw_field in td:
+                continue
+
+            na_dict[column_config.raw_field] = ""
+            na_label = CleaningUtils.make_label_from_cleaner_code(
+                column_config.code_scheme,
+                column_config.code_scheme.get_code_with_control_code(Codes.TRUE_MISSING),
+                Metadata.get_call_location()
+            ).to_dict()
+            na_dict[column_config.coded_field] = [na_label]
+            imputed_codes += 1
+
+        td.append_data(na_dict, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+
+    log.info(f"Imputed {imputed_codes} {Codes.TRUE_MISSING} codes for {len(column_traced_data_iterable)} "
+             f"traced data items")
+
+
+def impute_codes_by_column_traced_data(user, column_traced_data_iterable, analysis_dataset_configs):
+    """
+    Imputes codes for column-view TracedData in-place.
+
+    Runs the following imputations:
+     - Imputes Codes.TRUE_MISSING to columns that don't have a raw_field entry.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param column_traced_data_iterable: Column-view traced data objects to apply the impute function to.
+    :type column_traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
+    :param analysis_dataset_configs: Analysis dataset configurations for the imputation.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    """
+    _impute_true_missing(user, column_traced_data_iterable, analysis_dataset_configs)
