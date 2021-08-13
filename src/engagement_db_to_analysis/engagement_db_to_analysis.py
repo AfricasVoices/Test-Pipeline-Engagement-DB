@@ -131,15 +131,14 @@ def export_traced_data(traced_data, export_path):
 def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
 
     analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
+
     messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    messages_traced_data = impute_codes_by_message(
-        user, messages_traced_data,
-        pipeline_config.analysis_configs.dataset_configurations)
+    impute_codes_by_message(user, messages_traced_data, analysis_dataset_configurations)
 
     messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
     participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
