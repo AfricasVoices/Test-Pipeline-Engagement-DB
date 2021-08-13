@@ -9,11 +9,6 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
         database_path="engagement_db_experiments/world_vision_test"
     ),
-    # uuid_table=MockUuidTableConfiguration(
-    #     credentials_file_url="gs://avf-credentials/firebase-test.json",
-    #     table_name="_engagement_db_test",
-    #     uuid_prefix="avf-participant-uuid-"
-    # ),
     uuid_table=UUIDTableClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
         table_name="_engagement_db_world_vision_test",
