@@ -150,7 +150,7 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
             # Inserts this age_category_label to the list of labels for this message, and write-back to TracedData.
             _insert_label_to_messsage_td(user, message_td, age_category_label)
 
-            imputed_labels += 1
+            imputed_labels +=1
 
     log.info(f"Imputed {imputed_labels} age category labels for {age_messages} age messages")
 
