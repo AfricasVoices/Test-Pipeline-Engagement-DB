@@ -16,6 +16,23 @@ from src.engagement_db_to_analysis.column_view_conversion import (analysis_datas
 
 log = Logger(__name__)
 
+def _insert_label_to_messsage_td(user, message_traced_data, label):
+    """
+    Inserts a new label to the list of labels for this message, and writes-back to TracedData.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param messages_traced_data: Messages TracedData objects to impute age_category.
+    :type messages_traced_data: list of TracedData
+    :param label: New core_data_modules.data_models.Label to insert to the message_traced_data
+    :type: core_data_modules.data_models.Label
+    """
+    label = label.to_dict()
+    message_labels = message_traced_data["labels"].copy()
+    message_labels.insert(0, label)
+    message_traced_data.append_data(
+        {"labels": message_labels},
+        Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
 
 def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs):
     """
@@ -54,11 +71,7 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
             Metadata.get_call_location())
 
         # Insert not_reviewed_label to the list of labels for this message, and write-back to TracedData.
-        message_labels = message.labels.copy()
-        message_labels.insert(0, not_reviewed_label)
-        message_td.append_data(
-            {"labels": [label.to_dict() for label in message_labels]},
-            Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+        _insert_label_to_messsage_td(user, message_td, not_reviewed_label)
 
         imputed_labels += 1
 
@@ -108,11 +121,11 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
     log.info(f"Imputing {age_category_coding_config.analysis_dataset} labels for {age_coding_config.analysis_dataset} messages...")
     imputed_labels = 0
     age_messages = 0
-    for message in messages_traced_data:
-        if message["dataset"] in age_engagement_db_datasets:
+    for message_td in messages_traced_data:
+        if message_td["dataset"] in age_engagement_db_datasets:
             age_messages += 1
 
-            age_labels = get_latest_labels_with_code_scheme(Message.from_dict(dict(message)), age_coding_config.code_scheme)
+            age_labels = get_latest_labels_with_code_scheme(Message.from_dict(dict(message_td)), age_coding_config.code_scheme)
             age_code = age_coding_config.code_scheme.get_code_with_code_id(age_labels[0].code_id)
 
             # Impute age_category for this age_code
@@ -134,15 +147,10 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
                 age_category_coding_config.code_scheme, age_category_code, Metadata.get_call_location()
             )
 
-            # Append this age_category_label to the list of labels for this message, and write-back to TracedData.
-            message_labels = message["labels"].copy()
-            message_labels.insert(0, age_category_label.to_dict())
-            message.append_data(
-                {"labels": message_labels},
-                Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
-            )
+            # Inserts this age_category_label to the list of labels for this message, and write-back to TracedData.
+            _insert_label_to_messsage_td(user, message_td, age_category_label)
 
-            imputed_labels +=1
+            imputed_labels += 1
 
     log.info(f"Imputed {imputed_labels} age category labels for {age_messages} age messages")
 
