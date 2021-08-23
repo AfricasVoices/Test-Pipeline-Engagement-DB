@@ -1,10 +1,13 @@
 import csv
 
 from core_data_modules.cleaners import Codes
+from core_data_modules.logging import Logger
 from core_data_modules.traced_data.io import TracedDataCSVIO
 from core_data_modules.util import IOUtils
 
 from src.engagement_db_to_analysis.column_view_conversion import analysis_dataset_configs_to_column_configs
+
+log = Logger(__name__)
 
 
 def export_production_file(traced_data_iterable, analysis_config, export_path):
@@ -20,6 +23,7 @@ def export_production_file(traced_data_iterable, analysis_config, export_path):
     :param export_path: Path to export the file to.
     :type export_path: str
     """
+    log.info(f"Exporting production file to '{export_path}'...")
     IOUtils.ensure_dirs_exist_for_file(export_path)
     with open(export_path, "w") as f:
         headers = ["participant_uuid"] + [c.raw_dataset for c in analysis_config.dataset_configurations]
