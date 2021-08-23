@@ -1,7 +1,6 @@
 from core_data_modules.cleaners import swahili
 
 from src.pipeline_configuration_spec import *
-from test.mock_uuid_table import MockUuidTableConfiguration
 
 PIPELINE_CONFIGURATION = PipelineConfiguration(
     pipeline_name="WorldVision",
