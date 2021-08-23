@@ -104,8 +104,11 @@ def export_analysis_file(traced_data_iterable, analysis_dataset_configurations, 
     :param export_path: Path to export the file to.
     :type export_path: str
     """
+    log.info(f"Exporting analysis file to '{export_path}'...")
+
     column_configs = analysis_dataset_configs_to_column_configs(analysis_dataset_configurations)
 
+    IOUtils.ensure_dirs_exist_for_file(export_path)
     with open(export_path, "w") as f:
         headers = _get_analysis_file_headers(column_configs)
         writer = csv.DictWriter(f, fieldnames=headers)
