@@ -1,15 +1,14 @@
-from core_data_modules.cleaners import Codes
 from core_data_modules.util import TimeUtils
-from core_data_modules.data_models.code_scheme import CodeTypes
-from core_data_modules.cleaners.cleaning_utils import CleaningUtils
-from core_data_modules.traced_data import Metadata
-from core_data_modules.logging import Logger
 from core_data_modules.cleaners import Codes
+from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.cleaners.location_tools import KenyaLocations
-
-
+from core_data_modules.data_models.code_scheme import CodeTypes
+from core_data_modules.logging import Logger
+from core_data_modules.traced_data import Metadata
+from core_data_modules.util import TimeUtils
 from engagement_database.data_models import Message
 
+from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs)
 from src.engagement_db_to_analysis.column_view_conversion import (get_latest_labels_with_code_scheme,
                                                                   analysis_dataset_config_for_message)
 
@@ -216,16 +215,15 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
 
                     if len(latest_coding_config_labels) > 0:
                         latest_coding_config_label = latest_coding_config_labels[0]
-                        if latest_coding_config_label.checked:
-                            coda_code = coding_config.code_scheme.get_code_with_code_id(
-                                latest_coding_config_label.code_id)
-                            if location_code is not None:
-                                if location_code.code_id != coda_code.code_id:
-                                    location_code = constituency_coding_config.code_scheme.get_code_with_control_code(
-                                        Codes.CODING_ERROR)
-                            else:
-                                location_code = coda_code
 
+                        coda_code = coding_config.code_scheme.get_code_with_code_id(
+                            latest_coding_config_label.code_id)
+                        if location_code is not None:
+                            if location_code.code_id != coda_code.code_id:
+                                location_code = constituency_coding_config.code_scheme.get_code_with_control_code(
+                                    Codes.CODING_ERROR)
+                        else:
+                            location_code = coda_code
 
                 # If a control or meta code was found, set all other location keys to that control/meta code,
                 # otherwise convert the provided location to the other locations in the hierarchy.
@@ -242,7 +240,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                     for coding_config in message_analysis_config.coding_configs:
                         meta_code_label = CleaningUtils.make_label_from_cleaner_code(
                             coding_config.code_scheme,
-                            coding_config.code_scheme.get_code_with_control_code(location_code.meta_code),
+                            coding_config.code_scheme.get_code_with_meta_code(location_code.meta_code),
                             Metadata.get_call_location())
 
                         _insert_label_to_messsage_td(user, message_traced_data, meta_code_label)
