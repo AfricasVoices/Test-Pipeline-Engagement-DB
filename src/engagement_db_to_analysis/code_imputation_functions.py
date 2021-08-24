@@ -185,11 +185,8 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
     location_engagement_db_datasets = None
     for analysis_dataset_config in analysis_dataset_configs:
         for coding_config in analysis_dataset_config.coding_configs:
-            if coding_config.kenya_analysis_location is None:
-                log.info(f"No kenya_location config in {coding_config.analysis_dataset} skipping...")
-
-            elif coding_config.kenya_analysis_location == KenyaAnalysisLocations.CONSTITUENCY:
-                log.info(f"Found kenya_analysis_location in {coding_config.analysis_dataset} coding config")
+            if coding_config.kenya_analysis_location == KenyaAnalysisLocations.CONSTITUENCY:
+                log.info(f"Found kenya_analysis_location in county {coding_config.analysis_dataset} coding config")
 
                 assert constituency_coding_config is None, f"Found more than one constituency_coding_config in " \
                     f"analysis_dataset_config"
@@ -197,78 +194,79 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                 location_engagement_db_datasets = analysis_dataset_config.engagement_db_datasets
 
             elif coding_config.kenya_analysis_location == KenyaAnalysisLocations.COUNTY:
-                log.info(f"Found kenya_analysis_location in {coding_config.analysis_dataset} coding config")
+                log.info(f"Found kenya_analysis_location in constituency {coding_config.analysis_dataset} coding config")
 
                 assert county_coding_config is None, f"Found more than one county_coding_config in " \
                     f"analysis_dataset_config"
                 county_coding_config = coding_config
 
-    assert county_coding_config is not None, f"No county_coding_config in " \
-        f"analysis_dataset_config"
-    assert constituency_coding_config is not None, f"No constituency_coding_config in " \
-        f"analysis_dataset_config"
-
-    for message_traced_data in messages_traced_data:
-        if message_traced_data["dataset"] in location_engagement_db_datasets:
+    if constituency_coding_config is not None and county_coding_config is not None:
+        for message_traced_data in messages_traced_data:
             message = Message.from_dict(dict(message_traced_data))
-            message_analysis_config = analysis_dataset_config_for_message(analysis_dataset_configs, message)
+            if message.dataset in location_engagement_db_datasets:
+                message_analysis_config = analysis_dataset_config_for_message(analysis_dataset_configs, message)
 
-            # Up to 1 location code should have been assigned in Coda. Search for that code,
-            # ensuring that only 1 has been assigned or, if multiple have been assigned, that they are non-conflicting
-            # control codes
-            location_code = None
-            for coding_config in message_analysis_config.coding_configs:
-                latest_coding_config_labels = get_latest_labels_with_code_scheme(message, coding_config.code_scheme)
-
-                if len(latest_coding_config_labels) > 0:
-                    latest_coding_config_label = latest_coding_config_labels[0]
-                    if latest_coding_config_label.checked:
-                        coda_code = coding_config.code_scheme.get_code_with_code_id(latest_coding_config_label.code_id)
-                        if location_code is not None:
-                            if location_code.code_id != coda_code.code_id:
-                                location_code = constituency_coding_config.code_scheme.get_code_with_control_code(Codes.CODING_ERROR)
-                        else:
-                            location_code = coda_code
-
-            # If no code was found, then this location is still not reviewed.
-            # Synthesise a NOT_REVIEWED code accordingly.
-            if location_code is None:
-                location_code = constituency_coding_config.code_scheme.get_code_with_control_code(Codes.NOT_REVIEWED)
-
-            # If a control or meta code was found, set all other location keys to that control/meta code,
-            # otherwise convert the provided location to the other locations in the hierarchy.
-            if location_code.code_type == CodeTypes.CONTROL:
+                # Up to 1 location code should have been assigned in Coda. Search for that code,
+                # ensuring that only 1 has been assigned or, if multiple have been assigned, that they are non-conflicting control codes
+                # Multiple normal codes will be converted to Coding Error, even if they were compatible (e.g. langata + nairobi)
+                location_code = None
                 for coding_config in message_analysis_config.coding_configs:
+                    latest_coding_config_labels = get_latest_labels_with_code_scheme(message, coding_config.code_scheme)
 
-                    control_code_label = CleaningUtils.make_label_from_cleaner_code(
-                            coding_config.code_scheme, coding_config.code_scheme.get_code_with_control_code(location_code.control_code),
+                    if len(latest_coding_config_labels) > 0:
+                        latest_coding_config_label = latest_coding_config_labels[0]
+                        if latest_coding_config_label.checked:
+                            coda_code = coding_config.code_scheme.get_code_with_code_id(
+                                latest_coding_config_label.code_id)
+                            if location_code is not None:
+                                if location_code.code_id != coda_code.code_id:
+                                    location_code = constituency_coding_config.code_scheme.get_code_with_control_code(
+                                        Codes.CODING_ERROR)
+                            else:
+                                location_code = coda_code
+
+
+                # If a control or meta code was found, set all other location keys to that control/meta code,
+                # otherwise convert the provided location to the other locations in the hierarchy.
+                if location_code.code_type == CodeTypes.CONTROL:
+                    for coding_config in message_analysis_config.coding_configs:
+                        control_code_label = CleaningUtils.make_label_from_cleaner_code(
+                            coding_config.code_scheme,
+                            coding_config.code_scheme.get_code_with_control_code(location_code.control_code),
                             Metadata.get_call_location())
 
-                    _insert_label_to_messsage_td(user, message_traced_data, control_code_label)
+                        _insert_label_to_messsage_td(user, message_traced_data, control_code_label)
 
-            elif location_code.code_type == CodeTypes.META:
-                for coding_config in message_analysis_config.coding_configs:
+                elif location_code.code_type == CodeTypes.META:
+                    for coding_config in message_analysis_config.coding_configs:
+                        meta_code_label = CleaningUtils.make_label_from_cleaner_code(
+                            coding_config.code_scheme,
+                            coding_config.code_scheme.get_code_with_control_code(location_code.meta_code),
+                            Metadata.get_call_location())
 
-                    meta_code_label = CleaningUtils.make_label_from_cleaner_code(
-                        coding_config.code_scheme, coding_config.code_scheme.get_code_with_control_code(location_code.meta_code),
+                        _insert_label_to_messsage_td(user, message_traced_data, meta_code_label)
+
+                else:
+                    location = location_code.match_values[0]
+                    constituency_label = CleaningUtils.make_label_from_cleaner_code(
+                        constituency_coding_config.code_scheme,
+                        _make_location_code(constituency_coding_config.code_scheme,
+                                            KenyaLocations.constituency_for_location_code(location)),
                         Metadata.get_call_location())
 
-                    _insert_label_to_messsage_td(user, message_traced_data, meta_code_label)
+                    county_label = CleaningUtils.make_label_from_cleaner_code(county_coding_config.code_scheme,
+                                                                              _make_location_code(
+                                                                                  county_coding_config.code_scheme,
+                                                                                  KenyaLocations.county_for_location_code(
+                                                                                      location)),
+                                                                              Metadata.get_call_location())
 
-            else:
-                location = location_code.match_values[0]
-                constituency_label = CleaningUtils.make_label_from_cleaner_code(constituency_coding_config.code_scheme,
-                        _make_location_code(constituency_coding_config.code_scheme,
-                                           KenyaLocations.constituency_for_location_code(location)),
-                                                 Metadata.get_call_location())
+                    _insert_label_to_messsage_td(user, message_traced_data, constituency_label)
+                    _insert_label_to_messsage_td(user, message_traced_data, county_label)
 
-                county_label = CleaningUtils.make_label_from_cleaner_code(county_coding_config.code_scheme,
-                        _make_location_code(county_coding_config.code_scheme,
-                                           KenyaLocations.county_for_location_code(location)),
-                                                Metadata.get_call_location())
-
-                _insert_label_to_messsage_td(user, message_traced_data, constituency_label)
-                _insert_label_to_messsage_td(user, message_traced_data, county_label)
+    else:
+        assert county_coding_config is None or constituency_coding_config is None
+        log.warning("Missing location coding_config(s) in analysis_dataset_config, skipping imputing location labels...")
 
 def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs):
     """
