@@ -22,8 +22,8 @@ def _insert_label_to_messsage_td(user, message_traced_data, label):
 
     :param user: Identifier of user running the pipeline.
     :type user: str
-    :param messages_traced_data: Messages TracedData objects to impute age_category.
-    :type messages_traced_data: list of TracedData
+    :param messages_traced_data: Message TracedData objects to impute age_category.
+    :type messages_traced_data: TracedData
     :param label: New core_data_modules.data_models.Label to insert to the message_traced_data
     :type: core_data_modules.data_models.Label
     """
