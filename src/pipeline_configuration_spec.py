@@ -13,7 +13,7 @@ from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidPro
 from src.rapid_pro_to_engagement_db.configuration import (FlowResultConfiguration, UuidFilter,
                                                           RapidProToEngagementDBConfiguration)
 from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfiguration, DatasetTypes,
-                                                         CodingConfiguration, AnalysisConfiguration)
+    AgeCategoryConfiguration, CodingConfiguration, AnalysisConfiguration)
 
 
 def load_code_scheme(fname):
@@ -45,7 +45,6 @@ class PipelineConfiguration:
 
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
-    analysis_configs: AnalysisConfiguration
     project_start_date: datetime = None
     project_end_date: datetime = None
     test_participant_uuids: [] = None
@@ -53,3 +52,4 @@ class PipelineConfiguration:
     rapid_pro_sources: [RapidProSource] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
+    analysis_configs: AnalysisConfiguration = None

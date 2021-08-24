@@ -7,6 +7,8 @@ from src.engagement_db_to_analysis.cache import AnalysisCache
 from src.engagement_db_to_analysis.column_view_conversion import (convert_to_messages_column_format,
                                                                   convert_to_participants_column_format)
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
+from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
+                                                                     impute_codes_by_column_traced_data)
 
 log = Logger(__name__)
 
@@ -138,17 +140,26 @@ def export_traced_data(traced_data, export_path):
     with open(export_path, "w") as f:
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
-
 def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
+
     analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
+
     messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
+    impute_codes_by_message(user, messages_traced_data, analysis_dataset_configurations)
+
     messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
     participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
+
+    log.info(f"Imputing messages column-view traced data...")
+    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis_configs.dataset_configurations)
+
+    log.info(f"Imputing participants column-view traced data...")
+    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis_configs.dataset_configurations)
 
     # Export to hard-coded files for now.
     # TODO: Only export a production file for messages (exporting both for now to aid with debugging)
