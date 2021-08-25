@@ -1,18 +1,15 @@
-from core_data_modules.cleaners import Codes
 from core_data_modules.util import TimeUtils
-from core_data_modules.data_models.code_scheme import CodeTypes
-from core_data_modules.cleaners.cleaning_utils import CleaningUtils
-from core_data_modules.traced_data import Metadata
-from core_data_modules.logging import Logger
 from core_data_modules.cleaners import Codes
-
+from core_data_modules.cleaners.cleaning_utils import CleaningUtils
+from core_data_modules.data_models.code_scheme import CodeTypes
+from core_data_modules.logging import Logger
+from core_data_modules.traced_data import Metadata
+from core_data_modules.util import TimeUtils
 from engagement_database.data_models import Message
 
+from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs)
 from src.engagement_db_to_analysis.column_view_conversion import (get_latest_labels_with_code_scheme,
                                                                   analysis_dataset_config_for_message)
-
-from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_config_to_column_configs,
-                                                                  analysis_dataset_configs_to_column_configs)
 
 log = Logger(__name__)
 
@@ -216,6 +213,80 @@ def _impute_true_missing(user, column_traced_data_iterable, analysis_dataset_con
              f"traced data items")
 
 
+def _get_consent_withdrawn_participant_uuids(column_traced_data_iterable, analysis_dataset_configs):
+    """
+    Gets the participant uuids of participants who withdrew consent.
+
+    A participant is considered to have withdrawn consent if any of their labels have control code Codes.STOP in any
+    of the datasets in the given `analysis_dataset_configs`.
+
+    :param column_traced_data_iterable: Column-view traced data objects to search for consent withdrawn status.
+    :type column_traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
+    :param analysis_dataset_configs: Analysis dataset configurations for the search.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    :return: Uuids of participants who withdrew consent.
+    :rtype: set of str
+    """
+    column_configs = analysis_dataset_configs_to_column_configs(analysis_dataset_configs)
+    consent_withdrawn_uuids = set()
+
+    for td in column_traced_data_iterable:
+        for column_config in column_configs:
+            column_labels = td[column_config.coded_field]
+            for label in column_labels:
+                if column_config.code_scheme.get_code_with_code_id(label["CodeID"]).control_code == Codes.STOP:
+                    consent_withdrawn_uuids.add(td["participant_uuid"])
+
+    return consent_withdrawn_uuids
+
+
+def _impute_consent_withdrawn(user, column_traced_data_iterable, analysis_dataset_configs):
+    """
+    Imputes consent_withdrawn on column-view datasets.
+
+    Searches the given data for participants who are labelled Codes.STOP under any of the given
+    `analysis_dataset_configs`.
+
+    If the participant withdrew consent:
+     - Imputes {consent_withdrawn: Codes.TRUE}
+     - Overwrites all labels with a STOP label
+     - Overwrites all raw texts with "STOP".
+    If the participant did not withdraw consent:
+     - Imputes {consent_withdrawn: Codes.FALSE}
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param column_traced_data_iterable: Column-view traced data objects to apply the impute function to.
+    :type column_traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
+    :param analysis_dataset_configs: Analysis dataset configurations for the imputation.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    """
+    log.info("Imputing consent withdrawn...")
+    consent_withdrawn_uuids = _get_consent_withdrawn_participant_uuids(column_traced_data_iterable, analysis_dataset_configs)
+    log.info(f"Found {len(consent_withdrawn_uuids)} participants who withdrew consent")
+
+    column_configs = analysis_dataset_configs_to_column_configs(analysis_dataset_configs)
+    consent_withdrawn_tds = 0
+    for td in column_traced_data_iterable:
+        if td["participant_uuid"] in consent_withdrawn_uuids:
+            consent_withdrawn_dict = {"consent_withdrawn": Codes.TRUE}
+            consent_withdrawn_tds += 1
+            # Overwrite the labels and raw fields with STOP labels/texts.
+            for column_config in column_configs:
+                consent_withdrawn_dict[column_config.coded_field] = CleaningUtils.make_label_from_cleaner_code(
+                    column_config.code_scheme,
+                    column_config.code_scheme.get_code_with_control_code(Codes.STOP),
+                    Metadata.get_call_location()
+                ).to_dict()
+                consent_withdrawn_dict[column_config.raw_field] = "STOP"
+        else:
+            consent_withdrawn_dict = {"consent_withdrawn": Codes.FALSE}
+        td.append_data(consent_withdrawn_dict, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+
+    log.info(f"Imputed consent withdrawn for {len(column_traced_data_iterable)} traced data items - "
+             f"{len(consent_withdrawn_uuids)} items were marked as consent_withdrawn")
+
+
 def impute_codes_by_column_traced_data(user, column_traced_data_iterable, analysis_dataset_configs):
     """
     Imputes codes for column-view TracedData in-place.
@@ -231,3 +302,4 @@ def impute_codes_by_column_traced_data(user, column_traced_data_iterable, analys
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
     """
     _impute_true_missing(user, column_traced_data_iterable, analysis_dataset_configs)
+    _impute_consent_withdrawn(user, column_traced_data_iterable, analysis_dataset_configs)
