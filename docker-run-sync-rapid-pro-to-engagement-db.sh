@@ -33,7 +33,7 @@ fi
 
 # Assign the program arguments to bash variables.
 USER=$1
-INPUT_GOOGLE_CLOUD_CREDENTIALS=$2
+GOOGLE_CLOUD_CREDENTIALS_PATH=$2
 INPUT_CONFIGURATION_MODULE=$3
 
 # Build an image for this pipeline stage.
