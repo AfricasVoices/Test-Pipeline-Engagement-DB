@@ -3,12 +3,13 @@ from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO, TracedDataCSVIO
 from core_data_modules.util import TimeUtils, IOUtils
 
+from src.engagement_db_to_analysis.automated_analysis import run_automated_analysis
 from src.engagement_db_to_analysis.cache import AnalysisCache
+from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
+                                                                     impute_codes_by_column_traced_data)
 from src.engagement_db_to_analysis.column_view_conversion import (convert_to_messages_column_format,
                                                                   convert_to_participants_column_format)
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
-from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
-                                                                     impute_codes_by_column_traced_data)
 
 log = Logger(__name__)
 
@@ -169,3 +170,5 @@ def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=Non
 
     export_traced_data(messages_by_column, "analysis/messages.jsonl")
     export_traced_data(participants_by_column, "analysis/participants.jsonl")
+
+    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis_configs, "analysis/automated_analysis")
