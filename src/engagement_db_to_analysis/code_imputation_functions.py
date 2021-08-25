@@ -1,4 +1,3 @@
-from core_data_modules.util import TimeUtils
 from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.data_models.code_scheme import CodeTypes
@@ -293,6 +292,7 @@ def impute_codes_by_column_traced_data(user, column_traced_data_iterable, analys
 
     Runs the following imputations:
      - Imputes Codes.TRUE_MISSING to columns that don't have a raw_field entry.
+     - Imputes consent_withdrawn.
 
     :param user: Identifier of user running the pipeline.
     :type user: str
