@@ -13,8 +13,8 @@ from engagement_database.data_models import Message
 from src.engagement_db_to_analysis.column_view_conversion import (get_latest_labels_with_code_scheme,
                                                                   analysis_dataset_config_for_message)
 
-from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_config_to_column_configs,
-                                                                  analysis_dataset_configs_to_column_configs)
+from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs)
+
 from src.pipeline_configuration_spec import *
 
 log = Logger(__name__)
@@ -27,7 +27,7 @@ def _insert_label_to_messsage_td(user, message_traced_data, label):
     :type user: str
     :param messages_traced_data: Message TracedData objects to impute age_category.
     :type messages_traced_data: TracedData
-    :param label: New core_data_modules.data_models.Label to insert to the message_traced_data
+    :param label: New label to insert to the message_traced_data
     :type: core_data_modules.data_models.Label
     """
     label = label.to_dict()
@@ -103,7 +103,7 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
                 continue
 
             log.info(f"Found age_category in {coding_config.analysis_dataset} coding config")
-            assert age_category_coding_config is None, f"Found more than one age_category configs"
+            assert age_category_coding_config is None, f"Found more than one age_category configs, expected one, crashing"
             age_category_coding_config = coding_config
 
     if age_category_coding_config is None:
@@ -116,7 +116,8 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
         for coding_config in analysis_dataset_config.coding_configs:
             if coding_config.analysis_dataset == age_category_coding_config.age_category_config.age_analysis_dataset:
 
-                assert age_coding_config is None, f"Found more than one age_coding_config in analysis_dataset_config"
+                assert age_coding_config is None, f"Found more than one age_coding_config in analysis_dataset_config," \
+                    f"expected one, crashing"
                 age_coding_config = coding_config
                 age_engagement_db_datasets = analysis_dataset_config.engagement_db_datasets
 
@@ -189,7 +190,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                 log.info(f"Found kenya_analysis_location in county {coding_config.analysis_dataset} coding config")
 
                 assert constituency_coding_config is None, f"Found more than one constituency_coding_config in " \
-                    f"analysis_dataset_config"
+                    f"analysis_dataset_config, expected one crashing"
                 constituency_coding_config = coding_config
                 location_engagement_db_datasets = analysis_dataset_config.engagement_db_datasets
 
@@ -197,7 +198,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                 log.info(f"Found kenya_analysis_location in constituency {coding_config.analysis_dataset} coding config")
 
                 assert county_coding_config is None, f"Found more than one county_coding_config in " \
-                    f"analysis_dataset_config"
+                    f"analysis_dataset_config, expected one crashing"
                 county_coding_config = coding_config
 
     if constituency_coding_config is not None and county_coding_config is not None:
