@@ -73,13 +73,9 @@ container_short_id=${container:0:7}
 echo "Copying $INPUT_GOOGLE_CLOUD_CREDENTIALS -> $container_short_id:/credentials/google-cloud-credentials.json"
 docker cp "$INPUT_GOOGLE_CLOUD_CREDENTIALS" "$container:/credentials/google-cloud-credentials.json"
 
-function finish {
-    # Tear down the container when done.
-    docker container rm "$container" >/dev/null
-}
-trap finish EXIT
-
 # Run the container
 echo "Starting container $container_short_id"
 docker start -a -i "$container"
 
+# Tear down the container when done.
+docker container rm "$container" >/dev/null
