@@ -75,20 +75,23 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
         )
 
     log.info(f"Exporting participation maps for each Somalia region...")
+    mappers = {
+        KenyaAnalysisLocations.COUNTY: kenya_mapper.export_kenya_counties_map,
+        KenyaAnalysisLocations.CONSTITUENCY: kenya_mapper.export_kenya_constituencies_map
+    }
+
     for analysis_dataset_config in analysis_config.dataset_configurations:
         for coding_config in analysis_dataset_config.coding_configs:
-            if coding_config.kenya_analysis_location == KenyaAnalysisLocations.COUNTY:
+            if coding_config.kenya_analysis_location in mappers:
                 location_column_config = AnalysisConfiguration(
-                    coding_config.analysis_dataset,
-                    analysis_dataset_config.raw_dataset,
-                    f"{coding_config.analysis_dataset}_labels",
-                    coding_config.code_scheme
+                    dataset_name=coding_config.analysis_dataset,
+                    raw_field=analysis_dataset_config.raw_dataset,
+                    coded_field=f"{coding_config.analysis_dataset}_labels",
+                    code_scheme=coding_config.code_scheme
                 )
 
                 participation_maps.export_participation_maps(
-                    participants_by_column, "consent_withdrawn",
-                    rqa_column_configs,
-                    location_column_config,
-                    kenya_mapper.export_kenya_counties_map,
+                    participants_by_column, "consent_withdrawn", rqa_column_configs, location_column_config,
+                    mappers[coding_config.kenya_analysis_location],
                     f"{export_dir_path}/maps/{location_column_config.dataset_name}/{location_column_config.dataset_name}_"
                 )
