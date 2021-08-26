@@ -1,4 +1,3 @@
-from core_data_modules.util import TimeUtils
 from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.cleaners.location_tools import KenyaLocations
@@ -11,9 +10,6 @@ from engagement_database.data_models import Message
 from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs)
 from src.engagement_db_to_analysis.column_view_conversion import (get_latest_labels_with_code_scheme,
                                                                   analysis_dataset_config_for_message)
-
-from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs)
-
 from src.pipeline_configuration_spec import *
 
 log = Logger(__name__)
@@ -216,12 +212,12 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                     if len(latest_coding_config_labels) > 0:
                         latest_coding_config_label = latest_coding_config_labels[0]
 
-                        coda_code = coding_config.code_scheme.get_code_with_code_id(
-                            latest_coding_config_label.code_id)
+                        coda_code = coding_config.code_scheme.get_code_with_code_id(latest_coding_config_label.code_id)
                         if location_code is not None:
                             if location_code.code_id != coda_code.code_id:
                                 location_code = constituency_coding_config.code_scheme.get_code_with_control_code(
-                                    Codes.CODING_ERROR)
+                                    Codes.CODING_ERROR
+                                )
                         else:
                             location_code = coda_code
 
