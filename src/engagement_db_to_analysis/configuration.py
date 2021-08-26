@@ -17,10 +17,17 @@ class AgeCategoryConfiguration:
 
 
 @dataclass
+class KenyaAnalysisLocations:
+    COUNTY = "county"
+    CONSTITUENCY = "constituency"
+
+
+@dataclass
 class CodingConfiguration:
     code_scheme: CodeScheme
     analysis_dataset: str
     age_category_config: Optional[AgeCategoryConfiguration] = None
+    kenya_analysis_location: Optional[KenyaAnalysisLocations] = None
 
 
 @dataclass
