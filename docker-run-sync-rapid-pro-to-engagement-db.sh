@@ -24,8 +24,9 @@ done
 
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 3 ]]; then
-    echo "Usage: ./docker-run-sync-rapid-pro-to-engagement-db.sh
-    [--incremental-cache-path <incremental-cache-path>] [--local-archive <local_archive>]
+    echo "Usage: $0 
+    [--incremental-cache-volume <incremental-cache-volume>] 
+    [--local-archive <local_archive>] : set a single option with argument, repeat it multiple times
     <user> <google-cloud-credentials-file-path> <configuration-module>"
     exit
 fi
