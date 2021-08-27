@@ -60,5 +60,5 @@ docker cp "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$container:/credentials/google-cloud
 echo "Starting container $container_short_id"
 docker start -a -i "$container"
 
-# Tear down the container when done.
+# Tear down the container when it has run successfully
 docker container rm "$container" >/dev/null
