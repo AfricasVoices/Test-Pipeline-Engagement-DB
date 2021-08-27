@@ -4,11 +4,11 @@ from core_data_modules.traced_data.io import TracedDataJsonIO, TracedDataCSVIO
 from core_data_modules.util import TimeUtils, IOUtils
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
+from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
+                                                                     impute_codes_by_column_traced_data)
 from src.engagement_db_to_analysis.column_view_conversion import (convert_to_messages_column_format,
                                                                   convert_to_participants_column_format)
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
-from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
-                                                                     impute_codes_by_column_traced_data)
 
 log = Logger(__name__)
 
@@ -140,8 +140,8 @@ def export_traced_data(traced_data, export_path):
     with open(export_path, "w") as f:
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
-def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
 
+def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, cache_path=None):
     analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
 
     messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
@@ -163,9 +163,8 @@ def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=Non
 
     # Export to hard-coded files for now.
     # TODO: Only export a production file for messages (exporting both for now to aid with debugging)
-    # TODO: Export to a directory passed in on the command line rather than a hard-coded analysis folder.
-    export_production_file(messages_by_column, pipeline_config.analysis_configs, "analysis/messages-production.csv")
-    export_production_file(participants_by_column, pipeline_config.analysis_configs, "analysis/participants-production.csv")
+    export_production_file(messages_by_column, pipeline_config.analysis_configs, f"{output_dir}/messages-production.csv")
+    export_production_file(participants_by_column, pipeline_config.analysis_configs, f"{output_dir}/participants-production.csv")
 
-    export_traced_data(messages_by_column, "analysis/messages.jsonl")
-    export_traced_data(participants_by_column, "analysis/participants.jsonl")
+    export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
+    export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
