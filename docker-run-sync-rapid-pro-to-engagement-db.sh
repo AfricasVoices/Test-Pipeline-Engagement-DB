@@ -39,33 +39,16 @@ CONFIGURATION_MODULE=$3
 # Build an image for this pipeline stage.
 docker build -t "$IMAGE_NAME" .
 
-if [[ "$INCREMENTAL_MODE" = true ]]; then
-    if [[ -d "$INCREMENTAL_CACHE_PATH" ]]; then
-        OPTIONAL_ARGS="--incremental-cache-path $INCREMENTAL_CACHE_PATH"
-    else
-        echo "Directory \"$INCREMENTAL_CACHE_PATH\" does not exist"; exit 2;
-    fi
-fi
-if [[ "$USE_ARCHIVE" = true ]]; then
-    if [[ -d "$LOCAL_ARCHIVE" ]]; then
-        OPTIONAL_ARGS+=" --local-archive $LOCAL_ARCHIVE"
-    else
-        echo "Directory \"$LOCAL_ARCHIVE\" does not exist"; exit 2;
-    fi
-fi
-
 # Create a container from the image that was just built.
-if [[ "$OPTIONAL_ARGS" ]]; then
-    CMD="pipenv run python -u sync_rapid_pro_to_engagement_db.py \"$OPTIONAL_ARGS\" \
-    \"$USER\" /credentials/google-cloud-credentials.json \"$INPUT_CONFIGURATION_MODULE\"
-    "
+CMD="pipenv run python -u sync_rapid_pro_to_engagement_db.py ${INCREMENTAL_ARG} ${LOCAL_ARCHIVE_ARGS} \
+    ${USER} /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE}"
+
+if [[ "$INCREMENTAL_ARG" ]]; then
+    container="$(docker container create -w /app --mount source="$INCREMENTAL_CACHE_VOLUME_NAME",target=/cache "$IMAGE_NAME" /bin/bash -c "$CMD")"
 else
-    CMD="pipenv run python -u sync_rapid_pro_to_engagement_db.py \"$USER\" \
-    /credentials/google-cloud-credentials.json \"$INPUT_CONFIGURATION_MODULE\"
-    "
+    container="$(docker container create -w /app "$IMAGE_NAME" /bin/bash -c "$CMD")"
 fi
 
-container="$(docker container create -w /app "$IMAGE_NAME" /bin/bash -c "$CMD")"
 echo "Created container $container"
 container_short_id=${container:0:7}
 
