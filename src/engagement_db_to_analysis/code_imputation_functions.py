@@ -269,6 +269,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
         assert county_coding_config is None or constituency_coding_config is None
         log.warning("Missing location coding_config(s) in analysis_dataset_config, skipping imputing location labels...")
 
+
 def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs):
     """
     Imputes codes for messages TracedData in-place.
@@ -285,11 +286,8 @@ def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs
     :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
     """
-
     _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs)
-
     _impute_age_category(user, messages_traced_data, analysis_dataset_configs)
-
     _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_configs)
 
 
