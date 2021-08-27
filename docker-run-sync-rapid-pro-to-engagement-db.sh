@@ -34,7 +34,7 @@ fi
 # Assign the program arguments to bash variables.
 USER=$1
 GOOGLE_CLOUD_CREDENTIALS_PATH=$2
-INPUT_CONFIGURATION_MODULE=$3
+CONFIGURATION_MODULE=$3
 
 # Build an image for this pipeline stage.
 docker build -t "$IMAGE_NAME" .
