@@ -7,13 +7,12 @@ IMAGE_NAME=$PROJECT_NAME-rapid-pro-to-engagement-db
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --incremental-cache-path)
-            INCREMENTAL_MODE=true
-            INCREMENTAL_CACHE_PATH="$2"
+        --incremental-cache-volume)
+            INCREMENTAL_ARG=" --incremental-cache-volume /cache"
+            INCREMENTAL_CACHE_VOLUME_NAME="$2"
             shift 2;;
         --local-archive)
-            USE_ARCHIVE=true
-            LOCAL_ARCHIVE="$2"
+            LOCAL_ARCHIVE_ARGS+=" --local-archive $2"
             shift 2;;
         --)
             shift
