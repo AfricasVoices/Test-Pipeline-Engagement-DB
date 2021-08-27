@@ -4,11 +4,11 @@ from core_data_modules.traced_data.io import TracedDataJsonIO, TracedDataCSVIO
 from core_data_modules.util import TimeUtils, IOUtils
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
+from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
+                                                                     impute_codes_by_column_traced_data)
 from src.engagement_db_to_analysis.column_view_conversion import (convert_to_messages_column_format,
                                                                   convert_to_participants_column_format)
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
-from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
-                                                                     impute_codes_by_column_traced_data)
 
 log = Logger(__name__)
 
@@ -49,7 +49,8 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                     .where("dataset", "==", engagement_db_dataset) \
                     .where("last_updated", ">", latest_message_timestamp)
 
-                messages.extend(engagement_db.get_messages(firestore_query_filter=incremental_messages_filter))
+                updated_messages = engagement_db.get_messages(firestore_query_filter=incremental_messages_filter)
+                messages.extend(updated_messages)
 
                 # Check and remove cache messages that have been ws corrected after the previous run
                 ws_corrected_messages_filter = lambda q: q \
@@ -57,6 +58,9 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                     .where("last_updated", ">", latest_message_timestamp)
 
                 ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
+
+                log.info(f"Downloaded {len(updated_messages)} updated messages in this dataset, and "
+                         f"{len(ws_corrected_messages)} messages that were previously in this dataset but have moved.")
 
                 cache_messages = cache.get_messages(engagement_db_dataset)
                 for msg in cache_messages:
@@ -70,7 +74,8 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                 full_download_filter = lambda q: q \
                     .where("dataset", "==", engagement_db_dataset)
 
-                messages.extend(engagement_db.get_messages(firestore_query_filter=full_download_filter))
+                messages = engagement_db.get_messages(firestore_query_filter=full_download_filter)
+                log.info(f"Downloaded {len(messages)} messages")
 
             engagement_db_dataset_messages_map[engagement_db_dataset] = messages
 
