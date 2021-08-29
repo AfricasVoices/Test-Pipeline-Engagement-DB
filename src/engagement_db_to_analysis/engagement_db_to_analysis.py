@@ -3,6 +3,7 @@ from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO
 from core_data_modules.util import TimeUtils
 
+from src.engagement_db_to_analysis import google_drive_upload
 from src.engagement_db_to_analysis.analysis_files import export_production_file, export_analysis_file
 from src.engagement_db_to_analysis.automated_analysis import run_automated_analysis
 from src.engagement_db_to_analysis.cache import AnalysisCache
@@ -146,7 +147,8 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
-def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, cache_path=None):
+def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, engagement_db, output_dir,
+                            cache_path=None):
     analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
     # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
 
@@ -176,4 +178,18 @@ def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, ca
     export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
     export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
 
-    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated_analysis")
+    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated-analysis")
+
+    if pipeline_config.analysis_configs.google_drive_upload is None:
+        log.debug("Not uploading to Google Drive, because the 'google_drive_upload' configuration was None")
+    else:
+        google_drive_upload.init_client(
+            google_cloud_credentials_file_path,
+            pipeline_config.analysis_configs.google_drive_upload.credentials_file_url
+        )
+
+        drive_dir = pipeline_config.analysis_configs.google_drive_upload.drive_dir
+        google_drive_upload.upload_file(f"{output_dir}/production.csv", drive_dir)
+        google_drive_upload.upload_file(f"{output_dir}/messages.csv", drive_dir)
+        google_drive_upload.upload_file(f"{output_dir}/participants.csv", drive_dir)
+        google_drive_upload.upload_all_files_in_dir(f"{output_dir}/automated-analysis", drive_dir, recursive=True)
