@@ -88,7 +88,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             ws_correct_dataset_code_scheme=load_code_scheme("world_vision_ws_correct_dataset")
         )
     ),
-    analysis_configs=AnalysisConfiguration(
+    analysis=AnalysisConfiguration(
         dataset_configurations=[
             AnalysisDatasetConfiguration(
                 engagement_db_datasets=["world_vision_s01e01"],
