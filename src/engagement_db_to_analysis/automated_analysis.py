@@ -74,7 +74,7 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
             messages_by_column, "consent_withdrawn", rqa_column_configs, f, limit_per_code=100
         )
 
-    log.info(f"Exporting participation maps for each Somalia region...")
+    log.info(f"Exporting participation maps for each location dataset...")
     mappers = {
         KenyaAnalysisLocations.COUNTY: kenya_mapper.export_kenya_counties_map,
         KenyaAnalysisLocations.CONSTITUENCY: kenya_mapper.export_kenya_constituencies_map
