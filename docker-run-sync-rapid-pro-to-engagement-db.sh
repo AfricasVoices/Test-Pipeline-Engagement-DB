@@ -12,7 +12,7 @@ while [[ $# -gt 0 ]]; do
             INCREMENTAL_CACHE_VOLUME_NAME="$2"
             shift 2;;
         --local-archive)
-            LOCAL_ARCHIVE_ARGS+=" --local-archive $2"
+            LOCAL_ARCHIVE_PATHS+=("$2")
             shift 2;;
         --)
             shift
@@ -39,6 +39,14 @@ CONFIGURATION_MODULE=$3
 # Build an image for this pipeline stage.
 docker build -t "$IMAGE_NAME" .
 
+LOCAL_ARCHIVE_ARGS=""
+for LOCAL_ARCHIVE_PATH in "${LOCAL_ARCHIVE_PATHS[@]}"; do
+    IFS="=" # Setting equal sign as delimiter 
+    read -a strarr <<<"$LOCAL_ARCHIVE_PATH" # Reading str as an array of tokens separated by IFS 
+    local_archive_dir=$(basename ${strarr[1]})
+    LOCAL_ARCHIVE_ARGS+=" --local-archive /$local_archive_dir"
+done
+
 # Create a container from the image that was just built.
 CMD="pipenv run python -u sync_rapid_pro_to_engagement_db.py ${INCREMENTAL_ARG} ${LOCAL_ARCHIVE_ARGS} \
     ${USER} /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE}"
@@ -62,9 +70,10 @@ for LOCAL_ARCHIVE_PATH in "${LOCAL_ARCHIVE_PATHS[@]}"; do
     
     # Expand the tilde character to home directory if available
     path=$(pipenv run python -c "import os.path; print(os.path.expanduser(\"${strarr[1]}\"))")
-
-    echo "Copying ${strarr[1]} -> $container_short_id:/local_archive"
-    docker cp "$path" "$container:/local_archive/"
+    local_archive_dir=$(basename $path)
+    
+    echo "Copying $path -> $container_short_id:/$local_archive_dir"
+    docker cp "$path" "$container:/$local_archive_dir"
 done
 
 # Run the container
