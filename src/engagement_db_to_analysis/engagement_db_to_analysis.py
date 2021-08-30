@@ -183,6 +183,7 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     if pipeline_config.analysis_configs.google_drive_upload is None:
         log.debug("Not uploading to Google Drive, because the 'google_drive_upload' configuration was None")
     else:
+        log.info("Uploading outputs to Google Drive...")
         google_drive_upload.init_client(
             google_cloud_credentials_file_path,
             pipeline_config.analysis_configs.google_drive_upload.credentials_file_url
@@ -192,4 +193,6 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
         google_drive_upload.upload_file(f"{output_dir}/production.csv", drive_dir)
         google_drive_upload.upload_file(f"{output_dir}/messages.csv", drive_dir)
         google_drive_upload.upload_file(f"{output_dir}/participants.csv", drive_dir)
-        google_drive_upload.upload_all_files_in_dir(f"{output_dir}/automated-analysis", drive_dir, recursive=True)
+        google_drive_upload.upload_all_files_in_dir(
+            f"{output_dir}/automated-analysis", f"{drive_dir}/automated-analysis", recursive=True
+        )

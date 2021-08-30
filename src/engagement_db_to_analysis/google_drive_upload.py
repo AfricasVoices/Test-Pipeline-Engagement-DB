@@ -57,11 +57,23 @@ def upload_all_files_in_dir(source_dir_path, target_dir, recursive=False):
     :type source_dir_path: str
     :param target_dir: Path to target directory on Google Drive.
     :type target_dir: str
+    :param recursive: Whether to recursively upload any sub-directories in this directory too.
+    :type recursive: bool
     """
     source_dir_contents = [os.path.join(source_dir_path, f) for f in os.listdir(source_dir_path)]
+
+    # Batch upload all the files in this directory
+    file_paths = []
     for path in source_dir_contents:
         if os.path.isfile(path):
-            upload_file(path, target_dir)
+            file_paths.append(path)
+    drive_client_wrapper.update_or_create_batch(
+        source_file_paths=file_paths,
+        target_folder_path=target_dir,
+        target_folder_is_shared_with_me=True,
+        recursive=True,
+        fix_duplicates=True
+    )
 
     if recursive:
         for path in source_dir_contents:
