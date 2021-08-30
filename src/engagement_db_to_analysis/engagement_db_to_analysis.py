@@ -129,8 +129,7 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
-def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
-
+def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, cache_path=None):
     analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
     # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
 
@@ -153,12 +152,12 @@ def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=Non
 
     # Export to hard-coded files for now.
     # TODO: Export to a directory passed in on the command line rather than a hard-coded analysis folder.
-    export_production_file(messages_by_column, pipeline_config.analysis_configs, "analysis/production.csv")
+    export_production_file(messages_by_column, pipeline_config.analysis_configs, f"{output_dir}/production.csv")
 
-    export_analysis_file(messages_by_column, pipeline_config.analysis_configs.dataset_configurations, "analysis/messages.csv")
-    export_analysis_file(participants_by_column, pipeline_config.analysis_configs.dataset_configurations, "analysis/participants.csv")
+    export_analysis_file(messages_by_column, pipeline_config.analysis_configs.dataset_configurations, f"{output_dir}/messages.csv")
+    export_analysis_file(participants_by_column, pipeline_config.analysis_configs.dataset_configurations, f"{output_dir}/participants.csv")
 
-    export_traced_data(messages_by_column, "analysis/messages.jsonl")
-    export_traced_data(participants_by_column, "analysis/participants.jsonl")
+    export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
+    export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
 
-    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis_configs, "analysis/automated_analysis")
+    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis_configs, f"{output_dir}/automated_analysis")
