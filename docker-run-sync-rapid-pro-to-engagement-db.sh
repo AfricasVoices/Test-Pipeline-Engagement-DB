@@ -56,6 +56,17 @@ container_short_id=${container:0:7}
 echo "Copying $GOOGLE_CLOUD_CREDENTIALS_PATH -> $container_short_id:/credentials/google-cloud-credentials.json"
 docker cp "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$container:/credentials/google-cloud-credentials.json"
 
+for LOCAL_ARCHIVE_PATH in "${LOCAL_ARCHIVE_PATHS[@]}"; do
+    IFS="=" # Setting equal sign as delimiter 
+    read -a strarr <<<"$LOCAL_ARCHIVE_PATH" # Reading str as an array of tokens separated by IFS 
+    
+    # Expand the tilde character to home directory if available
+    path=$(pipenv run python -c "import os.path; print(os.path.expanduser(\"${strarr[1]}\"))")
+
+    echo "Copying ${strarr[1]} -> $container_short_id:/local_archive"
+    docker cp "$path" "$container:/local_archive/"
+done
+
 # Run the container
 echo "Starting container $container_short_id"
 docker start -a -i "$container"
