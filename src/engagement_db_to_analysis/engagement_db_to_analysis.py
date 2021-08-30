@@ -1,20 +1,15 @@
-import csv
-
-from core_data_modules.cleaners import Codes
 from core_data_modules.logging import Logger
 from core_data_modules.traced_data import TracedData, Metadata
-from core_data_modules.traced_data.io import TracedDataJsonIO, TracedDataCSVIO
-from core_data_modules.util import TimeUtils, IOUtils
+from core_data_modules.traced_data.io import TracedDataJsonIO
+from core_data_modules.util import TimeUtils
 
 from src.engagement_db_to_analysis.analysis_files import export_production_file, export_analysis_file
 from src.engagement_db_to_analysis.cache import AnalysisCache
-from src.engagement_db_to_analysis.column_view_conversion import (convert_to_messages_column_format,
-                                                                  convert_to_participants_column_format,
-                                                                  analysis_dataset_configs_to_column_configs)
-
-from src.engagement_db_to_analysis.traced_data_filters import filter_messages
 from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
                                                                      impute_codes_by_column_traced_data)
+from src.engagement_db_to_analysis.column_view_conversion import (convert_to_messages_column_format,
+                                                                  convert_to_participants_column_format)
+from src.engagement_db_to_analysis.traced_data_filters import filter_messages
 
 log = Logger(__name__)
 
@@ -131,6 +126,7 @@ def export_traced_data(traced_data, export_path):
 def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
 
     analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
+    # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
 
     messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
 
