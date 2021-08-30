@@ -1,7 +1,7 @@
 from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
+from core_data_modules.cleaners.location_tools import KenyaLocations
 from core_data_modules.data_models.code_scheme import CodeTypes
-from core_data_modules.traced_data import Metadata
 from core_data_modules.logging import Logger
 from core_data_modules.traced_data import Metadata
 from core_data_modules.util import TimeUtils
@@ -10,9 +10,7 @@ from engagement_database.data_models import Message
 from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs)
 from src.engagement_db_to_analysis.column_view_conversion import (get_latest_labels_with_code_scheme,
                                                                   analysis_dataset_config_for_message)
-
-from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_config_to_column_configs,
-                                                                  analysis_dataset_configs_to_column_configs)
+from src.engagement_db_to_analysis.configuration import KenyaAnalysisLocations
 
 log = Logger(__name__)
 
@@ -392,11 +390,11 @@ def _impute_consent_withdrawn(user, column_traced_data_iterable, analysis_datase
             consent_withdrawn_tds += 1
             # Overwrite the labels and raw fields with STOP labels/texts.
             for column_config in column_configs:
-                consent_withdrawn_dict[column_config.coded_field] = CleaningUtils.make_label_from_cleaner_code(
+                consent_withdrawn_dict[column_config.coded_field] = [CleaningUtils.make_label_from_cleaner_code(
                     column_config.code_scheme,
                     column_config.code_scheme.get_code_with_control_code(Codes.STOP),
                     Metadata.get_call_location()
-                ).to_dict()
+                ).to_dict()]
                 consent_withdrawn_dict[column_config.raw_field] = "STOP"
         else:
             consent_withdrawn_dict = {"consent_withdrawn": Codes.FALSE}
