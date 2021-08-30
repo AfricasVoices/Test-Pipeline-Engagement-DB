@@ -82,7 +82,7 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
 
     for analysis_dataset_config in analysis_config.dataset_configurations:
         for coding_config in analysis_dataset_config.coding_configs:
-            if coding_config.kenya_analysis_location in mappers:
+            if coding_config.kenya_analysis_location is not None:
                 location_column_config = AnalysisConfiguration(
                     dataset_name=coding_config.analysis_dataset,
                     raw_field=analysis_dataset_config.raw_dataset,
