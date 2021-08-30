@@ -135,8 +135,16 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 dataset_type=DatasetTypes.DEMOGRAPHIC,
                 raw_dataset="location_raw",
                 coding_configs=[
-                    CodingConfiguration(code_scheme=load_code_scheme("kenya_constituency"), analysis_dataset="constituency"),
-                    CodingConfiguration(code_scheme=load_code_scheme("kenya_county"), analysis_dataset="county")
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("kenya_constituency"),
+                        analysis_dataset="constituency",
+                        kenya_analysis_location=KenyaAnalysisLocations.CONSTITUENCY
+                    ),
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("kenya_county"),
+                        analysis_dataset="county",
+                        kenya_analysis_location=KenyaAnalysisLocations.COUNTY
+                    )
                 ]
             )
         ]
