@@ -14,14 +14,15 @@ from src.pipeline_configuration_spec import *
 
 log = Logger(__name__)
 
-def _insert_label_to_messsage_td(user, message_traced_data, label):
+
+def _insert_label_to_message_td(user, message_traced_data, label):
     """
     Inserts a new label to the list of labels for this message, and writes-back to TracedData.
 
     :param user: Identifier of user running the pipeline.
     :type user: str
-    :param messages_traced_data: Message TracedData objects to impute age_category.
-    :type messages_traced_data: TracedData
+    :param message_traced_data: Message TracedData objects to impute age_category.
+    :type message_traced_data: TracedData
     :param label: New label to insert to the message_traced_data
     :type: core_data_modules.data_models.Label
     """
@@ -31,6 +32,7 @@ def _insert_label_to_messsage_td(user, message_traced_data, label):
     message_traced_data.append_data(
         {"labels": message_labels},
         Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+
 
 def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs):
     """
@@ -54,8 +56,9 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
         # Check if the message has a manual label and impute NOT_REVIEWED if it doesn't
         manually_labelled = False
         for coding_config in message_analysis_config.coding_configs:
-            latest_labels_with_code_scheme = get_latest_labels_with_code_scheme(message,
-                                                                                coding_config.code_scheme)
+            latest_labels_with_code_scheme = get_latest_labels_with_code_scheme(
+                message, coding_config.code_scheme
+            )
             for label in latest_labels_with_code_scheme:
                 if label.checked:
                     manually_labelled = True
@@ -69,7 +72,7 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
             Metadata.get_call_location())
 
         # Insert not_reviewed_label to the list of labels for this message, and write-back to TracedData.
-        _insert_label_to_messsage_td(user, message_td, not_reviewed_label)
+        _insert_label_to_message_td(user, message_td, not_reviewed_label)
 
         imputed_labels += 1
 
@@ -147,9 +150,9 @@ def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
             )
 
             # Inserts this age_category_label to the list of labels for this message, and write-back to TracedData.
-            _insert_label_to_messsage_td(user, message_td, age_category_label)
+            _insert_label_to_message_td(user, message_td, age_category_label)
 
-            imputed_labels +=1
+            imputed_labels += 1
 
     log.info(f"Imputed {imputed_labels} age category labels for {age_messages} age messages")
 
@@ -172,7 +175,6 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
     :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
     """
-
     log.info(f"Imputing Kenya location labels for location messages...")
 
     # Get the coding configurations for constituency and county analysis datasets
@@ -230,7 +232,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                             coding_config.code_scheme.get_code_with_control_code(location_code.control_code),
                             Metadata.get_call_location())
 
-                        _insert_label_to_messsage_td(user, message_traced_data, control_code_label)
+                        _insert_label_to_message_td(user, message_traced_data, control_code_label)
 
                 elif location_code.code_type == CodeTypes.META:
                     for coding_config in message_analysis_config.coding_configs:
@@ -239,7 +241,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                             coding_config.code_scheme.get_code_with_meta_code(location_code.meta_code),
                             Metadata.get_call_location())
 
-                        _insert_label_to_messsage_td(user, message_traced_data, meta_code_label)
+                        _insert_label_to_message_td(user, message_traced_data, meta_code_label)
 
                 else:
                     location = location_code.match_values[0]
@@ -247,21 +249,25 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                         constituency_coding_config.code_scheme,
                         _make_location_code(constituency_coding_config.code_scheme,
                                             KenyaLocations.constituency_for_location_code(location)),
-                        Metadata.get_call_location())
+                        Metadata.get_call_location()
+                    )
 
-                    county_label = CleaningUtils.make_label_from_cleaner_code(county_coding_config.code_scheme,
-                                                                              _make_location_code(
-                                                                                  county_coding_config.code_scheme,
-                                                                                  KenyaLocations.county_for_location_code(
-                                                                                      location)),
-                                                                              Metadata.get_call_location())
+                    county_label = CleaningUtils.make_label_from_cleaner_code(
+                        county_coding_config.code_scheme,
+                        _make_location_code(
+                            county_coding_config.code_scheme,
+                            KenyaLocations.county_for_location_code(location)
+                        ),
+                        Metadata.get_call_location()
+                    )
 
-                    _insert_label_to_messsage_td(user, message_traced_data, constituency_label)
-                    _insert_label_to_messsage_td(user, message_traced_data, county_label)
+                    _insert_label_to_message_td(user, message_traced_data, constituency_label)
+                    _insert_label_to_message_td(user, message_traced_data, county_label)
 
     else:
         assert county_coding_config is None or constituency_coding_config is None
         log.warning("Missing location coding_config(s) in analysis_dataset_config, skipping imputing location labels...")
+
 
 def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs):
     """
@@ -279,11 +285,8 @@ def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs
     :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
     """
-
     _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs)
-
     _impute_age_category(user, messages_traced_data, analysis_dataset_configs)
-
     _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_configs)
 
 
