@@ -1,14 +1,16 @@
 from core_data_modules.logging import Logger
 from core_data_modules.traced_data import TracedData, Metadata
-from core_data_modules.traced_data.io import TracedDataJsonIO, TracedDataCSVIO
-from core_data_modules.util import TimeUtils, IOUtils
+from core_data_modules.traced_data.io import TracedDataJsonIO
+from core_data_modules.util import TimeUtils
 
+from src.engagement_db_to_analysis.analysis_files import export_production_file, export_analysis_file
+from src.engagement_db_to_analysis.automated_analysis import run_automated_analysis
 from src.engagement_db_to_analysis.cache import AnalysisCache
+from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
+                                                                     impute_codes_by_column_traced_data)
 from src.engagement_db_to_analysis.column_view_conversion import (convert_to_messages_column_format,
                                                                   convert_to_participants_column_format)
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
-from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
-                                                                     impute_codes_by_column_traced_data)
 
 log = Logger(__name__)
 
@@ -49,7 +51,8 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                     .where("dataset", "==", engagement_db_dataset) \
                     .where("last_updated", ">", latest_message_timestamp)
 
-                messages.extend(engagement_db.get_messages(firestore_query_filter=incremental_messages_filter))
+                updated_messages = engagement_db.get_messages(firestore_query_filter=incremental_messages_filter)
+                messages.extend(updated_messages)
 
                 # Check and remove cache messages that have been ws corrected after the previous run
                 ws_corrected_messages_filter = lambda q: q \
@@ -57,6 +60,9 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                     .where("last_updated", ">", latest_message_timestamp)
 
                 ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
+
+                log.info(f"Downloaded {len(updated_messages)} updated messages in this dataset, and "
+                         f"{len(ws_corrected_messages)} messages that were previously in this dataset but have moved.")
 
                 cache_messages = cache.get_messages(engagement_db_dataset)
                 for msg in cache_messages:
@@ -70,7 +76,8 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                 full_download_filter = lambda q: q \
                     .where("dataset", "==", engagement_db_dataset)
 
-                messages.extend(engagement_db.get_messages(firestore_query_filter=full_download_filter))
+                messages = engagement_db.get_messages(firestore_query_filter=full_download_filter)
+                log.info(f"Downloaded {len(messages)} messages")
 
             engagement_db_dataset_messages_map[engagement_db_dataset] = messages
 
@@ -117,32 +124,14 @@ def _convert_messages_to_traced_data(user, messages_map):
     return messages_traced_data
 
 
-def export_production_file(traced_data_iterable, analysis_config, export_path):
-    """
-    Exports a column-view TracedData to a production file.
-
-    The production file contains the participant uuid and all the raw_datasets only.
-
-    :param traced_data_iterable: Data to export.
-    :type traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
-    :param analysis_config: Configuration for the export.
-    :type analysis_config: src.engagement_db_to_analysis.configuration.AnalysisConfiguration
-    :param export_path: Path to export the file to.
-    :type export_path: str
-    """
-    IOUtils.ensure_dirs_exist_for_file(export_path)
-    with open(export_path, "w") as f:
-        headers = ["participant_uuid"] + [c.raw_dataset for c in analysis_config.dataset_configurations]
-        TracedDataCSVIO.export_traced_data_iterable_to_csv(traced_data_iterable, f, headers)
-
-
 def export_traced_data(traced_data, export_path):
     with open(export_path, "w") as f:
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
-def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=None):
 
+def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, cache_path=None):
     analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
+    # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
 
     messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
 
@@ -162,10 +151,13 @@ def generate_analysis_files(user, pipeline_config, engagement_db, cache_path=Non
     impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis_configs.dataset_configurations)
 
     # Export to hard-coded files for now.
-    # TODO: Only export a production file for messages (exporting both for now to aid with debugging)
     # TODO: Export to a directory passed in on the command line rather than a hard-coded analysis folder.
-    export_production_file(messages_by_column, pipeline_config.analysis_configs, "analysis/messages-production.csv")
-    export_production_file(participants_by_column, pipeline_config.analysis_configs, "analysis/participants-production.csv")
+    export_production_file(messages_by_column, pipeline_config.analysis_configs, f"{output_dir}/production.csv")
 
-    export_traced_data(messages_by_column, "analysis/messages.jsonl")
-    export_traced_data(participants_by_column, "analysis/participants.jsonl")
+    export_analysis_file(messages_by_column, pipeline_config.analysis_configs.dataset_configurations, f"{output_dir}/messages.csv")
+    export_analysis_file(participants_by_column, pipeline_config.analysis_configs.dataset_configurations, f"{output_dir}/participants.csv")
+
+    export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
+    export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
+
+    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis_configs, f"{output_dir}/automated_analysis")

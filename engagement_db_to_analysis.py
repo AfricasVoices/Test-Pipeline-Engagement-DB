@@ -5,7 +5,6 @@ from core_data_modules.logging import Logger
 
 from src.engagement_db_to_analysis.engagement_db_to_analysis import generate_analysis_files
 
-
 log = Logger(__name__)
 
 if __name__ == "__main__":
@@ -20,6 +19,9 @@ if __name__ == "__main__":
     parser.add_argument("configuration_module",
                         help="Configuration module to import e.g. 'configurations.test_config'. "
                              "This module must contain a PIPELINE_CONFIGURATION property")
+    parser.add_argument("output_dir", metavar="output-dir",
+                        help="Directory to output all analysis results to. This script will create and organise the "
+                             "outputs into sensible sub-directories automatically")
 
     args = parser.parse_args()
 
@@ -27,10 +29,11 @@ if __name__ == "__main__":
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
+    output_dir = args.output_dir
 
     pipeline = pipeline_config.pipeline_name
 
     uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
 
-    generate_analysis_files(user, pipeline_config, engagement_db, incremental_cache_path)
+    generate_analysis_files(user, pipeline_config, engagement_db, output_dir, incremental_cache_path)
