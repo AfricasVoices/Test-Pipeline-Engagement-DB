@@ -54,15 +54,29 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                 updated_messages = engagement_db.get_messages(firestore_query_filter=incremental_messages_filter)
                 messages.extend(updated_messages)
 
-                # Check and remove cache messages that have been ws corrected after the previous run
-                ws_corrected_messages_filter = lambda q: q \
-                    .where("previous_datasets", "array_contains", engagement_db_dataset) \
-                    .where("last_updated", ">", latest_message_timestamp)
+                # Check and remove cached messages that have been ws corrected away from this dataset after the previous
+                # run. We do this by searching for all messages that used to be in this dataset, that we haven't
+                # already seen.
+                latest_ws_message_timestamp = cache.get_latest_message_timestamp(f"{engagement_db_dataset}_ws")
+                if latest_ws_message_timestamp is None:
+                    ws_corrected_messages_filter = lambda q: q \
+                        .where("previous_datasets", "array_contains", engagement_db_dataset)
+                else:
+                    ws_corrected_messages_filter = lambda q: q \
+                        .where("previous_datasets", "array_contains", engagement_db_dataset) \
+                        .where("last_updated", ">", latest_ws_message_timestamp)
 
                 ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
 
                 log.info(f"Downloaded {len(updated_messages)} updated messages in this dataset, and "
                          f"{len(ws_corrected_messages)} messages that were previously in this dataset but have moved.")
+
+                # Update the latest seen ws message from this dataset
+                if len(ws_corrected_messages) > 0:
+                    for msg in ws_corrected_messages:
+                        if latest_ws_message_timestamp is None or msg.last_updated > latest_ws_message_timestamp:
+                            latest_ws_message_timestamp = msg.last_updated
+                    cache.set_latest_message_timestamp(f"{engagement_db_dataset}_ws", latest_ws_message_timestamp)
 
                 cache_messages = cache.get_messages(engagement_db_dataset)
                 for msg in cache_messages:
@@ -88,9 +102,12 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                     latest_message_timestamp = msg_last_updated
 
             if cache is not None:
-                # Export latest message timestamp to cache
+                # Export latest message timestamp to cache.
+                # Export as both the last seen for this dataset and for the ws case, as there will be no need to
+                # check for ws messages that moved from this dataset before this initial fetch.
                 if latest_message_timestamp is not None:
                     cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
+                    cache.set_latest_message_timestamp(f"{engagement_db_dataset}_ws", latest_message_timestamp)
 
                 # Export project engagement_dataset files
                 if len(messages) > 0:
