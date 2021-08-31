@@ -151,7 +151,6 @@ def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, ca
     impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis_configs.dataset_configurations)
 
     # Export to hard-coded files for now.
-    # TODO: Export to a directory passed in on the command line rather than a hard-coded analysis folder.
     export_production_file(messages_by_column, pipeline_config.analysis_configs, f"{output_dir}/production.csv")
 
     export_analysis_file(messages_by_column, pipeline_config.analysis_configs.dataset_configurations, f"{output_dir}/messages.csv")
