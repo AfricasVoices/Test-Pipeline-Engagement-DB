@@ -39,6 +39,7 @@ CONFIGURATION_MODULE=$3
 # Build an image for this pipeline stage.
 docker build -t "$IMAGE_NAME" .
 
+# Set local archive arguments if specified
 LOCAL_ARCHIVE_ARGS=""
 for LOCAL_ARCHIVE_PATH in "${LOCAL_ARCHIVE_PATHS[@]}"; do
     IFS="=" # Setting equal sign as delimiter 
