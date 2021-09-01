@@ -36,6 +36,7 @@ def _get_analysis_file_headers(column_configs):
 
     The headers are:
      - "participant_uuid"
+     - "consent_withdrawn"
      - Labels for each normal code scheme, in matrix format e.g. "age:25", "s01e01:healthcare".
      - Raw messages for each dataset.
 
@@ -44,7 +45,7 @@ def _get_analysis_file_headers(column_configs):
     :return: Analysis file headers.
     :rtype: list of str
     """
-    headers = ["participant_uuid"]
+    headers = ["participant_uuid", "consent_withdrawn"]
 
     for config in column_configs:
         # Add headers for each label in this column's code scheme, in matrix format e.g. "age:25", "s01e01:healthcare"
@@ -73,7 +74,8 @@ def _get_analysis_file_row(column_view_td, column_configs):
     :rtype: dict
     """
     row = {
-        "participant_uuid": column_view_td["participant_uuid"]
+        "participant_uuid": column_view_td["participant_uuid"],
+        "consent_withdrawn": column_view_td["consent_withdrawn"]
     }
 
     for config in column_configs:

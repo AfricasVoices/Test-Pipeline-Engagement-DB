@@ -9,8 +9,9 @@ from engagement_database.data_models import Message
 
 from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs)
 from src.engagement_db_to_analysis.column_view_conversion import (get_latest_labels_with_code_scheme,
-                                                                  analysis_dataset_config_for_message)
-from src.engagement_db_to_analysis.configuration import KenyaAnalysisLocations
+                                                                  analysis_dataset_config_for_message,
+                                                                  analysis_dataset_config_to_column_configs)
+from src.pipeline_configuration_spec import *
 
 log = Logger(__name__)
 
@@ -330,6 +331,104 @@ def _impute_true_missing(user, column_traced_data_iterable, analysis_dataset_con
              f"traced data items")
 
 
+# TODO: This is a clone of the function introduced by #86. Use a common definition once #86 is merged.
+def _get_demog_column_configs(analysis_dataset_configs):
+    demog_column_configs = []
+    for analysis_dataset_config in analysis_dataset_configs:
+        if analysis_dataset_config.dataset_type == DatasetTypes.DEMOGRAPHIC:
+            demog_column_configs.extend(analysis_dataset_config_to_column_configs(analysis_dataset_config))
+    return demog_column_configs
+
+
+def _demog_has_conflicting_normal_labels(column_traced_data, column_config):
+    """
+    :param column_traced_data: Column-view traced data to check.
+    :type column_traced_data: core_data_modules.traced_data.TracedData
+    :param column_config: Configuration for the demographic column to analyse.
+    :type column_config: core_data_modules.analysis.analysis_utils.AnalysisConfiguration
+    :return: Whether there are any conflicting normal labels for `column_traced_data` under `column_config`.
+    :rtype: bool
+    """
+    column_labels = column_traced_data[column_config.coded_field]
+    normal_code = None
+    for label in column_labels:
+        code = column_config.code_scheme.get_code_with_code_id(label["CodeID"])
+        if code.code_type == CodeTypes.NORMAL:
+            if normal_code is None:
+                normal_code = code
+
+            if normal_code.code_id != code.code_id:
+                return True
+
+    return False
+
+
+def _get_control_and_meta_labels(column_traced_data, column_config):
+    """
+    :param column_traced_data: Column-view traced data to get the control and meta labels from.
+    :type column_traced_data: core_data_modules.traced_data.TracedData
+    :param column_config: Configuration for the column to get the labels from.
+    :type column_config: core_data_modules.analysis.analysis_utils.AnalysisConfiguration
+    :return: The labels in `column_traced_data` that have code_type CONTROL or META under `column_config`, serialized.
+    :rtype: list of dict
+    """
+    control_and_meta_labels = []
+    column_labels = column_traced_data[column_config.coded_field]
+    for label in column_labels:
+        code = column_config.code_scheme.get_code_with_code_id(label["CodeID"])
+        if code.code_type == CodeTypes.CONTROL or code.code_type == CodeTypes.META:
+            control_and_meta_labels.append(label)
+    return control_and_meta_labels
+
+
+def _impute_nic_demogs(user, column_traced_data_iterable, analysis_dataset_configs):
+    """
+    Imputes NOT_INTERNALLY_CONSISTENT labels on the demographic columns of column-view datasets.
+
+    NOT_INTERNALLY_CONSISTENT labels are applied to demographics where there are multiple, conflicting normal labels.
+    For example:
+     - If we have multiple conflicting normal labels e.g. "20" and "22", this would be converted to
+       NOT_INTERNALLY_CONSISTENT.
+     - If we have a a single normal age label and some meta/control labels, no imputation is performed.
+     - If we have multiple normal age labels but these have the same code id, e.g. for the messages "21" and "I'm 21",
+       no imputation is performed.
+     - If we have multiple conflicting normal labels, e.g. "20" and "22", as well as some meta/control labels, the
+       normal labels will be replaced with NOT_INTERNALLY_CONSISTENT and the meta/control labels will be kept untouched.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param column_traced_data_iterable: Column-view traced data objects to apply the impute function to.
+    :type column_traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
+    :param analysis_dataset_configs: Analysis dataset configurations for the imputation.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    """
+    imputed_codes = 0
+    log.info(f"Imputing {Codes.NOT_INTERNALLY_CONSISTENT} codes...")
+
+    demog_column_configs = _get_demog_column_configs(analysis_dataset_configs)
+    for td in column_traced_data_iterable:
+        for column_config in demog_column_configs:
+            if _demog_has_conflicting_normal_labels(td, column_config):
+                # Replace the conflicting normal labels with a NOT_INTERNALLY_CONSISTENT label,
+                # while keeping any existing control/meta codes.
+                new_labels = _get_control_and_meta_labels(td, column_config)
+                nic_label = CleaningUtils.make_label_from_cleaner_code(
+                    column_config.code_scheme,
+                    column_config.code_scheme.get_code_with_control_code(Codes.NOT_INTERNALLY_CONSISTENT),
+                    Metadata.get_call_location()
+                )
+                new_labels.append(nic_label.to_dict())
+
+                td.append_data(
+                    {column_config.coded_field: new_labels},
+                    Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
+                )
+                imputed_codes += 1
+
+    log.info(f"Imputed {imputed_codes} {Codes.NOT_INTERNALLY_CONSISTENT} codes for {len(column_traced_data_iterable)} "
+             f"traced data items")
+
+
 def _get_consent_withdrawn_participant_uuids(column_traced_data_iterable, analysis_dataset_configs):
     """
     Gets the participant uuids of participants who withdrew consent.
@@ -410,6 +509,7 @@ def impute_codes_by_column_traced_data(user, column_traced_data_iterable, analys
 
     Runs the following imputations:
      - Imputes Codes.TRUE_MISSING to columns that don't have a raw_field entry.
+     - Imputes Codes.NOT_INTERNALLY_CONSISTENT to demographic columns that have multiple conflicting normal codes.
      - Imputes consent_withdrawn.
 
     :param user: Identifier of user running the pipeline.
@@ -420,4 +520,5 @@ def impute_codes_by_column_traced_data(user, column_traced_data_iterable, analys
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
     """
     _impute_true_missing(user, column_traced_data_iterable, analysis_dataset_configs)
+    _impute_nic_demogs(user, column_traced_data_iterable, analysis_dataset_configs)
     _impute_consent_withdrawn(user, column_traced_data_iterable, analysis_dataset_configs)
