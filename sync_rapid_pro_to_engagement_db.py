@@ -2,6 +2,7 @@ import argparse
 import importlib
 import subprocess
 
+from core_data_modules.util import IOUtils
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
@@ -72,6 +73,7 @@ if __name__ == "__main__":
         if rapid_pro_token_url in local_archives_map:
             log.info(f"Overriding Rapid Pro source {rapid_pro_token_url} with local archive "
                      f"{local_archives_map[rapid_pro_token_url]}")
+            IOUtils.ensure_dirs_exist(local_archives_map[rapid_pro_token_url])
             rapid_pro = RapidProArchiveClient(local_archives_map[rapid_pro_token_url])
         else:
             rapid_pro = rapid_pro_config.rapid_pro.init_rapid_pro_client(google_cloud_credentials_file_path)
