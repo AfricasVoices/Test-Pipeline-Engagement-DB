@@ -21,7 +21,7 @@ CONFIGURATION_MODULE=$3
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u sync_rapid_pro_to_engagement_db.py ${USER} \
+CMD="pipenv run python -u sync_rapid_pro_to_engagement_db.py ${USER}\
     /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE}"
 
 
