@@ -147,7 +147,7 @@ def export_traced_data(traced_data, export_path):
 
 
 def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, cache_path=None):
-    analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
+    analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
     # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
 
     messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
@@ -158,22 +158,22 @@ def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, ca
 
     impute_codes_by_message(user, messages_traced_data, analysis_dataset_configurations)
 
-    messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
-    participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
+    messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis)
+    participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
 
     log.info(f"Imputing messages column-view traced data...")
-    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis_configs.dataset_configurations)
+    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis.dataset_configurations)
 
     log.info(f"Imputing participants column-view traced data...")
-    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis_configs.dataset_configurations)
+    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis.dataset_configurations)
 
     # Export to hard-coded files for now.
-    export_production_file(messages_by_column, pipeline_config.analysis_configs, f"{output_dir}/production.csv")
+    export_production_file(messages_by_column, pipeline_config.analysis, f"{output_dir}/production.csv")
 
-    export_analysis_file(messages_by_column, pipeline_config.analysis_configs.dataset_configurations, f"{output_dir}/messages.csv")
-    export_analysis_file(participants_by_column, pipeline_config.analysis_configs.dataset_configurations, f"{output_dir}/participants.csv")
+    export_analysis_file(messages_by_column, pipeline_config.analysis.dataset_configurations, f"{output_dir}/messages.csv")
+    export_analysis_file(participants_by_column, pipeline_config.analysis.dataset_configurations, f"{output_dir}/participants.csv")
 
     export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
     export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
 
-    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis_configs, f"{output_dir}/automated_analysis")
+    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated_analysis")
