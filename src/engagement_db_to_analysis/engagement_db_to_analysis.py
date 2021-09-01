@@ -43,7 +43,8 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
         for engagement_db_dataset in analysis_dataset_config.engagement_db_datasets:
             messages = []
             latest_message_timestamp = None if cache is None else cache.get_latest_message_timestamp(engagement_db_dataset)
-            if latest_message_timestamp is not None:
+            full_download_required = latest_message_timestamp is None
+            if not full_download_required:
                 log.info(f"Performing incremental download for {engagement_db_dataset} messages...")
 
                 # Download messages that have been updated/created after the previous run
@@ -103,10 +104,12 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
 
             if cache is not None:
                 # Export latest message timestamp to cache.
-                # Export as both the last seen for this dataset and for the ws case, as there will be no need to
-                # check for ws messages that moved from this dataset before this initial fetch.
                 if latest_message_timestamp is not None:
                     cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
+
+                if full_download_required:
+                    # Export this as the ws case too, as there will be no need to check for ws messages that moved from
+                    # this dataset before this initial fetch.
                     cache.set_latest_message_timestamp(f"{engagement_db_dataset}_ws", latest_message_timestamp)
 
                 # Export project engagement_dataset files
