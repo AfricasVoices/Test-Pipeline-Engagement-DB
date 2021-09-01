@@ -5,7 +5,7 @@ from core_data_modules.logging import Logger
 from core_data_modules.util import IOUtils
 
 from src.engagement_db_to_analysis.column_view_conversion import analysis_dataset_config_to_column_configs
-from src.engagement_db_to_analysis.configuration import DatasetTypes, KenyaAnalysisLocations
+from src.engagement_db_to_analysis.configuration import DatasetTypes, AnalysisLocations
 
 log = Logger(__name__)
 
@@ -76,8 +76,8 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
 
     log.info(f"Exporting participation maps for each location dataset...")
     mappers = {
-        KenyaAnalysisLocations.COUNTY: kenya_mapper.export_kenya_counties_map,
-        KenyaAnalysisLocations.CONSTITUENCY: kenya_mapper.export_kenya_constituencies_map
+        AnalysisLocations.KENYA_COUNTY: kenya_mapper.export_kenya_counties_map,
+        AnalysisLocations.KENYA_CONSTITUENCY: kenya_mapper.export_kenya_constituencies_map
     }
 
     for analysis_dataset_config in analysis_config.dataset_configurations:
