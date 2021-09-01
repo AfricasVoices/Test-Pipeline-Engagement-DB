@@ -3,7 +3,7 @@
 set -e
 
 PROJECT_NAME="$(<configurations/docker_image_project_name.txt)"
-IMAGE_NAME=$PROJECT_NAME-rapid-pro-to-engagement-db
+IMAGE_NAME=$PROJECT_NAME-sync-rapid-pro-to-engagement-db
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
