@@ -44,8 +44,8 @@ LOCAL_ARCHIVE_ARGS=""
 for LOCAL_ARCHIVE_PATH in "${LOCAL_ARCHIVE_PATHS[@]}"; do
     IFS="=" # Setting equal sign as delimiter 
     read -a strarr <<<"$LOCAL_ARCHIVE_PATH" # Reading str as an array of tokens separated by IFS 
-    local_archive_dir=$(basename ${strarr[1]})
-    LOCAL_ARCHIVE_ARGS+=" --local-archive /$local_archive_dir"
+    gs_url=${strarr[0]}; local_archive_dir=$(basename ${strarr[1]})
+    LOCAL_ARCHIVE_ARGS+=" --local-archive $gs_url=/$local_archive_dir"
 done
 
 # Create a container from the image that was just built.
