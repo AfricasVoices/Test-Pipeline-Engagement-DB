@@ -49,7 +49,7 @@ for LOCAL_ARCHIVE_PATH in "${LOCAL_ARCHIVE_PATHS[@]}"; do
 done
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u sync_rapid_pro_to_engagement_db.py ${INCREMENTAL_ARG} ${LOCAL_ARCHIVE_ARGS} \
+CMD="pipenv run python -u sync_rapid_pro_to_engagement_db.py ${INCREMENTAL_ARG} ${LOCAL_ARCHIVE_ARGS}\
     ${USER} /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE}"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
