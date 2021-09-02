@@ -37,8 +37,8 @@ OUTPUT_DIR=$4
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u engagement_db_to_analysis.py ${INCREMENTAL_ARG} ${USER}\
-    /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE} /data/analysis-output"
+CMD="pipenv run python -u engagement_db_to_analysis.py ${INCREMENTAL_ARG} ${USER} \
+    /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE} /data/analysis-outputs"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
     container="$(docker container create -w /app --mount source="$INCREMENTAL_CACHE_VOLUME_NAME",target=/cache "$IMAGE_NAME" /bin/bash -c "$CMD")"
