@@ -184,7 +184,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
     location_engagement_db_datasets = None
     for analysis_dataset_config in analysis_dataset_configs:
         for coding_config in analysis_dataset_config.coding_configs:
-            if coding_config.kenya_analysis_location == KenyaAnalysisLocations.CONSTITUENCY:
+            if coding_config.kenya_analysis_location == AnalysisLocations.KENYA_CONSTITUENCY:
                 log.info(f"Found kenya_analysis_location in county {coding_config.analysis_dataset} coding config")
 
                 assert constituency_coding_config is None, f"Found more than one constituency_coding_config in " \
@@ -192,7 +192,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                 constituency_coding_config = coding_config
                 location_engagement_db_datasets = analysis_dataset_config.engagement_db_datasets
 
-            elif coding_config.kenya_analysis_location == KenyaAnalysisLocations.COUNTY:
+            elif coding_config.kenya_analysis_location == AnalysisLocations.KENYA_COUNTY:
                 log.info(f"Found kenya_analysis_location in constituency {coding_config.analysis_dataset} coding config")
 
                 assert county_coding_config is None, f"Found more than one county_coding_config in " \
