@@ -36,7 +36,7 @@ CONFIGURATION_MODULE=$3
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u sync_coda_to_engagement_db.py ${INCREMENTAL_ARG}\
+CMD="pipenv run python -u sync_coda_to_engagement_db.py ${INCREMENTAL_ARG} \
     ${USER} /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE}"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
