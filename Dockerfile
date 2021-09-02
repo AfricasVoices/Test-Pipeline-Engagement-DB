@@ -19,10 +19,5 @@ ADD Pipfile.lock /app
 RUN pipenv sync
 
 # Copy the rest of the project
-ADD code_schemes/*.json /app/code_schemes/
-ADD configurations/ /app/configurations/
-ADD src /app/src
-ADD sync_coda_to_engagement_db.py /app
-ADD sync_engagement_db_to_coda.py /app
-ADD sync_engagement_db_to_rapid_pro.py /app
-ADD engagement_db_to_analysis.py /app
+ADD . /app
+
