@@ -13,7 +13,9 @@ from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidPro
 from src.rapid_pro_to_engagement_db.configuration import (FlowResultConfiguration, UuidFilter,
                                                           RapidProToEngagementDBConfiguration)
 from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfiguration, DatasetTypes,
-                                                         AgeCategoryConfiguration, AnalysisLocations, CodingConfiguration, AnalysisConfiguration)
+                                                         AgeCategoryConfiguration, AnalysisLocations, CodingConfiguration,
+    GoogleDriveUploadConfiguration, AnalysisConfiguration
+)
 
 
 def load_code_scheme(fname):

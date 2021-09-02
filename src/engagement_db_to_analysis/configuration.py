@@ -39,5 +39,12 @@ class AnalysisDatasetConfiguration:
 
 
 @dataclass
+class GoogleDriveUploadConfiguration:
+    credentials_file_url: str
+    drive_dir: str
+
+
+@dataclass
 class AnalysisConfiguration:
     dataset_configurations: [AnalysisDatasetConfiguration]
+    google_drive_upload: Optional[GoogleDriveUploadConfiguration] = None

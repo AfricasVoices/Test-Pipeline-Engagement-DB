@@ -1,7 +1,5 @@
 from core_data_modules.cleaners import swahili
-
 from dateutil.parser import isoparse
-
 
 from src.pipeline_configuration_spec import *
 
@@ -93,6 +91,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         )
     ),
     analysis=AnalysisConfiguration(
+        google_drive_upload=GoogleDriveUploadConfiguration(
+            credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json",
+            drive_dir="pipeline_upload_test"
+        ),
         dataset_configurations=[
             AnalysisDatasetConfiguration(
                 engagement_db_datasets=["s01e01"],

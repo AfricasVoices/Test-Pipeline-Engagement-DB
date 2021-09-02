@@ -3,6 +3,7 @@ from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO
 from core_data_modules.util import TimeUtils
 
+from src.engagement_db_to_analysis import google_drive_upload
 from src.engagement_db_to_analysis.analysis_files import export_production_file, export_analysis_file
 from src.engagement_db_to_analysis.automated_analysis import run_automated_analysis
 from src.engagement_db_to_analysis.cache import AnalysisCache
@@ -43,7 +44,8 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
         for engagement_db_dataset in analysis_dataset_config.engagement_db_datasets:
             messages = []
             latest_message_timestamp = None if cache is None else cache.get_latest_message_timestamp(engagement_db_dataset)
-            if latest_message_timestamp is not None:
+            full_download_required = latest_message_timestamp is None
+            if not full_download_required:
                 log.info(f"Performing incremental download for {engagement_db_dataset} messages...")
 
                 # Download messages that have been updated/created after the previous run
@@ -103,10 +105,12 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
 
             if cache is not None:
                 # Export latest message timestamp to cache.
-                # Export as both the last seen for this dataset and for the ws case, as there will be no need to
-                # check for ws messages that moved from this dataset before this initial fetch.
                 if latest_message_timestamp is not None:
                     cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
+
+                if full_download_required:
+                    # Export this as the ws case too, as there will be no need to check for ws messages that moved from
+                    # this dataset before this initial fetch.
                     cache.set_latest_message_timestamp(f"{engagement_db_dataset}_ws", latest_message_timestamp)
 
                 # Export project engagement_dataset files
@@ -146,7 +150,8 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
-def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, cache_path=None):
+def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, engagement_db, output_dir,
+                            cache_path=None):
     analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
     # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
 
@@ -176,4 +181,21 @@ def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, ca
     export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
     export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
 
-    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated_analysis")
+    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated-analysis")
+
+    if pipeline_config.analysis.google_drive_upload is None:
+        log.debug("Not uploading to Google Drive, because the 'google_drive_upload' configuration was None")
+    else:
+        log.info("Uploading outputs to Google Drive...")
+        google_drive_upload.init_client(
+            google_cloud_credentials_file_path,
+            pipeline_config.analysis.google_drive_upload.credentials_file_url
+        )
+
+        drive_dir = pipeline_config.analysis.google_drive_upload.drive_dir
+        google_drive_upload.upload_file(f"{output_dir}/production.csv", drive_dir)
+        google_drive_upload.upload_file(f"{output_dir}/messages.csv", drive_dir)
+        google_drive_upload.upload_file(f"{output_dir}/participants.csv", drive_dir)
+        google_drive_upload.upload_all_files_in_dir(
+            f"{output_dir}/automated-analysis", f"{drive_dir}/automated-analysis", recursive=True
+        )
