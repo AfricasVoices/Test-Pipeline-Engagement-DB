@@ -1,9 +1,11 @@
-from core_data_modules.analysis import engagement_counts, repeat_participations, theme_distributions, sample_messages
+from core_data_modules.analysis import (engagement_counts, repeat_participations, theme_distributions, sample_messages,
+                                        AnalysisConfiguration)
+from core_data_modules.analysis.mapping import participation_maps, kenya_mapper
 from core_data_modules.logging import Logger
 from core_data_modules.util import IOUtils
 
 from src.engagement_db_to_analysis.column_view_conversion import analysis_dataset_config_to_column_configs
-from src.engagement_db_to_analysis.configuration import DatasetTypes
+from src.engagement_db_to_analysis.configuration import DatasetTypes, KenyaAnalysisLocations
 
 log = Logger(__name__)
 
@@ -71,3 +73,25 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
         sample_messages.export_sample_messages_csv(
             messages_by_column, "consent_withdrawn", rqa_column_configs, f, limit_per_code=100
         )
+
+    log.info(f"Exporting participation maps for each location dataset...")
+    mappers = {
+        KenyaAnalysisLocations.COUNTY: kenya_mapper.export_kenya_counties_map,
+        KenyaAnalysisLocations.CONSTITUENCY: kenya_mapper.export_kenya_constituencies_map
+    }
+
+    for analysis_dataset_config in analysis_config.dataset_configurations:
+        for coding_config in analysis_dataset_config.coding_configs:
+            if coding_config.kenya_analysis_location is not None:
+                location_column_config = AnalysisConfiguration(
+                    dataset_name=coding_config.analysis_dataset,
+                    raw_field=analysis_dataset_config.raw_dataset,
+                    coded_field=f"{coding_config.analysis_dataset}_labels",
+                    code_scheme=coding_config.code_scheme
+                )
+
+                participation_maps.export_participation_maps(
+                    participants_by_column, "consent_withdrawn", rqa_column_configs, location_column_config,
+                    mappers[coding_config.kenya_analysis_location],
+                    f"{export_dir_path}/maps/{location_column_config.dataset_name}/{location_column_config.dataset_name}_"
+                )

@@ -54,15 +54,29 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                 updated_messages = engagement_db.get_messages(firestore_query_filter=incremental_messages_filter)
                 messages.extend(updated_messages)
 
-                # Check and remove cache messages that have been ws corrected after the previous run
-                ws_corrected_messages_filter = lambda q: q \
-                    .where("previous_datasets", "array_contains", engagement_db_dataset) \
-                    .where("last_updated", ">", latest_message_timestamp)
+                # Check and remove cached messages that have been ws corrected away from this dataset after the previous
+                # run. We do this by searching for all messages that used to be in this dataset, that we haven't
+                # already seen.
+                latest_ws_message_timestamp = cache.get_latest_message_timestamp(f"{engagement_db_dataset}_ws")
+                if latest_ws_message_timestamp is None:
+                    ws_corrected_messages_filter = lambda q: q \
+                        .where("previous_datasets", "array_contains", engagement_db_dataset)
+                else:
+                    ws_corrected_messages_filter = lambda q: q \
+                        .where("previous_datasets", "array_contains", engagement_db_dataset) \
+                        .where("last_updated", ">", latest_ws_message_timestamp)
 
                 ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
 
                 log.info(f"Downloaded {len(updated_messages)} updated messages in this dataset, and "
                          f"{len(ws_corrected_messages)} messages that were previously in this dataset but have moved.")
+
+                # Update the latest seen ws message from this dataset
+                if len(ws_corrected_messages) > 0:
+                    for msg in ws_corrected_messages:
+                        if latest_ws_message_timestamp is None or msg.last_updated > latest_ws_message_timestamp:
+                            latest_ws_message_timestamp = msg.last_updated
+                    cache.set_latest_message_timestamp(f"{engagement_db_dataset}_ws", latest_ws_message_timestamp)
 
                 cache_messages = cache.get_messages(engagement_db_dataset)
                 for msg in cache_messages:
@@ -88,9 +102,12 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                     latest_message_timestamp = msg_last_updated
 
             if cache is not None:
-                # Export latest message timestamp to cache
+                # Export latest message timestamp to cache.
+                # Export as both the last seen for this dataset and for the ws case, as there will be no need to
+                # check for ws messages that moved from this dataset before this initial fetch.
                 if latest_message_timestamp is not None:
                     cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
+                    cache.set_latest_message_timestamp(f"{engagement_db_dataset}_ws", latest_message_timestamp)
 
                 # Export project engagement_dataset files
                 if len(messages) > 0:
@@ -130,7 +147,7 @@ def export_traced_data(traced_data, export_path):
 
 
 def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, cache_path=None):
-    analysis_dataset_configurations = pipeline_config.analysis_configs.dataset_configurations
+    analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
     # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
 
     messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
@@ -141,22 +158,22 @@ def generate_analysis_files(user, pipeline_config, engagement_db, output_dir, ca
 
     impute_codes_by_message(user, messages_traced_data, analysis_dataset_configurations)
 
-    messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
-    participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis_configs)
+    messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis)
+    participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
 
     log.info(f"Imputing messages column-view traced data...")
-    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis_configs.dataset_configurations)
+    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis.dataset_configurations)
 
     log.info(f"Imputing participants column-view traced data...")
-    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis_configs.dataset_configurations)
+    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis.dataset_configurations)
 
     # Export to hard-coded files for now.
-    export_production_file(messages_by_column, pipeline_config.analysis_configs, f"{output_dir}/production.csv")
+    export_production_file(messages_by_column, pipeline_config.analysis, f"{output_dir}/production.csv")
 
-    export_analysis_file(messages_by_column, pipeline_config.analysis_configs.dataset_configurations, f"{output_dir}/messages.csv")
-    export_analysis_file(participants_by_column, pipeline_config.analysis_configs.dataset_configurations, f"{output_dir}/participants.csv")
+    export_analysis_file(messages_by_column, pipeline_config.analysis.dataset_configurations, f"{output_dir}/messages.csv")
+    export_analysis_file(participants_by_column, pipeline_config.analysis.dataset_configurations, f"{output_dir}/participants.csv")
 
     export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
     export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
 
-    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis_configs, f"{output_dir}/automated_analysis")
+    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated_analysis")
