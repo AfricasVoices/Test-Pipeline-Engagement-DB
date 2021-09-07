@@ -3,11 +3,26 @@
 set -e
 
 PROJECT_NAME="$(<configurations/docker_image_project_name.txt)"
-IMAGE_NAME=$PROJECT_NAME-sync-engagement-db-to-rapidpro
+IMAGE_NAME=$PROJECT_NAME-sync-engagement-db-to-coda
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --incremental-cache-volume)
+            INCREMENTAL_ARG="--incremental-cache-path /cache"
+            INCREMENTAL_CACHE_VOLUME_NAME="$2"
+            shift 2;;
+        --)
+            shift
+            break;;
+        *)
+            break;;
+    esac
+done
 
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 3 ]]; then
-    echo "Usage: $0
+    echo "Usage: $0 
+    [--incremental-cache-volume <incremental-cache-volume>] 
     <user> <google-cloud-credentials-file-path> <configuration-module>"
     exit
 fi
@@ -21,11 +36,14 @@ CONFIGURATION_MODULE=$3
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u sync_rapid_pro_to_engagement_db.py ${USER} \
-    /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE}"
+CMD="pipenv run python -u sync_engagement_db_to_coda.py ${INCREMENTAL_ARG} \
+    ${USER} /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE}"
 
-
-container="$(docker container create -w /app "$IMAGE_NAME" /bin/bash -c "$CMD")"
+if [[ "$INCREMENTAL_ARG" ]]; then
+    container="$(docker container create -w /app --mount source="$INCREMENTAL_CACHE_VOLUME_NAME",target=/cache "$IMAGE_NAME" /bin/bash -c "$CMD")"
+else
+    container="$(docker container create -w /app "$IMAGE_NAME" /bin/bash -c "$CMD")"
+fi
 
 echo "Created container $container"
 container_short_id=${container:0:7}
