@@ -58,9 +58,9 @@ echo "Starting container $container_short_id"
 docker start -a -i "$container"
 
 # Copy the output data back out of the container
-echo "Copying $container_short_id:/data/analysis-output/. -> $OUTPUT_DIR"
+echo "Copying $container_short_id:/data/analysis-outputs/. -> $OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
-docker cp "$container:/data/analysis-output/." "$OUTPUT_DIR"
+docker cp "$container:/data/analysis-outputs/." "$OUTPUT_DIR"
 
 # Tear down the container when it has run successfully
 docker container rm "$container" >/dev/null
