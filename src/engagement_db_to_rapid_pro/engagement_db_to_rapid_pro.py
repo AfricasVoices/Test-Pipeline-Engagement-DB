@@ -51,9 +51,9 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
     """
     Synchronises an engagement database to Rapid Pro.
 
-    :param engagement_db: Engagement database to sync to.
+    :param engagement_db: Engagement database to sync from.
     :type engagement_db: engagement_database.EngagementDatabase
-    :param rapid_pro: Rapid Pro client to sync from.
+    :param rapid_pro: Rapid Pro client to sync to.
     :type rapid_pro: rapid_pro_tools.rapid_pro_client.RapidProClient
     :param uuid_table: UUID table to use to de-identify contact urns.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
