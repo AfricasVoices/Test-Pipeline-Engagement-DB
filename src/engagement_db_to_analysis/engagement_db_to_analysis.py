@@ -105,7 +105,7 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                     seen_message_ids.add(msg.message_id)
                     latest_messages.append(msg)
 
-            log.info(f"Filtered for latest messages: {len(latest_messages)}/{len(messages)} messages remain")
+            log.info(f"Filtered for latest message snapshots: {len(latest_messages)}/{len(messages)} snapshots remain")
             messages = latest_messages
             engagement_db_dataset_messages_map[engagement_db_dataset] = messages
 
