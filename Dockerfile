@@ -4,6 +4,9 @@ FROM python:3.8-slim
 RUN apt-get update && apt-get install -y git
 RUN pip install pipenv
 
+# ARM support
+RUN apt-get update && apt-get install -y libgeos-dev libgdal-dev build-essential
+
 # Make a directory for private credentials files
 RUN mkdir /credentials
 
