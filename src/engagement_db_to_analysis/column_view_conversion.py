@@ -1,4 +1,5 @@
 from core_data_modules.analysis import AnalysisConfiguration
+from core_data_modules.logging import Logger
 from core_data_modules.traced_data import Metadata, TracedData
 from core_data_modules.traced_data.util.fold_traced_data import FoldStrategies
 from core_data_modules.util import TimeUtils
@@ -12,6 +13,9 @@ This module contains utility functions for converting configurations and dataset
 configuration files and for the stages of analysis (that operate on messages) to the format used for the later stages 
 of analysis (that operate on collated data, either by participant, rqa message, or by project).
 """
+
+
+log = Logger(__name__)
 
 
 def analysis_dataset_config_to_column_configs(analysis_dataset_config):
@@ -132,6 +136,44 @@ def get_latest_labels_with_code_scheme(message, code_scheme):
     return latest_labels_with_code_scheme
 
 
+def _filter_out_demogs_only(messages_traced_data, analysis_dataset_configs):
+    """
+    Filters out messages from participants who only sent demographics.
+
+    :param messages_traced_data: Messages traced data to filter.
+    :type messages_traced_data: list of core_data_modules.traced_data.TracedData
+    :param analysis_dataset_configs: Configuration for the filter.
+    :type analysis_dataset_configs: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
+    :param messages_traced_data: Filtered messages traced data.
+    :type messages_traced_data: list of core_data_modules.traced_data.TracedData
+    """
+    # Find the rqa engagement_db datasets in the given configuration.
+    rqa_engagement_db_datasets = []
+    for config in analysis_dataset_configs:
+        if config.dataset_type == DatasetTypes.RESEARCH_QUESTION_ANSWER:
+            rqa_engagement_db_datasets.extend(config.engagement_db_datasets)
+
+    # Find the participants who have a message in an rqa engagement_db dataset
+    rqa_participant_uuids = set()
+    for msg in messages_traced_data:
+        for rqa_dataset in rqa_engagement_db_datasets:
+            if msg["dataset"] == rqa_dataset:
+                rqa_participant_uuids.add(msg["participant_uuid"])
+
+    # Filter all the messages so that we exclude messages from people who didn't send an rqa.
+    filtered = []
+    excluded_uuids = set()
+    for msg in messages_traced_data:
+        if msg["participant_uuid"] in rqa_participant_uuids:
+            filtered.append(msg)
+        else:
+            excluded_uuids.add(msg["participant_uuid"])
+
+    log.info(f"Filtered out messages from participants who only sent demogs. Returning "
+             f"{len(filtered)}/{len(messages_traced_data)} messages (excluded {len(excluded_uuids)} uuids)")
+    return filtered
+
+
 def _add_message_to_column_td(user, message_td, column_td, analysis_dataset_configs):
     """
     Adds a message to a "column-view" TracedData object in-place.
@@ -215,6 +257,10 @@ def convert_to_messages_column_format(user, messages_traced_data, analysis_confi
     :return: Messages organised by rqa message into column-view format suitable for further analysis.
     :rtype: list of core_data_modules.traced_data.TracedData
     """
+    log.info(f"Converting {len(messages_traced_data)} messages traced data objects to column-view format by "
+             f"message...")
+    messages_traced_data = _filter_out_demogs_only(messages_traced_data, analysis_config.dataset_configurations)
+
     messages_by_column = dict()  # of participant_uuid -> list of rqa messages in column view
 
     # Conduct the conversion in 2 passes.
@@ -254,6 +300,9 @@ def convert_to_messages_column_format(user, messages_traced_data, analysis_confi
     flattened_messages = []
     for msgs in messages_by_column.values():
         flattened_messages.extend(msgs)
+
+    log.info(f"Converted {len(messages_traced_data)} messages traced data objects to {len(flattened_messages)} "
+             f"column-view format objects, by message")
     return flattened_messages
 
 
@@ -273,6 +322,10 @@ def convert_to_participants_column_format(user, messages_traced_data, analysis_c
     :return: Messages organised by participant into column-view format  suitable for further analysis.
     :rtype: list of core_data_modules.traced_data.TracedData
     """
+    log.info(f"Converting {len(messages_traced_data)} messages traced data objects to column-view format by "
+             f"participant...")
+    messages_traced_data = _filter_out_demogs_only(messages_traced_data, analysis_config.dataset_configurations)
+
     participants_by_column = dict()  # of participant_uuid -> participant traced data in column view
     for msg_td in messages_traced_data:
         message = Message.from_dict(dict(msg_td))
@@ -287,5 +340,8 @@ def convert_to_participants_column_format(user, messages_traced_data, analysis_c
         # Add this message to the relevant participant's column-view TracedData.
         participant = participants_by_column[message.participant_uuid]
         _add_message_to_column_td(user, msg_td, participant, analysis_config.dataset_configurations)
+
+    log.info(f"Converted {len(messages_traced_data)} messages traced data objects to "
+             f"{len(participants_by_column.values())} column-view format objects, by participant")
 
     return list(participants_by_column.values())
