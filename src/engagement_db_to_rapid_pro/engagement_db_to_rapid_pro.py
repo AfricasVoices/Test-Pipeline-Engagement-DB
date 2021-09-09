@@ -51,9 +51,9 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
     """
     Synchronises an engagement database to Rapid Pro.
 
-    :param engagement_db: Engagement database to sync to.
+    :param engagement_db: Engagement database to sync from.
     :type engagement_db: engagement_database.EngagementDatabase
-    :param rapid_pro: Rapid Pro client to sync from.
+    :param rapid_pro: Rapid Pro client to sync to.
     :type rapid_pro: rapid_pro_tools.rapid_pro_client.RapidProClient
     :param uuid_table: UUID table to use to de-identify contact urns.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
@@ -81,7 +81,8 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         dataset.append(msg)
 
     # Make sure all the contact fields exist in the Rapid Pro workspace.
-    contact_fields_to_sync = [dataset_config.rapid_pro_contact_field for dataset_config in sync_config.normal_datasets]
+    contact_fields_to_sync = [dataset_config.rapid_pro_contact_field \
+        for dataset_config in sync_config.normal_datasets] if sync_config.normal_datasets is not None else []
     if sync_config.consent_withdrawn_dataset is not None:
         contact_fields_to_sync.append(sync_config.consent_withdrawn_dataset.rapid_pro_contact_field)
     _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields_to_sync)
