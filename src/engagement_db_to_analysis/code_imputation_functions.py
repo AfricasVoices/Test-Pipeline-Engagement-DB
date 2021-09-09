@@ -7,10 +7,10 @@ from core_data_modules.traced_data import Metadata
 from core_data_modules.util import TimeUtils
 from engagement_database.data_models import Message
 
-from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs)
+from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs,
+                                                                  analysis_dataset_configs_to_demog_column_configs)
 from src.engagement_db_to_analysis.column_view_conversion import (get_latest_labels_with_code_scheme,
-                                                                  analysis_dataset_config_for_message,
-                                                                  analysis_dataset_config_to_column_configs)
+                                                                  analysis_dataset_config_for_message)
 from src.pipeline_configuration_spec import *
 
 log = Logger(__name__)
@@ -331,15 +331,6 @@ def _impute_true_missing(user, column_traced_data_iterable, analysis_dataset_con
              f"traced data items")
 
 
-# TODO: This is a clone of the function introduced by #86. Use a common definition once #86 is merged.
-def _get_demog_column_configs(analysis_dataset_configs):
-    demog_column_configs = []
-    for analysis_dataset_config in analysis_dataset_configs:
-        if analysis_dataset_config.dataset_type == DatasetTypes.DEMOGRAPHIC:
-            demog_column_configs.extend(analysis_dataset_config_to_column_configs(analysis_dataset_config))
-    return demog_column_configs
-
-
 def _demog_has_conflicting_normal_labels(column_traced_data, column_config):
     """
     :param column_traced_data: Column-view traced data to check.
@@ -405,7 +396,7 @@ def _impute_nic_demogs(user, column_traced_data_iterable, analysis_dataset_confi
     imputed_codes = 0
     log.info(f"Imputing {Codes.NOT_INTERNALLY_CONSISTENT} codes...")
 
-    demog_column_configs = _get_demog_column_configs(analysis_dataset_configs)
+    demog_column_configs = analysis_dataset_configs_to_demog_column_configs(analysis_dataset_configs)
     for td in column_traced_data_iterable:
         for column_config in demog_column_configs:
             if _demog_has_conflicting_normal_labels(td, column_config):

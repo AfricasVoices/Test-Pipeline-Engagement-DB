@@ -4,26 +4,11 @@ from core_data_modules.analysis.mapping import participation_maps, kenya_mapper
 from core_data_modules.logging import Logger
 from core_data_modules.util import IOUtils
 
-from src.engagement_db_to_analysis.column_view_conversion import analysis_dataset_config_to_column_configs
-from src.engagement_db_to_analysis.configuration import DatasetTypes, AnalysisLocations
+from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_rqa_column_configs,
+                                                                  analysis_dataset_configs_to_demog_column_configs)
+from src.engagement_db_to_analysis.configuration import AnalysisLocations
 
 log = Logger(__name__)
-
-
-def _get_rqa_column_configs(analysis_config):
-    rqa_column_configs = []
-    for analysis_dataset_config in analysis_config.dataset_configurations:
-        if analysis_dataset_config.dataset_type == DatasetTypes.RESEARCH_QUESTION_ANSWER:
-            rqa_column_configs.extend(analysis_dataset_config_to_column_configs(analysis_dataset_config))
-    return rqa_column_configs
-
-
-def _get_demog_column_configs(analysis_config):
-    demog_column_configs = []
-    for analysis_dataset_config in analysis_config.dataset_configurations:
-        if analysis_dataset_config.dataset_type == DatasetTypes.DEMOGRAPHIC:
-            demog_column_configs.extend(analysis_dataset_config_to_column_configs(analysis_dataset_config))
-    return demog_column_configs
 
 
 def run_automated_analysis(messages_by_column, participants_by_column, analysis_config, export_dir_path):
@@ -40,8 +25,8 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
     :type export_dir_path: str
     """
     log.info(f"Running automated analysis...")
-    rqa_column_configs = _get_rqa_column_configs(analysis_config)
-    demog_column_configs = _get_demog_column_configs(analysis_config)
+    rqa_column_configs = analysis_dataset_configs_to_rqa_column_configs(analysis_config.dataset_configurations)
+    demog_column_configs = analysis_dataset_configs_to_demog_column_configs(analysis_config.dataset_configurations)
     IOUtils.ensure_dirs_exist(export_dir_path)
 
     log.info(f"Exporting engagement counts.csv...")

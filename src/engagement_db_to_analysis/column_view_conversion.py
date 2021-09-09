@@ -48,13 +48,47 @@ def analysis_dataset_configs_to_column_configs(analysis_dataset_configs):
 
     :param analysis_dataset_configs: Analysis dataset configurations to convert.
     :type analysis_dataset_configs: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
-    :return: List of all the column configurations for this analysis dataset configuration.
+    :return: List of all the column configurations for the analysis dataset configurations.
     :rtype: list of core_data_modules.analysis.analysis_utils.AnalysisConfiguration
     """
     column_configs = []
     for analysis_dataset_config in analysis_dataset_configs:
         column_configs.extend(analysis_dataset_config_to_column_configs(analysis_dataset_config))
     return column_configs
+
+
+def analysis_dataset_configs_to_rqa_column_configs(analysis_dataset_configs):
+    """
+    Converts a list of analysis dataset configurations to a list of "column-view" configurations, for the rqa datasets
+    only.
+
+    :param analysis_dataset_configs: Analysis dataset configurations to convert.
+    :type analysis_dataset_configs: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
+    :return: List of rqa column configurations for the analysis dataset configurations.
+    :rtype: list of core_data_modules.analysis.analysis_utils.AnalysisConfiguration
+    """
+    rqa_column_configs = []
+    for analysis_dataset_config in analysis_dataset_configs:
+        if analysis_dataset_config.dataset_type == DatasetTypes.RESEARCH_QUESTION_ANSWER:
+            rqa_column_configs.extend(analysis_dataset_config_to_column_configs(analysis_dataset_config))
+    return rqa_column_configs
+
+
+def analysis_dataset_configs_to_demog_column_configs(analysis_dataset_configs):
+    """
+    Converts a list of analysis dataset configurations to a list of "column-view" configurations, for the demographic
+    datasets only.
+
+    :param analysis_dataset_configs: Analysis dataset configurations to convert.
+    :type analysis_dataset_configs: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
+    :return: List of demographic column configurations for the analysis dataset configurations.
+    :rtype: list of core_data_modules.analysis.analysis_utils.AnalysisConfiguration
+    """
+    demog_column_configs = []
+    for analysis_dataset_config in analysis_dataset_configs:
+        if analysis_dataset_config.dataset_type == DatasetTypes.DEMOGRAPHIC:
+            demog_column_configs.extend(analysis_dataset_config_to_column_configs(analysis_dataset_config))
+    return demog_column_configs
 
 
 def analysis_dataset_config_for_message(analysis_dataset_configs, message):
