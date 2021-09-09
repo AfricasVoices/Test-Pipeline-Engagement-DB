@@ -95,6 +95,18 @@ def _get_project_messages_from_engagement_db(analysis_dataset_configurations, en
                 messages = engagement_db.get_messages(firestore_query_filter=full_download_filter)
                 log.info(f"Downloaded {len(messages)} messages")
 
+            # Filter messages for their latest versions
+            # (Filter by sorting in reverse order of last_updated and keeping the first snapshot we see of each id)
+            latest_messages = []
+            seen_message_ids = set()
+            messages.sort(key=lambda msg: msg.last_updated, reverse=True)
+            for msg in messages:
+                if msg.message_id not in seen_message_ids:
+                    seen_message_ids.add(msg.message_id)
+                    latest_messages.append(msg)
+
+            log.info(f"Filtered for latest message snapshots: {len(latest_messages)}/{len(messages)} snapshots remain")
+            messages = latest_messages
             engagement_db_dataset_messages_map[engagement_db_dataset] = messages
 
             # Update latest_message_timestamp
