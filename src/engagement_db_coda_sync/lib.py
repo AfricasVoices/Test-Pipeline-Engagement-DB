@@ -1,7 +1,8 @@
 from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
-from core_data_modules.data_models import Message as CodaMessage
+from core_data_modules.data_models import Message as CodaMessage, Label, Origin
 from core_data_modules.logging import Logger
+from core_data_modules.traced_data import Metadata
 from core_data_modules.util import TimeUtils
 from engagement_database.data_models import HistoryEntryOrigin
 
@@ -92,7 +93,69 @@ def _code_for_label(label, code_schemes):
                      f"(these have ids {[scheme.scheme_id for scheme in code_schemes]})")
 
 
-def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_scheme):
+def _impute_coding_error(coda_message, coda_dataset_config, ws_correct_dataset_code_scheme):
+    """
+
+    :param coda_message: Coda message to use to update the engagement database message.
+    :type coda_message: core_data_modules.data_models.Message
+    :param coda_config: Configuration for the update.
+    :type coda_config:  src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    """
+    normal_code_schemes = [c.code_scheme for c in coda_dataset_config.code_scheme_configurations]
+    ws_code_scheme = ws_correct_dataset_code_scheme
+
+    # Check for a WS code in any of the normal code schemes
+    ws_code_in_normal_scheme = False
+    for label in coda_message.get_latest_labels():
+        if not label.checked:
+            continue
+
+        if label.scheme_id != ws_code_scheme.scheme_id:
+            code = _code_for_label(label, normal_code_schemes)
+            if code.control_code == Codes.WRONG_SCHEME:
+                ws_code_in_normal_scheme = True
+
+    # Check for a code in the WS code scheme
+    code_in_ws_scheme = False
+    for label in coda_message.get_latest_labels():
+        if not label.checked:
+            continue
+
+        if label.scheme_id == ws_code_scheme.scheme_id:
+            code_in_ws_scheme = True
+
+    # Ensure there is a WS code in a normal scheme and a code in the WS scheme.
+    # If there isn't, impute a coding_error code.
+    if ws_code_in_normal_scheme != code_in_ws_scheme:
+        log.warning(f"Imputing {Codes.CODING_ERROR} code (because ws_code_in_normal_scheme {ws_code_in_normal_scheme}) "
+                    f"!= code_in_ws_scheme {code_in_ws_scheme} (message id {coda_message.message_id})")
+        # Clear all duplicate schemes
+        valid_code_scheme_ids = [code_scheme.scheme_id for code_scheme in normal_code_schemes] + [ws_code_scheme.scheme_id]
+        for label in coda_message.get_latest_labels():
+            cleared_label = None
+            for scheme_id in valid_code_scheme_ids:
+                if label.scheme_id.startswith(scheme_id):
+                    cleared_label = Label(
+                        scheme_id,
+                        "SPECIAL-MANUALLY_UNCODED",
+                        TimeUtils.utc_now_as_iso_string(),
+                        Origin(Metadata.get_call_location(), "Engagement DB <-> Coda Sync", "External")
+                    )
+            assert cleared_label is not None
+            coda_message.labels.insert(0, cleared_label)
+
+        # Append a CE code under every normal + WS code scheme
+        for code_scheme in normal_code_schemes + [ws_code_scheme]:
+            ce_label = CleaningUtils.make_label_from_cleaner_code(
+                code_scheme,
+                code_scheme.get_code_with_control_code(Codes.CODING_ERROR),
+                Metadata.get_call_location(),
+                set_checked=True
+            )
+            coda_message.labels.insert(0, ce_label)
+
+
+def _get_ws_code(coda_message, ws_code_scheme):
     """
     Gets the WS code assigned to a Coda message, if it exists, otherwise returns None.
 
@@ -105,40 +168,19 @@ def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_sche
     :return: WS code assigned to this message, if it exists.
     :rtype: core_data_modules.data_models.Code | None
     """
-    normal_code_schemes = [c.code_scheme for c in coda_dataset_config.code_scheme_configurations]
-    ws_code_scheme = ws_correct_dataset_code_scheme
-
-    # Check for a WS code in any of the normal code schemes
-    ws_code_in_normal_scheme = False
     for label in coda_message.get_latest_labels():
-        if label.scheme_id != ws_code_scheme.scheme_id:
-            code = _code_for_label(label, normal_code_schemes)
-            if code.control_code == Codes.WRONG_SCHEME:
-                ws_code_in_normal_scheme = True
+        if not label.checked:
+            continue
 
-    # Check for a code in the WS code scheme
-    code_in_ws_scheme = False
-    ws_code = None
-    for label in coda_message.get_latest_labels():
         if label.scheme_id == ws_code_scheme.scheme_id:
-            code_in_ws_scheme = True
             ws_code = ws_code_scheme.get_code_with_code_id(label.code_id)
+            if ws_code.control_code in {Codes.NOT_CODED, Codes.CODING_ERROR}:
+                log.warning(f"Code in WS - Correct Dataset scheme has control code '{ws_code.control_code}'; "
+                            f"cannot redirect message")
+                return None
+            return ws_code
 
-    # Ensure there is a WS code in a normal scheme and a code in the WS scheme.
-    # If there isn't, don't attempt any redirect, so we can impute a CE code later.
-    if ws_code_in_normal_scheme != code_in_ws_scheme:
-        # TODO: Impute CE here?
-        log.warning(f"Not WS-correcting message because ws_code_in_normal_scheme ({ws_code_in_normal_scheme}) "
-                    f"!= code_in_ws_scheme ({code_in_ws_scheme})")
-        ws_code = None
-
-    # If the ws code is 'NC', that means the message was labelled as being in the wrong place, but the right place
-    # was unknown/could not be specified. In this case, don't redirect, so we can see the 'WS' in analysis.
-    if ws_code is not None and ws_code.control_code == Codes.NOT_CODED:
-        log.warning(f"Code in WS - Correct Dataset scheme has control code '{Codes.NOT_CODED}'; cannot redirect message")
-        ws_code = None
-
-    return ws_code
+    return None
 
 
 def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db_message, coda_message, coda_config,
@@ -166,11 +208,14 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(engagement_db_message.dataset)
     sync_stats = EngagementDBToCodaSyncStats()
 
+    # Impute Coding Errors, if needed.
+    _impute_coding_error(coda_message, coda_dataset_config, coda_config.ws_correct_dataset_code_scheme)
+
     # Check if the labels in the engagement database message already match those from the coda message, and that
     # we don't need to WS-correct (in other words, that the dataset is correct).
     # If they do, return without updating anything.
-    ws_code = _get_ws_code(coda_message, coda_dataset_config, coda_config.ws_correct_dataset_code_scheme)
-    if engagement_db_message.labels == coda_message.labels and ws_code is None:
+    ws_code = _get_ws_code(coda_message, coda_config.ws_correct_dataset_code_scheme)
+    if len(engagement_db_message.labels) == len(coda_message.labels):
         log.debug("Labels match")
         sync_stats.add_event(CodaSyncEvents.LABELS_MATCH)
         return sync_stats
