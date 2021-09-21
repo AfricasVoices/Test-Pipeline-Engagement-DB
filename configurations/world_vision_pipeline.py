@@ -119,7 +119,18 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 dataset_type=DatasetTypes.DEMOGRAPHIC,
                 raw_dataset="age_raw",
                 coding_configs=[
-                    CodingConfiguration(code_scheme=load_code_scheme("age"), analysis_dataset="age")
+                    CodingConfiguration(code_scheme=load_code_scheme("age"), analysis_dataset="age"),
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("age_category"),
+                        analysis_dataset="age_category",
+                        age_category_config=AgeCategoryConfiguration("age", categories={
+                            (10, 14): "10 to 14",
+                            (15, 17): "15 to 17",
+                            (18, 35): "18 to 35",
+                            (36, 54): "36 to 54",
+                            (55, 99): "55 to 99"
+                        })
+                    )
                 ]
             ),
             AnalysisDatasetConfiguration(
