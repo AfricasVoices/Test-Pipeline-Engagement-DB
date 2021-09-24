@@ -139,7 +139,7 @@
                 "mapping"
             ],
             "git": "https://github.com/AfricasVoices/CoreDataModules",
-            "ref": "69a851e2229672b07d6c9eeaf2e30aab243035c9"
+            "ref": "f6ec7d3b972843e4b7f9b0dad1c02a4dfc384efe"
         },
         "cycler": {
             "hashes": [
@@ -658,7 +658,7 @@
         "pipelineinfrastructure": {
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",
-            "ref": "a9ed1c185b07825d72010df7bfb200246cefea61"
+            "ref": "5895d150e9088d70ca6f27a7b7643e0eec6cb6cd"
         },
         "proto-plus": {
             "hashes": [
