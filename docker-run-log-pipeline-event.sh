@@ -8,7 +8,7 @@ IMAGE_NAME=$PROJECT_NAME-log-pipeline-event
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 4 ]]; then
     echo "Usage: ./docker-run-log-pipeline-event.sh
-    [--profile-cpu <cpu-profile-output-path>] <google-cloud-credentials-file-path> <configuration-module>\
+    [--profile-cpu <cpu-profile-output-path>] <configuration-module> <google-cloud-credentials-file-path> \
      <run-id> <event-key>"
     echo "Updates pipeline event/status to a firebase table to aid in monitoring"
     exit
