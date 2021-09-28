@@ -47,4 +47,5 @@ class GoogleDriveUploadConfiguration:
 @dataclass
 class AnalysisConfiguration:
     dataset_configurations: [AnalysisDatasetConfiguration]
+    ws_correct_dataset_code_scheme: CodeScheme
     google_drive_upload: Optional[GoogleDriveUploadConfiguration] = None
