@@ -17,6 +17,23 @@ from src.pipeline_configuration_spec import *
 log = Logger(__name__)
 
 
+def _clear_latest_labels(user, message_td, code_schemes):
+    message = Message.from_dict(dict(message_td))
+    code_scheme_ids = [code_scheme.scheme_id for code_scheme in code_schemes]
+    for label in message.get_latest_labels():
+        cleared_label = None
+        for scheme_id in code_scheme_ids:
+            if label.scheme_id.startswith(scheme_id):
+                cleared_label = Label(
+                    label.scheme_id,
+                    "SPECIAL-MANUALLY_UNCODED",
+                    TimeUtils.utc_now_as_iso_string(),
+                    Origin(Metadata.get_call_location(), "Engagement DB -> Analysis", "External")
+                )
+        assert cleared_label is not None
+        _insert_label_to_message_td(user, message_td, cleared_label)
+
+
 def _insert_label_to_message_td(user, message_traced_data, label):
     """
     Inserts a new label to the list of labels for this message, and writes-back to TracedData.
@@ -36,9 +53,16 @@ def _insert_label_to_message_td(user, message_traced_data, label):
         Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
 
 
-def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs):
+def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme):
     """
     Imputes Codes.NOT_REVIEWED label for messages that have not been manually checked in coda.
+
+    A message is considered to be manually checked if it contains only labels which are checked. Messages that fall
+    into this case will not be modified.
+
+    If a message contains only unchecked labels (or no labels), the labels will be replaced with Codes.NOT_REVIEWED.
+
+    If a message contains a mix of checked and unchecked labels, the labels will be replaced with Codes.CODING_ERROR.
 
     :param user: Identifier of user running the pipeline.
     :type user: str
@@ -46,40 +70,66 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
     :type messages_traced_data: list of TracedData
     :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    :param ws_correct_dataset_code_scheme: WS - Correct Dataset code scheme.
+    :type ws_correct_dataset_code_scheme: core_data_modules.data_models.CodeScheme
     """
 
     log.info(f"Imputing {Codes.NOT_REVIEWED} labels...")
-    imputed_labels = 0
+    messages_with_nr_imputed = 0
+    messages_with_ce_imputed = 0
     for message_td in messages_traced_data:
         message = Message.from_dict(dict(message_td))
 
         message_analysis_config = analysis_dataset_config_for_message(analysis_dataset_configs, message)
 
         # Check if the message has a manual label and impute NOT_REVIEWED if it doesn't
-        manually_labelled = False
-        for coding_config in message_analysis_config.coding_configs:
+        has_checked_label = False
+        has_unchecked_label = False
+        code_schemes = [c.code_scheme for c in message_analysis_config.coding_configs]
+        code_schemes.append(ws_correct_dataset_code_scheme)
+        for code_scheme in code_schemes:
             latest_labels_with_code_scheme = get_latest_labels_with_code_scheme(
-                message, coding_config.code_scheme
+                message, code_scheme
             )
             for label in latest_labels_with_code_scheme:
                 if label.checked:
-                    manually_labelled = True
+                    has_checked_label = True
+                else:
+                    has_unchecked_label = True
 
-        if manually_labelled:
+        if has_checked_label and not has_unchecked_label:
+            # Message is exclusively manually reviewed
             continue
 
-        code_scheme = message_analysis_config.coding_configs[0].code_scheme
-        not_reviewed_label = CleaningUtils.make_label_from_cleaner_code(
-            code_scheme, code_scheme.get_code_with_control_code(Codes.NOT_REVIEWED),
-            Metadata.get_call_location())
+        if has_checked_label and has_unchecked_label:
+            # The message has been partially reviewed. Map this to coding error.
+            _clear_latest_labels(user, message_td, code_schemes)
 
-        # Insert not_reviewed_label to the list of labels for this message, and write-back to TracedData.
-        _insert_label_to_message_td(user, message_td, not_reviewed_label)
+            for code_scheme in code_schemes:
+                coding_error_label = CleaningUtils.make_label_from_cleaner_code(
+                    code_scheme, code_scheme.get_code_with_control_code(Codes.CODING_ERROR),
+                    Metadata.get_call_location())
 
-        imputed_labels += 1
+                # Insert a coding error label to the list of labels for this message, and write-back to TracedData.
+                _insert_label_to_message_td(user, message_td, coding_error_label)
+            messages_with_ce_imputed += 1
+            continue
 
-    log.info(f"Imputed {imputed_labels} {Codes.NOT_REVIEWED} labels for {len(messages_traced_data)} "
-             f"messages traced data")
+        # Label has not been manually reviewed at all, so replace the codes with Codes.NOT_REVIEWED
+        assert not has_checked_label
+        _clear_latest_labels(user, message_td, code_schemes)
+        for code_scheme in code_schemes:
+            not_reviewed_label = CleaningUtils.make_label_from_cleaner_code(
+                code_scheme, code_scheme.get_code_with_control_code(Codes.NOT_REVIEWED),
+                Metadata.get_call_location())
+
+            # Insert not_reviewed_label to the list of labels for this message, and write-back to TracedData.
+            _insert_label_to_message_td(user, message_td, not_reviewed_label)
+        messages_with_nr_imputed += 1
+
+    log.info(f"Processed {Codes.NOT_REVIEWED} labels for {len(messages_traced_data)} messages traced data. "
+             f"Imputed {Codes.NOT_REVIEWED} labels for {messages_with_nr_imputed} messages, and "
+             f"imputed {Codes.CODING_ERROR} labels for {messages_with_ce_imputed} messages")
 
 
 def _code_for_label(label, code_schemes):
@@ -153,20 +203,7 @@ def _impute_ws_coding_errors(user, messages_traced_data, analysis_dataset_config
             imputed_labels += 1
 
             # Clear all duplicate schemes
-            valid_code_scheme_ids = [code_scheme.scheme_id for code_scheme in normal_code_schemes]
-            valid_code_scheme_ids.append(ws_correct_dataset_code_scheme.scheme_id)
-            for label in message.get_latest_labels():
-                cleared_label = None
-                for scheme_id in valid_code_scheme_ids:
-                    if label.scheme_id.startswith(scheme_id):
-                        cleared_label = Label(
-                            scheme_id,
-                            "SPECIAL-MANUALLY_UNCODED",
-                            TimeUtils.utc_now_as_iso_string(),
-                            Origin(Metadata.get_call_location(), "Engagement DB -> Analysis", "External")
-                        )
-                assert cleared_label is not None
-                _insert_label_to_message_td(user, message_td, cleared_label)
+            _clear_latest_labels(user, message_td, normal_code_schemes + [ws_correct_dataset_code_scheme])
 
             # Append a CE code under every normal + WS code scheme
             for code_scheme in normal_code_schemes + [ws_correct_dataset_code_scheme]:
@@ -388,7 +425,7 @@ def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs
     :param ws_correct_dataset_code_scheme: WS - Correct Dataset code scheme.
     :type ws_correct_dataset_code_scheme: core_data_modules.data_models.CodeScheme
     """
-    _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs)
+    _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme)
     _impute_ws_coding_errors(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme)
     _impute_age_category(user, messages_traced_data, analysis_dataset_configs)
     _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_configs)
