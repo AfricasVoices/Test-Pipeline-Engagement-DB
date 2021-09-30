@@ -216,7 +216,7 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
         engagement_db_message.dataset = correct_dataset
 
         origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
-                          "coda_message": coda_message.to_firebase_map()}
+                          "coda_message": coda_message.to_dict(serialize_datetimes_to_str=True)}
         engagement_db.set_message(
             message=engagement_db_message,
             origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync (WS Correction)", details=origin_details),
@@ -230,7 +230,7 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     # message in Coda.
     engagement_db_message.labels = coda_message.labels
     origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
-                      "coda_message": coda_message.to_firebase_map()}
+                      "coda_message": coda_message.to_dict(serialize_datetimes_to_str=True)}
     engagement_db.set_message(
         message=engagement_db_message,
         origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync", details=origin_details),
