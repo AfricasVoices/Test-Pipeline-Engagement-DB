@@ -300,6 +300,11 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                 county_coding_config = coding_config
 
     if constituency_coding_config is not None and county_coding_config is not None:
+        imputed_normal_labels = 0
+        imputed_meta_labels = 0
+        imputed_control_labels = 0
+        detected_coding_errors = 0
+
         for message_traced_data in messages_traced_data:
             message = Message.from_dict(dict(message_traced_data))
             if message.dataset in location_engagement_db_datasets:
@@ -321,6 +326,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                                 location_code = constituency_coding_config.code_scheme.get_code_with_control_code(
                                     Codes.CODING_ERROR
                                 )
+                                detected_coding_errors += 1
                         else:
                             location_code = coda_code
 
@@ -334,7 +340,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                             Metadata.get_call_location())
 
                         _insert_label_to_message_td(user, message_traced_data, control_code_label)
-
+                        imputed_control_labels += 1
                 elif location_code.code_type == CodeTypes.META:
                     for coding_config in message_analysis_config.coding_configs:
                         meta_code_label = CleaningUtils.make_label_from_cleaner_code(
@@ -343,7 +349,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
                             Metadata.get_call_location())
 
                         _insert_label_to_message_td(user, message_traced_data, meta_code_label)
-
+                        imputed_meta_labels += 1
                 else:
                     location = location_code.match_values[0]
                     constituency_label = CleaningUtils.make_label_from_cleaner_code(
@@ -364,7 +370,10 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
 
                     _insert_label_to_message_td(user, message_traced_data, constituency_label)
                     _insert_label_to_message_td(user, message_traced_data, county_label)
+                    imputed_normal_labels += 1
 
+        log.info(f"Detected {detected_coding_errors} coding errors, and imputed {imputed_normal_labels} normal, "
+                 f"{imputed_meta_labels} meta, and {imputed_control_labels} control Kenyan location labels.")
     else:
         assert county_coding_config is None or constituency_coding_config is None
         log.warning("Missing location coding_config(s) in analysis_dataset_config, skipping imputing location labels...")
