@@ -109,12 +109,12 @@ def _impute_ws_coding_errors(user, messages_traced_data, analysis_dataset_config
     Imputes Codes.CODING_ERROR labels for messages that have a coding error in the WS labels that have been applied.
 
     We consider WS labels to have a coding error if either of these conditions holds:
-     - There is a WS label  applied in a normal code scheme, but there is no label in the WS - Correct Dataset code scheme.
+     - There is a WS label applied in a normal code scheme, but there is no label in the WS - Correct Dataset code scheme.
      - There is a label applied in the WS - Correct Dataset code scheme, but no WS code in any of the normal code schemes.
 
     :param user: Identifier of user running the pipeline.
     :type user: str
-    :param messages_traced_data: Messages TracedData objects to impute not reviewed labels.
+    :param messages_traced_data: Messages TracedData objects to impute ws coding errors.
     :type messages_traced_data: list of TracedData
     :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
