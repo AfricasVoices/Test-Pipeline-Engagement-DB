@@ -152,7 +152,11 @@ def _impute_ws_coding_errors(user, messages_traced_data, analysis_dataset_config
         if ws_code_in_normal_scheme != code_in_ws_scheme:
             imputed_labels += 1
 
-            # Clear all duplicate schemes
+            # Clear all existing labels, in preparation for the new coding error labels we'll write afterwards.
+            # (This is because messages store labels in Coda format, so before we write the new labels we need to
+            #  insert special un-coded labels in place of all the existing labels, including labels assigned under
+            #  duplicate schemes, in order to guarantee that no pre-existing label is preserved in the next steps of
+            #  analysis)
             valid_code_scheme_ids = [code_scheme.scheme_id for code_scheme in normal_code_schemes]
             valid_code_scheme_ids.append(ws_correct_dataset_code_scheme.scheme_id)
             for label in message.get_latest_labels():
