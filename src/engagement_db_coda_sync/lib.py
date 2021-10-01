@@ -1,6 +1,6 @@
 from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
-from core_data_modules.data_models import Message as CodaMessage
+from core_data_modules.data_models import Message as CodaMessage, Label, Origin
 from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
 from engagement_database.data_models import HistoryEntryOrigin
@@ -111,6 +111,9 @@ def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_sche
     # Check for a WS code in any of the normal code schemes
     ws_code_in_normal_scheme = False
     for label in coda_message.get_latest_labels():
+        if not label.checked:
+            continue
+
         if label.scheme_id != ws_code_scheme.scheme_id:
             code = _code_for_label(label, normal_code_schemes)
             if code.control_code == Codes.WRONG_SCHEME:
@@ -120,6 +123,9 @@ def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_sche
     code_in_ws_scheme = False
     ws_code = None
     for label in coda_message.get_latest_labels():
+        if not label.checked:
+            continue
+
         if label.scheme_id == ws_code_scheme.scheme_id:
             code_in_ws_scheme = True
             ws_code = ws_code_scheme.get_code_with_code_id(label.code_id)

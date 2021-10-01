@@ -173,7 +173,10 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-    impute_codes_by_message(user, messages_traced_data, analysis_dataset_configurations)
+    impute_codes_by_message(
+        user, messages_traced_data, analysis_dataset_configurations,
+        pipeline_config.analysis.ws_correct_dataset_code_scheme
+    )
 
     messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis)
     participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)

@@ -1,6 +1,7 @@
 from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.cleaners.location_tools import KenyaLocations
+from core_data_modules.data_models import Label, Origin
 from core_data_modules.data_models.code_scheme import CodeTypes
 from core_data_modules.logging import Logger
 from core_data_modules.traced_data import Metadata
@@ -79,6 +80,109 @@ def _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_con
 
     log.info(f"Imputed {imputed_labels} {Codes.NOT_REVIEWED} labels for {len(messages_traced_data)} "
              f"messages traced data")
+
+
+def _code_for_label(label, code_schemes):
+    """
+    Returns the code for the given label.
+
+    Handles duplicated scheme ids (i.e. schemes ending in '-1', '-2' etc.).
+    Raises a ValueError if the label isn't for any of the given code schemes.
+
+    :param label: Label to get the code for.
+    :type label: core_data_modules.data_models.Label
+    :param code_schemes: Code schemes to check for the given label.
+    :type code_schemes: list of core_data_modules.data_models.CodeScheme
+    :return: Code for the label.
+    :rtype: core_data_modules.data_models.Code
+    """
+    for code_scheme in code_schemes:
+        if label.scheme_id.startswith(code_scheme.scheme_id):
+            return code_scheme.get_code_with_code_id(label.code_id)
+
+    raise ValueError(f"Label's scheme id '{label.scheme_id}' is not in any of the given `code_schemes` "
+                     f"(these have ids {[scheme.scheme_id for scheme in code_schemes]})")
+
+
+def _impute_ws_coding_errors(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme):
+    """
+    Imputes Codes.CODING_ERROR labels for messages that have a coding error in the WS labels that have been applied.
+
+    We consider WS labels to have a coding error if either of these conditions holds:
+     - There is a WS label applied in a normal code scheme, but there is no label in the WS - Correct Dataset code scheme.
+     - There is a label applied in the WS - Correct Dataset code scheme, but no WS code in any of the normal code schemes.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param messages_traced_data: Messages TracedData objects to impute ws coding errors.
+    :type messages_traced_data: list of TracedData
+    :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    :param ws_correct_dataset_code_scheme: WS - Correct Dataset code scheme.
+    :type ws_correct_dataset_code_scheme: core_data_modules.data_models.CodeScheme
+    """
+    log.info(f"Imputing {Codes.CODING_ERROR} labels for WS codes...")
+    imputed_labels = 0
+    for message_td in messages_traced_data:
+        message = Message.from_dict(dict(message_td))
+
+        message_analysis_config = analysis_dataset_config_for_message(analysis_dataset_configs, message)
+        normal_code_schemes = [c.code_scheme for c in message_analysis_config.coding_configs]
+
+        # Check for a WS code in any of the normal code schemes
+        ws_code_in_normal_scheme = False
+        for label in message.get_latest_labels():
+            if not label.checked:
+                continue
+
+            if label.scheme_id != ws_correct_dataset_code_scheme.scheme_id:
+                code = _code_for_label(label, normal_code_schemes)
+                if code.control_code == Codes.WRONG_SCHEME:
+                    ws_code_in_normal_scheme = True
+
+        # Check for a code in the WS code scheme
+        code_in_ws_scheme = False
+        for label in message.get_latest_labels():
+            if not label.checked:
+                continue
+
+            if label.scheme_id == ws_correct_dataset_code_scheme.scheme_id:
+                code_in_ws_scheme = True
+
+        if ws_code_in_normal_scheme != code_in_ws_scheme:
+            imputed_labels += 1
+
+            # Clear all existing labels, in preparation for the new coding error labels we'll write afterwards.
+            # (This is because messages store labels in Coda format, so before we write the new labels we need to
+            #  insert special un-coded labels in place of all the existing labels, including labels assigned under
+            #  duplicate schemes, in order to guarantee that no pre-existing label is preserved in the next steps of
+            #  analysis)
+            valid_code_scheme_ids = [code_scheme.scheme_id for code_scheme in normal_code_schemes]
+            valid_code_scheme_ids.append(ws_correct_dataset_code_scheme.scheme_id)
+            for label in message.get_latest_labels():
+                cleared_label = None
+                for scheme_id in valid_code_scheme_ids:
+                    if label.scheme_id.startswith(scheme_id):
+                        cleared_label = Label(
+                            scheme_id,
+                            "SPECIAL-MANUALLY_UNCODED",
+                            TimeUtils.utc_now_as_iso_string(),
+                            Origin(Metadata.get_call_location(), "Engagement DB -> Analysis", "External")
+                        )
+                assert cleared_label is not None
+                _insert_label_to_message_td(user, message_td, cleared_label)
+
+            # Append a CE code under every normal + WS code scheme
+            for code_scheme in normal_code_schemes + [ws_correct_dataset_code_scheme]:
+                ce_label = CleaningUtils.make_label_from_cleaner_code(
+                    code_scheme,
+                    code_scheme.get_code_with_control_code(Codes.CODING_ERROR),
+                    Metadata.get_call_location(),
+                    set_checked=True
+                )
+                _insert_label_to_message_td(user, message_td, ce_label)
+
+    log.info(f"Imputed {imputed_labels} {Codes.CODING_ERROR} labels for WS codes")
 
 
 def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
@@ -279,7 +383,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
         log.warning("Missing location coding_config(s) in analysis_dataset_config, skipping imputing location labels...")
 
 
-def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs):
+def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme):
     """
     Imputes codes for messages TracedData in-place.
 
@@ -294,8 +398,11 @@ def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs
     :type messages_traced_data: list of TracedData
     :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    :param ws_correct_dataset_code_scheme: WS - Correct Dataset code scheme.
+    :type ws_correct_dataset_code_scheme: core_data_modules.data_models.CodeScheme
     """
     _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs)
+    _impute_ws_coding_errors(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme)
     _impute_age_category(user, messages_traced_data, analysis_dataset_configs)
     _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_configs)
 

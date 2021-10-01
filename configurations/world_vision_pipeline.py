@@ -158,6 +158,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     )
                 ]
             )
-        ]
+        ],
+        ws_correct_dataset_code_scheme=load_code_scheme("world_vision_ws_correct_dataset")
     )
 )
