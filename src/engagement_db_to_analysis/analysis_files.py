@@ -30,7 +30,7 @@ def export_production_file(traced_data_iterable, analysis_config, export_path):
         TracedDataCSVIO.export_traced_data_iterable_to_csv(traced_data_iterable, f, headers)
 
 
-def _get_analysis_file_headers(column_configs):
+def _get_analysis_file_headers(column_configs, export_timestamps=False):
     """
     Gets the headers for an analysis file.
 
@@ -46,6 +46,8 @@ def _get_analysis_file_headers(column_configs):
     :rtype: list of str
     """
     headers = ["participant_uuid", "consent_withdrawn"]
+    if export_timestamps:
+        headers.append("timestamp")
 
     for config in column_configs:
         # Add headers for each label in this column's code scheme, in matrix format e.g. "age:25", "s01e01:healthcare"
@@ -62,7 +64,7 @@ def _get_analysis_file_headers(column_configs):
     return headers
 
 
-def _get_analysis_file_row(column_view_td, column_configs):
+def _get_analysis_file_row(column_view_td, column_configs, export_timestamps=False):
     """
     Gets a row of an analysis file from a Traced Data object in column-view format
 
@@ -77,6 +79,9 @@ def _get_analysis_file_row(column_view_td, column_configs):
         "participant_uuid": column_view_td["participant_uuid"],
         "consent_withdrawn": column_view_td["consent_withdrawn"]
     }
+
+    if export_timestamps:
+        row["timestamp"] = column_view_td["timestamp"]
 
     for config in column_configs:
         # Raw field
@@ -93,7 +98,7 @@ def _get_analysis_file_row(column_view_td, column_configs):
     return row
 
 
-def export_analysis_file(traced_data_iterable, analysis_dataset_configurations, export_path):
+def export_analysis_file(traced_data_iterable, analysis_dataset_configurations, export_path, export_timestamps=False):
     """
     Exports a column-view TracedData to a csv for analysis.
 
@@ -112,10 +117,10 @@ def export_analysis_file(traced_data_iterable, analysis_dataset_configurations, 
 
     IOUtils.ensure_dirs_exist_for_file(export_path)
     with open(export_path, "w") as f:
-        headers = _get_analysis_file_headers(column_configs)
+        headers = _get_analysis_file_headers(column_configs, export_timestamps)
         writer = csv.DictWriter(f, fieldnames=headers)
         writer.writeheader()
 
         for td in traced_data_iterable:
-            row = _get_analysis_file_row(td, column_configs)
+            row = _get_analysis_file_row(td, column_configs, export_timestamps)
             writer.writerow(row)

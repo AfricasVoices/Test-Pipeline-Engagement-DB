@@ -190,7 +190,7 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     # Export to hard-coded files for now.
     export_production_file(messages_by_column, pipeline_config.analysis, f"{output_dir}/production.csv")
 
-    export_analysis_file(messages_by_column, pipeline_config.analysis.dataset_configurations, f"{output_dir}/messages.csv")
+    export_analysis_file(messages_by_column, pipeline_config.analysis.dataset_configurations, f"{output_dir}/messages.csv", export_timestamps=True)
     export_analysis_file(participants_by_column, pipeline_config.analysis.dataset_configurations, f"{output_dir}/participants.csv")
 
     export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
