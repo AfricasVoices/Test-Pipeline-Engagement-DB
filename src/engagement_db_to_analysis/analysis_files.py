@@ -26,7 +26,7 @@ def export_production_file(traced_data_iterable, analysis_config, export_path):
     log.info(f"Exporting production file to '{export_path}'...")
     IOUtils.ensure_dirs_exist_for_file(export_path)
     with open(export_path, "w") as f:
-        headers = ["participant_uuid"] + [c.raw_dataset for c in analysis_config.dataset_configurations]
+        headers = ["participant_uuid", "timestamp"] + [c.raw_dataset for c in analysis_config.dataset_configurations]
         TracedDataCSVIO.export_traced_data_iterable_to_csv(traced_data_iterable, f, headers)
 
 

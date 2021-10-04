@@ -274,7 +274,7 @@ def convert_to_messages_column_format(user, messages_traced_data, analysis_confi
 
         # Convert to column-view TracedData
         column_td = TracedData(
-            {"participant_uuid": message.participant_uuid},
+            {"participant_uuid": message.participant_uuid, "timestamp": message.timestamp.isoformat()},
             Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
         )
         _add_message_to_column_td(user, msg_td, column_td, analysis_config.dataset_configurations)
