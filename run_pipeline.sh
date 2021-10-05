@@ -30,8 +30,6 @@ RUN_ID="$DATE-$HASH"
 ./docker-sync-coda-to-engagement-db.sh --incremental-cache-volume "cache" "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" \
                         "$CONFIGURATION_MODULE"
 
-./docker-sync-engagement-db-to-rapid-pro.sh "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE"
-
 ./docker-run-engagement-db-to-analysis.sh --incremental-cache-volume "cache" "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" \
                         "$CONFIGURATION_MODULE" "$OUTPUT_DIR"
 

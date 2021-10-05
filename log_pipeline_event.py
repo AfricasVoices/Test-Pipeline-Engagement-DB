@@ -13,7 +13,6 @@ from src.common.configuration import PipelineEvents
 log = Logger(__name__)
 
 def log_pipeline_event(pipeline_config, google_cloud_credentials_file_path,  run_id, event_key):
-
     log.info("Downloading Firestore Operations Dashboard Table credentials...")
     firestore_pipeline_logs_table_credentials = json.loads(google_cloud_utils.download_blob_to_string(
         google_cloud_credentials_file_path, pipeline_config.operations_dashboard.credentials_file_url
