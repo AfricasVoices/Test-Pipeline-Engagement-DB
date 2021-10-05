@@ -2,7 +2,6 @@ import argparse
 import json
 import importlib
 
-
 from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
 from storage.google_cloud import google_cloud_utils
