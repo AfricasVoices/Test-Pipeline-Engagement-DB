@@ -11,6 +11,10 @@ class SyncStats(ABC):
             self.event_counts[event] = 0
         self.event_counts[event] += 1
 
+    def add_events(self, events):
+        for event in events:
+            self.add_event(event)
+
     def add_stats(self, stats):
         for k, v in stats.event_counts.items():
             self.event_counts[k] += v

@@ -4,6 +4,7 @@ from google.cloud import firestore
 
 from src.engagement_db_coda_sync.cache import CodaSyncCache
 from src.engagement_db_coda_sync.lib import _update_engagement_db_message_from_coda_message
+from src.engagement_db_coda_sync.sync_stats import CodaToEngagementDBSyncStats, CodaSyncEvents
 
 log = Logger(__name__)
 
@@ -24,7 +25,11 @@ def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db
     :type engagement_db_dataset: str
     :param coda_config: Configuration for the update.
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    :return Sync stats.
+    :rtype src.engagement_db_coda_sync.sync_stats.CodaToEngagementDBSyncStats
     """
+    sync_stats = CodaToEngagementDBSyncStats()
+
     # Get the messages in the engagement database that match this dataset and coda message id
     engagement_db_messages = engagement_db.get_messages(
         firestore_query_filter=lambda q: q
@@ -35,12 +40,18 @@ def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db
     )
     log.info(f"{len(engagement_db_messages)} engagement db message(s) match Coda message {coda_message.message_id}")
 
+    for _ in engagement_db_messages:
+        sync_stats.add_event(CodaSyncEvents.READ_MESSAGE_FROM_ENGAGEMENT_DB)
+
     # Update each of the matching messages with the labels currently in Coda.
     for i, engagement_db_message in enumerate(engagement_db_messages):
         log.info(f"Processing matching engagement message {i + 1}/{len(engagement_db_messages)}: "
                  f"{engagement_db_message.message_id}...")
-        _update_engagement_db_message_from_coda_message(
+        message_sync_events = _update_engagement_db_message_from_coda_message(
             engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction)
+        sync_stats.add_events(message_sync_events)
+
+    return sync_stats
 
 
 def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, dataset_config, cache=None):
@@ -55,24 +66,34 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param cache: Coda sync cache.
     :type cache: src.engagement_db_coda_sync.cache.CodaSyncCache | None
+    :return Sync stats for the update.
+    :rtype: src.engagement_db_coda_sync.sync_stats.CodaToEngagementDBSyncStats
     """
     log.info(f"Getting messages from Coda dataset {dataset_config.coda_dataset_id}...")
+
+    sync_stats = CodaToEngagementDBSyncStats()
+
     coda_messages = coda.get_dataset_messages(
         dataset_config.coda_dataset_id,
         last_updated_after=None if cache is None else cache.get_last_updated_timestamp(dataset_config.coda_dataset_id)
     )
+    for _ in coda_messages:
+        sync_stats.add_event(CodaSyncEvents.READ_MESSAGE_FROM_CODA)
 
     for i, coda_message in enumerate(coda_messages):
         log.info(f"Processing Coda message {i + 1}/{len(coda_messages)}: {coda_message.message_id}...")
-        _sync_coda_message_to_engagement_db(
+        message_sync_stats = _sync_coda_message_to_engagement_db(
             engagement_db.transaction(), coda_message, engagement_db, dataset_config.engagement_db_dataset,
             coda_config
         )
+        sync_stats.add_stats(message_sync_stats)
 
     seen_timestamps = [msg.last_updated for msg in coda_messages if msg.last_updated is not None]
     if cache is not None and len(seen_timestamps) > 0:
         most_recently_updated_timestamp = sorted(seen_timestamps)[-1]
         cache.set_last_updated_timestamp(dataset_config.coda_dataset_id, most_recently_updated_timestamp)
+
+    return sync_stats
 
 
 def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None):
@@ -98,7 +119,19 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None
         cache = CodaSyncCache(f"{cache_path}/coda_to_engagement_db")
 
     # Sync each Coda dataset to the engagement db in turn
+    dataset_to_sync_stats = dict()  # of coda dataset id -> CodaToEngagementDBSyncStats
     for dataset_config in coda_config.dataset_configurations:
         log.info(f"Syncing Coda dataset {dataset_config.coda_dataset_id} to engagement db dataset "
                  f"{dataset_config.coda_dataset_id}")
-        _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, dataset_config, cache)
+        dataset_sync_stats = _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, dataset_config, cache)
+        dataset_to_sync_stats[dataset_config.coda_dataset_id] = dataset_sync_stats
+
+    # Log the summaries of actions taken for each dataset then for all datasets combined.
+    all_sync_stats = CodaToEngagementDBSyncStats()
+    for dataset_config in coda_config.dataset_configurations:
+        log.info(f"Summary of actions for Coda dataset '{dataset_config.coda_dataset_id}':")
+        dataset_to_sync_stats[dataset_config.coda_dataset_id].print_summary()
+        all_sync_stats.add_stats(dataset_to_sync_stats[dataset_config.coda_dataset_id])
+
+    log.info(f"Summary of actions for all datasets:")
+    all_sync_stats.print_summary()

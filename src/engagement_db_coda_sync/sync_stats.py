@@ -33,3 +33,21 @@ class EngagementDBToCodaSyncStats(SyncStats):
         log.info(f"Messages updated with labels from Coda: {self.event_counts[CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS]}")
         log.info(f"Messages with labels already matching Coda: {self.event_counts[CodaSyncEvents.LABELS_MATCH]}")
         log.info(f"Messages WS-corrected: {self.event_counts[CodaSyncEvents.WS_CORRECTION]}")
+
+
+class CodaToEngagementDBSyncStats(SyncStats):
+    def __init__(self):
+        super().__init__({
+            CodaSyncEvents.READ_MESSAGE_FROM_CODA: 0,
+            CodaSyncEvents.READ_MESSAGE_FROM_ENGAGEMENT_DB: 0,
+            CodaSyncEvents.LABELS_MATCH: 0,
+            CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS: 0,
+            CodaSyncEvents.WS_CORRECTION: 0
+        })
+
+    def print_summary(self):
+        log.info(f"Messages read from Coda: {self.event_counts[CodaSyncEvents.READ_MESSAGE_FROM_CODA]}")
+        log.info(f"Messages read from engagement db: {self.event_counts[CodaSyncEvents.READ_MESSAGE_FROM_ENGAGEMENT_DB]}")
+        log.info(f"Messages updated with labels from Coda: {self.event_counts[CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS]}")
+        log.info(f"Messages with labels already matching Coda: {self.event_counts[CodaSyncEvents.LABELS_MATCH]}")
+        log.info(f"Messages WS-corrected: {self.event_counts[CodaSyncEvents.WS_CORRECTION]}")
