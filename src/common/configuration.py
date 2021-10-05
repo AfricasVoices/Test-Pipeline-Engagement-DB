@@ -89,3 +89,14 @@ class CodaClientConfiguration:
         log.info("Initialised Coda client")
 
         return coda
+
+
+@dataclass
+class OperationsDashboardConfiguration:
+    credentials_file_url: str
+
+
+@dataclass
+class PipelineEvents(object):
+    PIPELINE_RUN_START = "PipelineRunStart"
+    PIPELINE_RUN_END = "PipelineRunEnd"

@@ -20,6 +20,9 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         table_name="_engagement_db_test",
         uuid_prefix="avf-participant-uuid-"
     ),
+    operations_dashboard=OperationsDashboardConfiguration(
+        credentials_file_url="gs://avf-credentials/avf-dashboards-firebase-adminsdk-gvecb-ef772e79b6.json",
+    ),
     rapid_pro_sources=[
         RapidProSource(
             rapid_pro=RapidProClientConfiguration(
