@@ -87,10 +87,10 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
     # If the message exists in Coda, update the database message based on the labels assigned in Coda
     if coda_message is not None:
         log.debug("Message already exists in Coda")
-        update_sync_stats = _update_engagement_db_message_from_coda_message(
+        update_sync_events = _update_engagement_db_message_from_coda_message(
             engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction
         )
-        sync_stats.add_stats(update_sync_stats)
+        sync_stats.add_events(update_sync_events)
         return engagement_db_message, sync_stats
 
     # The message isn't in Coda, so add it
@@ -173,7 +173,7 @@ def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None
         cache = CodaSyncCache(f"{cache_path}/engagement_db_to_coda")
 
     # Sync each dataset in turn to Coda
-    dataset_to_sync_stats = dict()  # of engagement db dataset -> CodaSyncStats
+    dataset_to_sync_stats = dict()  # of engagement db dataset -> EngagementDBToCodaSyncStats
     for dataset_config in coda_config.dataset_configurations:
         log.info(f"Syncing engagement db dataset {dataset_config.engagement_db_dataset} to Coda dataset "
                  f"{dataset_config.coda_dataset_id}...")
