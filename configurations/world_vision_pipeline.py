@@ -167,6 +167,5 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     backup_configurations = BackupConfiguration(
         backup_upload_bucket = "gs://pipeline-execution-backup-archive",
         bucket_dir_path =  "2020/WorldVision"
-
     )
 )
