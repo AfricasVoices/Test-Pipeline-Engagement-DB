@@ -53,16 +53,16 @@ container_short_id=${container:0:7}
 echo "Copying $GOOGLE_CLOUD_CREDENTIALS_PATH -> $container_short_id:/credentials/google-cloud-credentials.json"
 docker cp "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$container:/credentials/google-cloud-credentials.json"
 
+# Run the container
+echo "Starting container $container_short_id"
+docker start -a -i "$container"
+
 # Copy cache data out of the container for backup
 if [[ "$INCREMENTAL_ARG" ]]; then
     echo "Copying $container_short_id:/cache/. -> $DATA_DIR/Cache"
     mkdir -p "$DATA_DIR/Cache"
     docker cp "$container:/cache/." "$DATA_DIR/Cache"
 fi
-
-# Run the container
-echo "Starting container $container_short_id"
-docker start -a -i "$container"
 
 # Tear down the container when it has run successfully
 docker container rm "$container" >/dev/null
