@@ -23,11 +23,11 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Check that the correct number of arguments were provided.
-if [[ $# -ne 3 ]]; then
+if [[ $# -ne 4 ]]; then
     echo "Usage: $0 
     [--incremental-cache-volume <incremental-cache-volume>] 
     [--local-archive <local_archive>] : set a single option with argument, repeat it multiple times
-    <user> <google-cloud-credentials-file-path> <configuration-module>"
+    <user> <google-cloud-credentials-file-path> <configuration-module> <data-dir>"
     exit
 fi
 
@@ -35,6 +35,7 @@ fi
 USER=$1
 GOOGLE_CLOUD_CREDENTIALS_PATH=$2
 CONFIGURATION_MODULE=$3
+DATA_DIR=$4
 
 # Build an image for this pipeline stage.
 docker build -t "$IMAGE_NAME" .
@@ -81,5 +82,11 @@ done
 echo "Starting container $container_short_id"
 docker start -a -i "$container"
 
+# Copy cache data out of the container for backup
+if [[ "$INCREMENTAL_ARG" ]]; then
+    echo "Copying $container_short_id:/cache/. -> $DATA_DIR/Cache"
+    mkdir -p "$DATA_DIR/Cache"
+    docker cp "$container:/cache/." "$DATA_DIR/Cache"
+fi
 # Tear down the container when it has run successfully
 docker container rm "$container" >/dev/null
