@@ -12,7 +12,7 @@ log = Logger(__name__)
 
 
 def get_file_paths(dir_path):
-    # search for .gzip backup files only because os.listdir(dir_path)
+    # search for .gzip archive files only because os.listdir(dir_path)
     # returns all files in the directory
     files_list = [file for file in os.listdir(dir_path) if file.endswith((".gzip"))]
     file_paths = [os.path.join(dir_path, basename) for basename in files_list]
@@ -47,15 +47,15 @@ def get_files_by_date(dir_path, uploaded_file_dates):
 
     return files_by_date
 
-def delete_old_backup_files(dir_path, uploaded_file_dates):
-    backup_file_paths = get_file_paths(dir_path)
+def delete_old_archive_files(dir_path, uploaded_file_dates):
+    archive_file_paths = get_file_paths(dir_path)
     files_for_days_that_upload_failed = {}
 
     most_recent_file_path = None
-    if len(backup_file_paths) > 0:
-        most_recent_file_path = max(backup_file_paths, key=os.path.getmtime)
+    if len(archive_file_paths) > 0:
+        most_recent_file_path = max(archive_file_paths, key=os.path.getmtime)
 
-    for file_path in backup_file_paths:
+    for file_path in archive_file_paths:
         file_date_match = re.search(date_pattern, file_path)
         file_date = file_date_match.group()
 
@@ -90,7 +90,7 @@ def delete_old_backup_files(dir_path, uploaded_file_dates):
             os.remove(os.path.join(dir_path, file_path))
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Uploads pipeline backup files to g-cloud")
+    parser = argparse.ArgumentParser(description="Uploads pipeline archive files to g-cloud")
 
     parser.add_argument("user", help="User launching this program")
     parser.add_argument("google_cloud_credentials_file_path", metavar="google-cloud-credentials-file-path",
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     parser.add_argument("configuration_module",
                         help="Configuration module to import e.g. 'configurations.test_config'. "
                              "This module must contain a PIPELINE_CONFIGURATION property")
-    parser.add_argument("backup_dir_path", metavar="backup_dir_path",
+    parser.add_argument("archive_dir_path", metavar="archive_dir_path",
                         help="Path to the data archive directory with file to upload")
 
     args = parser.parse_args()
@@ -107,24 +107,24 @@ if __name__ == "__main__":
     user = args.user
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
-    backup_dir_path = args.backup_dir_path
+    archive_dir_path = args.archive_dir_path
 
     date_pattern = r'\d{4}-\d{2}-\d{2}'
 
     uploaded_data_archives = google_cloud_utils.list_blobs(google_cloud_credentials_file_path,
-                                                           pipeline_config.backup_configurations.backup_upload_bucket,
-                                                           pipeline_config.backup_configurations.bucket_dir_path)
-    uploaded_backup_dates = get_uploaded_file_dates(uploaded_data_archives, date_pattern)
+                                                           pipeline_config.archive_configurations.archive_upload_bucket,
+                                                           pipeline_config.archive_configurations.bucket_dir_path)
+    uploaded_archive_dates = get_uploaded_file_dates(uploaded_data_archives, date_pattern)
 
     log.warning(f"Deleting old data archives files from local disk...")
-    delete_old_backup_files(backup_dir_path, uploaded_backup_dates)
+    delete_old_archive_files(archive_dir_path, uploaded_archive_dates)
 
-    log.info(f"Uploading backup files...")
-    backup_files_by_date = get_files_by_date(backup_dir_path, uploaded_backup_dates)
-    for file_date in backup_files_by_date:
-        latest_backup_file_path = max(backup_files_by_date[file_date], key=os.path.getmtime)
-        backup_upload_location = f"{pipeline_config.backup_configurations.backup_upload_bucket}/" \
-            f"{pipeline_config.backup_configurations.bucket_dir_path}/{os.path.basename(latest_backup_file_path)}"
-        log.info(f"Uploading data archive from {latest_backup_file_path} to {backup_upload_location}...")
-        with open(latest_backup_file_path, "rb") as f:
-            google_cloud_utils.upload_file_to_blob(google_cloud_credentials_file_path, backup_upload_location, f)
+    log.info(f"Uploading archive files...")
+    archive_files_by_date = get_files_by_date(archive_dir_path, uploaded_archive_dates)
+    for file_date in archive_files_by_date:
+        latest_archive_file_path = max(archive_files_by_date[file_date], key=os.path.getmtime)
+        archive_upload_location = f"{pipeline_config.archive_configurations.archive_upload_bucket}/" \
+            f"{pipeline_config.archive_configurations.bucket_dir_path}/{os.path.basename(latest_archive_file_path)}"
+        log.info(f"Uploading data archive from {latest_archive_file_path} to {archive_upload_location}...")
+        with open(latest_archive_file_path, "rb") as f:
+            google_cloud_utils.upload_file_to_blob(google_cloud_credentials_file_path, archive_upload_location, f)

@@ -92,8 +92,8 @@ class CodaClientConfiguration:
 
 
 @dataclass
-class BackupConfiguration:
-    backup_upload_bucket: str
+class ArchiveConfiguration:
+    archive_upload_bucket: str
     bucket_dir_path: str
 
 @dataclass

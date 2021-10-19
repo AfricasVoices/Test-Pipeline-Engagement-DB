@@ -166,8 +166,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         ],
         ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset")
     ),
-    backup_configurations = BackupConfiguration(
-        backup_upload_bucket = "gs://pipeline-execution-backup-archive",
+    archive_configurations = ArchiveConfiguration(
+        archive_upload_bucket = "gs://pipeline-execution-backup-archive",
         bucket_dir_path =  "2021/TEST-PIPELINE_DB"
         )
 )
