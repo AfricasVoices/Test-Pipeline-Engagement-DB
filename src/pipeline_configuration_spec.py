@@ -6,7 +6,7 @@ from core_data_modules.data_models import CodeScheme
 
 from src.common.configuration import (RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration,
                                       EngagementDatabaseClientConfiguration, OperationsDashboardConfiguration,
-                                      BackupConfiguration)
+                                      ArchiveConfiguration)
 from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, CodaDatasetConfiguration,
                                                        CodeSchemeConfiguration)
 from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidProConfiguration, DatasetConfiguration,
@@ -49,7 +49,7 @@ class PipelineConfiguration:
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
     operations_dashboard: OperationsDashboardConfiguration
-    backup_configurations: BackupConfiguration
+    archive_configuration: ArchiveConfiguration
     project_start_date: datetime = None
     project_end_date: datetime = None
     test_participant_uuids: [] = None

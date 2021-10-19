@@ -112,8 +112,8 @@ if __name__ == "__main__":
     date_pattern = r'\d{4}-\d{2}-\d{2}'
 
     uploaded_data_archives = google_cloud_utils.list_blobs(google_cloud_credentials_file_path,
-                                                           pipeline_config.archive_configurations.archive_upload_bucket,
-                                                           pipeline_config.archive_configurations.bucket_dir_path)
+                                                           pipeline_config.archive_configuration.archive_upload_bucket,
+                                                           pipeline_config.archive_configuration.bucket_dir_path)
     uploaded_archive_dates = get_uploaded_file_dates(uploaded_data_archives, date_pattern)
 
     log.warning(f"Deleting old data archives files from local disk...")
@@ -123,8 +123,8 @@ if __name__ == "__main__":
     archive_files_by_date = get_files_by_date(archive_dir_path, uploaded_archive_dates)
     for file_date in archive_files_by_date:
         latest_archive_file_path = max(archive_files_by_date[file_date], key=os.path.getmtime)
-        archive_upload_location = f"{pipeline_config.archive_configurations.archive_upload_bucket}/" \
-            f"{pipeline_config.archive_configurations.bucket_dir_path}/{os.path.basename(latest_archive_file_path)}"
+        archive_upload_location = f"{pipeline_config.archive_configuration.archive_upload_bucket}/" \
+            f"{pipeline_config.archive_configuration.bucket_dir_path}/{os.path.basename(latest_archive_file_path)}"
         log.info(f"Uploading data archive from {latest_archive_file_path} to {archive_upload_location}...")
         with open(latest_archive_file_path, "rb") as f:
             google_cloud_utils.upload_file_to_blob(google_cloud_credentials_file_path, archive_upload_location, f)
