@@ -122,7 +122,7 @@ def export_analysis_file(traced_data_iterable, pipeline_config, export_path, exp
     :param traced_data_iterable: Data to export.
     :type traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
     :pipeline_config: pipeline configuration module
-    :type PIPELINE_CONFIGURATION:
+    :type PipelineConfiguration:
     :param export_path: Path to export the file to.
     :type export_path: str
     """
