@@ -5,7 +5,8 @@ from datetime import datetime
 from core_data_modules.data_models import CodeScheme
 
 from src.common.configuration import (RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration,
-                                      EngagementDatabaseClientConfiguration, OperationsDashboardConfiguration)
+                                      EngagementDatabaseClientConfiguration, OperationsDashboardConfiguration,
+                                      MembershipGroupConfiguration)
 from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, CodaDatasetConfiguration,
                                                        CodeSchemeConfiguration)
 from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidProConfiguration, DatasetConfiguration,
@@ -56,3 +57,4 @@ class PipelineConfiguration:
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
     analysis: AnalysisConfiguration = None
+    membership_group_configuration: MembershipGroupConfiguration = None

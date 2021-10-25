@@ -165,5 +165,11 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             )
         ],
         ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset")
-    )
+    ),
+    membership_group_configuration=MembershipGroupConfiguration(
+        membership_group_csv_urls={ "listening_group": [
+           "gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/test-pipeline-engagement-db-listening-group.csv"
+        ]
+}
+)
 )

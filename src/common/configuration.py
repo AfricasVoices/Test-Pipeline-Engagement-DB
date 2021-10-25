@@ -100,3 +100,7 @@ class OperationsDashboardConfiguration:
 class PipelineEvents(object):
     PIPELINE_RUN_START = "PipelineRunStart"
     PIPELINE_RUN_END = "PipelineRunEnd"
+
+@dataclass
+class MembershipGroupConfiguration(object):
+    membership_group_csv_urls: {}
