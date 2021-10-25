@@ -13,7 +13,16 @@ log = Logger(__name__)
 
 
 def get_membership_groups_csvs(google_cloud_credentials_file_path, pipeline_config, membership_group_path):
-
+    """
+    Downloads de-identified membership groups CSVs from g-cloud.
+    :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
+                                               access the credentials bucket.
+    :type google_cloud_credentials_file_path: str
+    :param pipeline_config: Pipeline configuration.
+    :type pipeline_config: PipelineConfiguration
+    :param membership_group_path: Path to directory containing de-identified membership groups CSVs containing membership groups data
+                        stored as `avf-phone-uuid` and `Name` columns.
+    """
     for membership_group, membership_group_csv_url in pipeline_config.membership_group_configuration.membership_group_csv_urls.items():
         for i, membership_group_csv_url in enumerate(membership_group_csv_url):
             membership_group_csv = membership_group_csv_url.split("/")[-1]
@@ -34,6 +43,7 @@ def get_membership_groups_csvs(google_cloud_credentials_file_path, pipeline_conf
             except NotFound:
                 log.warning(f"{membership_group_csv}' not found in google cloud, skipping download")
 
+
 def tag_membership_groups_participants(user, column_view_traced_data, pipeline_config, membership_group_path):
     """
     This tags uids who participated in projects membership groups.
@@ -41,7 +51,7 @@ def tag_membership_groups_participants(user, column_view_traced_data, pipeline_c
     :type user: str
     :param column_view_traced_data: Messages/Participants TracedData organised into column-view format.
     :type: list of core_data_modules.traced_data.TracedData
-    :param raw_data_dir: Directory containing de-identified membership groups CSVs containing membership groups data
+    :param membership_group_path: Path to directory containing de-identified membership groups CSVs containing membership groups data
                         stored as `avf-phone-uuid` and `Name` columns.
     :type user: str
     :param pipeline_config: Pipeline configuration.
