@@ -31,6 +31,7 @@ fi
 USER=$1
 GOOGLE_CLOUD_CREDENTIALS_PATH=$2
 CONFIGURATION_MODULE=$3
+DATA_DIR=$4
 
 # Build an image for this pipeline stage.
 docker build -t "$IMAGE_NAME" .
@@ -55,6 +56,13 @@ docker cp "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$container:/credentials/google-cloud
 # Run the container
 echo "Starting container $container_short_id"
 docker start -a -i "$container"
+
+# Copy cache data out of the container for backup
+if [[ "$INCREMENTAL_ARG" ]]; then
+    echo "Copying $container_short_id:/cache/. -> $DATA_DIR/Cache"
+    mkdir -p "$DATA_DIR/Cache"
+    docker cp "$container:/cache/." "$DATA_DIR/Cache"
+fi
 
 # Tear down the container when it has run successfully
 docker container rm "$container" >/dev/null

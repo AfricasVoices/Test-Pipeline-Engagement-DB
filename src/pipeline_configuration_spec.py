@@ -6,7 +6,8 @@ from core_data_modules.data_models import CodeScheme
 
 from src.common.configuration import (RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration,
                                       EngagementDatabaseClientConfiguration, OperationsDashboardConfiguration,
-                                      MembershipGroupConfiguration)
+                                      MembershipGroupConfiguration, ArchiveConfiguration)
+
 from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, CodaDatasetConfiguration,
                                                        CodeSchemeConfiguration)
 from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidProConfiguration, DatasetConfiguration,
@@ -49,6 +50,7 @@ class PipelineConfiguration:
     engagement_database: EngagementDatabaseClientConfiguration
     uuid_table: UUIDTableClientConfiguration
     operations_dashboard: OperationsDashboardConfiguration
+    archive_configuration: ArchiveConfiguration
     project_start_date: datetime = None
     project_end_date: datetime = None
     test_participant_uuids: [] = None
@@ -56,5 +58,5 @@ class PipelineConfiguration:
     rapid_pro_sources: [RapidProSource] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
-    analysis: AnalysisConfiguration = None
     membership_group_configuration: MembershipGroupConfiguration = None
+    analysis: AnalysisConfiguration = None
