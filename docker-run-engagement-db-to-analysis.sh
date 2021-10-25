@@ -23,7 +23,7 @@ done
 if [[ $# -ne 4 ]]; then
     echo "Usage: $0 
     [--incremental-cache-volume <incremental-cache-volume>] 
-    <user> <google-cloud-credentials-file-path> <configuration-module> <output-dir>"
+    <user> <google-cloud-credentials-file-path> <configuration-module> <data-dir>"
     exit
 fi
 
@@ -31,7 +31,7 @@ fi
 USER=$1
 GOOGLE_CLOUD_CREDENTIALS_PATH=$2
 CONFIGURATION_MODULE=$3
-OUTPUT_DIR=$4
+DATA_DIR=$4
 
 # Build an image for this pipeline stage.
 docker build -t "$IMAGE_NAME" .
@@ -57,10 +57,17 @@ docker cp "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$container:/credentials/google-cloud
 echo "Starting container $container_short_id"
 docker start -a -i "$container"
 
-# Copy the output data back out of the container
-echo "Copying $container_short_id:/data/analysis-outputs/. -> $OUTPUT_DIR"
-mkdir -p "$OUTPUT_DIR"
-docker cp "$container:/data/analysis-outputs/." "$OUTPUT_DIR"
+# Copy the anaysis output data back out of the container
+echo "Copying $container_short_id:/data/analysis-outputs/. -> $DATA_DIR"
+mkdir -p "$DATA_DIR/Analysis-Outputs"
+docker cp "$container:/data/analysis-outputs/." "$DATA_DIR/Analysis-Outputs"
+
+# Copy cache data out of the container for backup
+if [[ "$INCREMENTAL_ARG" ]]; then
+    echo "Copying $container_short_id:/cache/. -> $DATA_DIR/Cache"
+    mkdir -p "$DATA_DIR/Cache"
+    docker cp "$container:/cache/." "$DATA_DIR/Cache"
+fi
 
 # Tear down the container when it has run successfully
 docker container rm "$container" >/dev/null
