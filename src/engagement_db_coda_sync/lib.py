@@ -166,11 +166,11 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     :type coda_config:  src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param transaction: Transaction in the engagement database to perform the update in.
     :type transaction: google.cloud.firestore.Transaction | None
-    :return: Sync stats for the update.
-    :rtype: src.engagement_db_coda_sync.sync_stats.EngagementDBToCodaSyncStats
+    :return: Sync events for the update.
+    :rtype: list of str
     """
     coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(engagement_db_message.dataset)
-    sync_stats = EngagementDBToCodaSyncStats()
+    sync_events = []
 
     # Check if the labels in the engagement database message already match those from the coda message, and that
     # we don't need to WS-correct (in other words, that the dataset is correct).
@@ -178,8 +178,8 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     ws_code = _get_ws_code(coda_message, coda_dataset_config, coda_config.ws_correct_dataset_code_scheme)
     if engagement_db_message.labels == coda_message.labels and ws_code is None:
         log.debug("Labels match")
-        sync_stats.add_event(CodaSyncEvents.LABELS_MATCH)
-        return sync_stats
+        sync_events.append(CodaSyncEvents.LABELS_MATCH)
+        return sync_events
 
     log.debug("Updating database message labels to match those in Coda")
 
@@ -223,8 +223,8 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
             transaction=transaction
         )
 
-        sync_stats.add_event(CodaSyncEvents.WS_CORRECTION)
-        return sync_stats
+        sync_events.append(CodaSyncEvents.WS_CORRECTION)
+        return sync_events
 
     # We didn't find a WS label, so simply update the engagement database message to have the same labels as the
     # message in Coda.
@@ -237,5 +237,5 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
         transaction=transaction
     )
 
-    sync_stats.add_event(CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS)
-    return sync_stats
+    sync_events.append(CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS)
+    return sync_events

@@ -207,7 +207,7 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
         log.info("Tagging membership group participants to participants_by_column traced data...")
         tag_membership_groups_participants(user, participants_by_column, pipeline_config, membership_group_path)
 
-    export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/messages.csv")
+    export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/messages.csv", export_timestamps=True)
     export_analysis_file(participants_by_column, pipeline_config, f"{output_dir}/participants.csv")
 
     export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
