@@ -30,13 +30,14 @@ def export_production_file(traced_data_iterable, analysis_config, export_path):
         TracedDataCSVIO.export_traced_data_iterable_to_csv(traced_data_iterable, f, headers)
 
 
-def _get_analysis_file_headers(column_configs):
+def _get_analysis_file_headers(column_configs, pipeline_config):
     """
     Gets the headers for an analysis file.
 
     The headers are:
      - "participant_uuid"
      - "consent_withdrawn"
+     - Membership_group e.g "listening_group" - Optional
      - Labels for each normal code scheme, in matrix format e.g. "age:25", "s01e01:healthcare".
      - Raw messages for each dataset.
 
@@ -44,8 +45,14 @@ def _get_analysis_file_headers(column_configs):
     :type column_configs: list of core_data_modules.analysis.analysis_utils.AnalysisConfiguration
     :return: Analysis file headers.
     :rtype: list of str
+    :param pipeline_config: Pipeline configuration.
+    :type pipeline_config: PipelineConfiguration
     """
     headers = ["participant_uuid", "consent_withdrawn"]
+
+    if pipeline_config.membership_group_configuration is not None:
+        for membership_group in pipeline_config.membership_group_configuration.membership_group_csv_urls.keys():
+            headers.append(membership_group)
 
     for config in column_configs:
         # Add headers for each label in this column's code scheme, in matrix format e.g. "age:25", "s01e01:healthcare"
@@ -62,7 +69,7 @@ def _get_analysis_file_headers(column_configs):
     return headers
 
 
-def _get_analysis_file_row(column_view_td, column_configs):
+def _get_analysis_file_row(column_view_td, column_configs, pipeline_config):
     """
     Gets a row of an analysis file from a Traced Data object in column-view format
 
@@ -72,11 +79,17 @@ def _get_analysis_file_row(column_view_td, column_configs):
     :type column_configs: list of core_data_modules.analysis.analysis_utils.AnalysisConfiguration
     :return: Dictionary representing a row of an analysis file
     :rtype: dict
+    :param pipeline_config: Pipeline configuration.
+    :type pipeline_config: PipelineConfiguration
     """
     row = {
         "participant_uuid": column_view_td["participant_uuid"],
         "consent_withdrawn": column_view_td["consent_withdrawn"]
     }
+
+    if pipeline_config.membership_group_configuration is not None:
+        for membership_group in pipeline_config.membership_group_configuration.membership_group_csv_urls.keys():
+            row[membership_group] = column_view_td[membership_group]
 
     for config in column_configs:
         # Raw field
@@ -93,7 +106,7 @@ def _get_analysis_file_row(column_view_td, column_configs):
     return row
 
 
-def export_analysis_file(traced_data_iterable, analysis_dataset_configurations, export_path):
+def export_analysis_file(traced_data_iterable, pipeline_config, export_path):
     """
     Exports a column-view TracedData to a csv for analysis.
 
@@ -101,21 +114,21 @@ def export_analysis_file(traced_data_iterable, analysis_dataset_configurations, 
 
     :param traced_data_iterable: Data to export.
     :type traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
-    :param analysis_dataset_configurations: Configuration for the export.
-    :type analysis_dataset_configurations: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
+    :pipeline_config: pipeline configuration module
+    :type PIPELINE_CONFIGURATION:
     :param export_path: Path to export the file to.
     :type export_path: str
     """
     log.info(f"Exporting analysis file to '{export_path}'...")
 
-    column_configs = analysis_dataset_configs_to_column_configs(analysis_dataset_configurations)
+    column_configs = analysis_dataset_configs_to_column_configs(pipeline_config.analysis.dataset_configurations)
 
     IOUtils.ensure_dirs_exist_for_file(export_path)
     with open(export_path, "w") as f:
-        headers = _get_analysis_file_headers(column_configs)
+        headers = _get_analysis_file_headers(column_configs, pipeline_config)
         writer = csv.DictWriter(f, fieldnames=headers)
         writer.writeheader()
 
         for td in traced_data_iterable:
-            row = _get_analysis_file_row(td, column_configs)
+            row = _get_analysis_file_row(td, column_configs, pipeline_config)
             writer.writerow(row)
