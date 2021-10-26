@@ -164,8 +164,8 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
-def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, engagement_db, output_dir,
-                            cache_path=None, membership_group_path=None):
+def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, engagement_db, membership_group_path,
+                            output_dir, cache_path=None):
     analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
     # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
 
@@ -193,10 +193,6 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     export_production_file(messages_by_column, pipeline_config.analysis, f"{output_dir}/production.csv")
 
     if pipeline_config.membership_group_configuration is not None:
-
-        if membership_group_path is None:
-            log.debug("Membership group CSV directory path not specified!, exiting.. ")
-            exit(1)
 
         log.info("Downloading membership groups CSVs from g-cloud...")
         get_membership_groups_csvs(google_cloud_credentials_file_path, pipeline_config, membership_group_path)
