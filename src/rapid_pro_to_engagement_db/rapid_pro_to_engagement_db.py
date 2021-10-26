@@ -84,8 +84,7 @@ def _normalise_and_validate_contact_urn(contact_urn):
 
 def _engagement_db_has_message(engagement_db, message):
     """
-    Checks if an engagement database contains a message with the same text, timestamp, and participant_uuid as the
-    given message.
+    Checks if an engagement database contains a message with the same origin id as the given message.
 
     :param engagement_db: Engagement database to check for the message.
     :type engagement_db: engagement_database.EngagementDatabase
@@ -94,13 +93,7 @@ def _engagement_db_has_message(engagement_db, message):
     :return: Whether a message with this text, timestamp, and participant_uuid exists in the engagement database.
     :rtype: bool
     """
-    # TODO: Rapid Pro has a bug where timestamps occasionally drift by 1us when runs are archived.
-    #       Confirm this is resolved before entering production with an '==' check on timestamps.
-    matching_messages_filter = lambda q: q \
-        .where("text", "==", message.text) \
-        .where("timestamp", "==", message.timestamp) \
-        .where("participant_uuid", "==", message.participant_uuid)
-
+    matching_messages_filter = lambda q: q.where("origin.origin_id", "==", message.origin.origin_id)
     matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
     assert len(matching_messages) < 2
 
