@@ -171,7 +171,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
            "gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/test-pipeline-engagement-db-listening-group.csv"
         ]
 },
-)
+),
     archive_configuration = ArchiveConfiguration(
         archive_upload_bucket = "gs://pipeline-execution-backup-archive",
         bucket_dir_path =  "2021/TEST-PIPELINE_DB"
