@@ -6,7 +6,7 @@ from core_data_modules.data_models import CodeScheme
 
 from src.common.configuration import (RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration,
                                       EngagementDatabaseClientConfiguration, OperationsDashboardConfiguration,
-                                      MembershipGroupConfiguration, ArchiveConfiguration)
+                                      ArchiveConfiguration)
 
 from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, CodaDatasetConfiguration,
                                                        CodeSchemeConfiguration)
@@ -16,8 +16,8 @@ from src.rapid_pro_to_engagement_db.configuration import (FlowResultConfiguratio
                                                           RapidProToEngagementDBConfiguration)
 from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfiguration, DatasetTypes,
                                                          AgeCategoryConfiguration, AnalysisLocations, CodingConfiguration,
-    GoogleDriveUploadConfiguration, AnalysisConfiguration
-)
+                                                         GoogleDriveUploadConfiguration, MembershipGroupConfiguration,
+                                                         AnalysisConfiguration)
 
 
 def load_code_scheme(fname):

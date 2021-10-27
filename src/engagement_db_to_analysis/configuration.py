@@ -45,7 +45,13 @@ class GoogleDriveUploadConfiguration:
 
 
 @dataclass
+class MembershipGroupConfiguration(object):
+    membership_group_csv_urls: {}
+
+
+@dataclass
 class AnalysisConfiguration:
     dataset_configurations: [AnalysisDatasetConfiguration]
     ws_correct_dataset_code_scheme: CodeScheme
     google_drive_upload: Optional[GoogleDriveUploadConfiguration] = None
+    membership_group_configuration: Optional[MembershipGroupConfiguration] = None
