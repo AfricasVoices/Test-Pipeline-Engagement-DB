@@ -1,5 +1,4 @@
 import os
-from os import path
 from google.api_core.exceptions import  NotFound
 import csv
 
@@ -12,7 +11,7 @@ from core_data_modules.traced_data import Metadata
 log = Logger(__name__)
 
 
-def get_membership_groups_csvs(google_cloud_credentials_file_path, pipeline_config, membership_group_path):
+def get_membership_groups_csvs(google_cloud_credentials_file_path, pipeline_config, membership_group_dir_path):
     """
     Downloads de-identified membership groups CSVs from g-cloud.
     :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
@@ -20,21 +19,23 @@ def get_membership_groups_csvs(google_cloud_credentials_file_path, pipeline_conf
     :type google_cloud_credentials_file_path: str
     :param pipeline_config: Pipeline configuration.
     :type pipeline_config: PipelineConfiguration
-    :param membership_group_path: Path to directory containing de-identified membership groups CSVs containing membership groups data
-                        stored as `avf-phone-uuid` and `Name` columns.
+    :param membership_group_dir_path: Path to directory containing de-identified membership groups CSVs containing membership groups data
+                        stored as `avf-participant-uuid` column.
     """
-    for membership_group, membership_group_csv_url in pipeline_config.membership_group_configuration.membership_group_csv_urls.items():
+    membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
+
+    for membership_group, membership_group_csv_url in membership_group_csv_urls:
         for i, membership_group_csv_url in enumerate(membership_group_csv_url):
             membership_group_csv = membership_group_csv_url.split("/")[-1]
 
-            export_file_path = path.join(f'{membership_group_path}/{membership_group_csv}')
+            export_file_path = f'{membership_group_dir_path}/{membership_group_csv}'
 
             if os.path.exists(export_file_path):
                 log.info(f"File '{membership_group_csv}' already exists, skipping download")
                 continue
 
             try:
-                log.info(f"Saving '{membership_group_csv}' to file f'{membership_group_path}...")
+                log.info(f"Saving '{membership_group_csv}' to file f'{membership_group_dir_path}...")
                 IOUtils.ensure_dirs_exist_for_file(export_file_path)
                 with open(export_file_path, "wb") as membership_group_csv_file:
                     google_cloud_utils.download_blob_to_file(
@@ -44,37 +45,39 @@ def get_membership_groups_csvs(google_cloud_credentials_file_path, pipeline_conf
                 log.warning(f"{membership_group_csv}' not found in google cloud, skipping download")
 
 
-def tag_membership_groups_participants(user, column_view_traced_data, pipeline_config, membership_group_path):
+def tag_membership_groups_participants(user, column_view_traced_data, pipeline_config, membership_group_dir_path):
     """
     This tags uids who participated in projects membership groups.
     :param user: Identifier of the user running this program, for TracedData Metadata.
     :type user: str
     :param column_view_traced_data: Messages/Participants TracedData organised into column-view format.
     :type: list of core_data_modules.traced_data.TracedData
-    :param membership_group_path: Path to directory containing de-identified membership groups CSVs containing membership groups data
+    :param membership_group_dir_path: Path to directory containing de-identified membership groups CSVs containing membership groups data
                         stored as `avf-phone-uuid` and `Name` columns.
     :type user: str
     :param pipeline_config: Pipeline configuration.
     :type pipeline_config: PipelineConfiguration
     """
 
-    membership_group_participants = {}
+    membership_group_participants = dict()
+
+    membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
 
     # Read listening group participants CSVs and add their uids to the respective group
-    for membership_group, membership_group_csv_url in pipeline_config.membership_group_configuration.membership_group_csv_urls.items():
+    for membership_group, membership_group_csv_url in membership_group_csv_urls:
         membership_group_participants[membership_group] = set()
         for i, membership_group_csv_url in enumerate(membership_group_csv_url):
             membership_group_csv = membership_group_csv_url.split("/")[-1]
 
-            membership_group_csv_file_path = path.join(f'{membership_group_path}/{membership_group_csv}')
+            membership_group_csv_file_path = f'{membership_group_dir_path}/{membership_group_csv}'
 
             if os.path.exists(membership_group_csv_file_path):
                 with open(membership_group_csv_file_path, "r", encoding='utf-8-sig') as f:
                     membership_group_data = list(csv.DictReader(f))
                     for row in membership_group_data:
-                        membership_group_participants[membership_group].add(row['avf-phone-uuid'])
+                        membership_group_participants[membership_group].add(row['avf-participant-uuid'])
             else:
-                log.warning(f"{membership_group_csv} does not exist in {membership_group_path} skipping!")
+                log.warning(f"{membership_group_csv} does not exist in {membership_group_dir_path} skipping!")
 
         log.info(f'Loaded {len(membership_group_participants[membership_group])} {membership_group} uids')
 
