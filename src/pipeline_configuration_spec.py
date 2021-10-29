@@ -58,5 +58,4 @@ class PipelineConfiguration:
     rapid_pro_sources: [RapidProSource] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
-    membership_group_configuration: MembershipGroupConfiguration = None
     analysis: AnalysisConfiguration = None
