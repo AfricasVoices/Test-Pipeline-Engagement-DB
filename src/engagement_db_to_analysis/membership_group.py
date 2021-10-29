@@ -45,7 +45,7 @@ def get_membership_groups_csvs(google_cloud_credentials_file_path, pipeline_conf
                 log.warning(f"{membership_group_csv}' not found in google cloud, skipping download")
 
 
-def tag_membership_groups_participants(user, column_view_traced_data, pipeline_config, membership_group_dir_path):
+def tag_membership_groups_participants(user, column_view_traced_data, membership_group_csv_urls, membership_group_dir_path):
     """
     This tags uids who participated in projects membership groups.
     :param user: Identifier of the user running this program, for TracedData Metadata.
@@ -55,13 +55,11 @@ def tag_membership_groups_participants(user, column_view_traced_data, pipeline_c
     :param membership_group_dir_path: Path to directory containing de-identified membership groups CSVs containing membership groups data
                         stored as `avf-phone-uuid` and `Name` columns.
     :type user: str
-    :param pipeline_config: Pipeline configuration.
-    :type pipeline_config: PipelineConfiguration
+    :param membership_group_csv_urls: Dict of membership group name to group g-cloud csv url(s).
+    :type membership_group_csv_urls: Dict
     """
 
-    membership_group_participants = dict()
-
-    membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
+    membership_group_participants = dict() # of group name to group avf-participant-uuid(s)
 
     # Read listening group participants CSVs and add their uids to the respective group
     for membership_group, membership_group_csv_url in membership_group_csv_urls:

@@ -194,14 +194,16 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
 
     if pipeline_config.analysis.membership_group_configuration is not None:
 
+        membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
+
         log.info("Downloading membership groups CSVs from g-cloud...")
-        get_membership_groups_csvs(google_cloud_credentials_file_path, pipeline_config, membership_group_dir_path)
+        get_membership_groups_csvs(google_cloud_credentials_file_path, membership_group_csv_urls, membership_group_dir_path)
 
         log.info("Tagging membership group participants to messages_by_column traced data...")
-        tag_membership_groups_participants(user, messages_by_column, pipeline_config, membership_group_dir_path)
+        tag_membership_groups_participants(user, messages_by_column, membership_group_csv_urls, membership_group_dir_path)
 
         log.info("Tagging membership group participants to participants_by_column traced data...")
-        tag_membership_groups_participants(user, participants_by_column, pipeline_config, membership_group_dir_path)
+        tag_membership_groups_participants(user, participants_by_column, membership_group_csv_urls, membership_group_dir_path)
 
     export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/messages.csv", export_timestamps=True)
     export_analysis_file(participants_by_column, pipeline_config, f"{output_dir}/participants.csv")
