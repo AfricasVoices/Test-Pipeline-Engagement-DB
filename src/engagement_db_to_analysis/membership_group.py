@@ -11,18 +11,17 @@ from core_data_modules.traced_data import Metadata
 log = Logger(__name__)
 
 
-def get_membership_groups_csvs(google_cloud_credentials_file_path, pipeline_config, membership_group_dir_path):
+def get_membership_groups_csvs(google_cloud_credentials_file_path, membership_group_csv_urls, membership_group_dir_path):
     """
     Downloads de-identified membership groups CSVs from g-cloud.
     :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
                                                access the credentials bucket.
     :type google_cloud_credentials_file_path: str
-    :param pipeline_config: Pipeline configuration.
-    :type pipeline_config: PipelineConfiguration
+    :param membership_group_csv_urls: Dict of membership group name to group g-cloud csv url(s).
+    :type membership_group_csv_urls: Dict
     :param membership_group_dir_path: Path to directory containing de-identified membership groups CSVs containing membership groups data
                         stored as `avf-participant-uuid` column.
     """
-    membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
 
     for membership_group, membership_group_csv_url in membership_group_csv_urls:
         for i, membership_group_csv_url in enumerate(membership_group_csv_url):

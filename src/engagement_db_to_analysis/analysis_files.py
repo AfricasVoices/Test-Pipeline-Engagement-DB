@@ -52,8 +52,8 @@ def _get_analysis_file_headers(pipeline_config, export_timestamps=False):
     if export_timestamps:
         headers.append("timestamp")
 
-    if pipeline_config.membership_group_configuration is not None:
-        for membership_group in pipeline_config.membership_group_configuration.membership_group_csv_urls.keys():
+    if pipeline_config.analysis.membership_group_configuration is not None:
+        for membership_group in pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.keys():
             headers.append(membership_group)
     
     column_configs = analysis_dataset_configs_to_column_configs(pipeline_config.analysis.dataset_configurations)
@@ -91,8 +91,8 @@ def _get_analysis_file_row(column_view_td, pipeline_config, export_timestamps=Fa
         "consent_withdrawn": column_view_td["consent_withdrawn"]
     }
 
-    if pipeline_config.membership_group_configuration is not None:
-        for membership_group in pipeline_config.membership_group_configuration.membership_group_csv_urls.keys():
+    if pipeline_config.analysis.membership_group_configuration is not None:
+        for membership_group in pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.keys():
             row[membership_group] = column_view_td[membership_group]
     
     if export_timestamps:
