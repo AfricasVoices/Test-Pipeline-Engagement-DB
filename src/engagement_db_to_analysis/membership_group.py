@@ -1,5 +1,5 @@
 import os
-from google.api_core.exceptions import  NotFound
+from google.api_core.exceptions import NotFound
 import csv
 
 from core_data_modules.logging import Logger
