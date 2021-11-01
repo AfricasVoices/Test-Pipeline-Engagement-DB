@@ -61,10 +61,10 @@ def tag_membership_groups_participants(user, column_view_traced_data, membership
     membership_group_participants = dict() # of group name to group avf-participant-uuid(s)
 
     # Read listening group participants CSVs and add their uids to the respective group
-    for membership_group, membership_group_csv_url in membership_group_csv_urls:
+    for membership_group, csv_urls in membership_group_csv_urls:
         membership_group_participants[membership_group] = set()
-        for i, membership_group_csv_url in enumerate(membership_group_csv_url):
-            membership_group_csv = membership_group_csv_url.split("/")[-1]
+        for i, csv_url in enumerate(csv_urls):
+            membership_group_csv = csv_url.split("/")[-1]
 
             membership_group_csv_file_path = f'{membership_group_dir_path}/{membership_group_csv}'
 
