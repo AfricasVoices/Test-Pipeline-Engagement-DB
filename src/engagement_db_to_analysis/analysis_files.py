@@ -130,7 +130,7 @@ def export_analysis_file(traced_data_iterable, pipeline_config, export_path, exp
 
     IOUtils.ensure_dirs_exist_for_file(export_path)
     with open(export_path, "w") as f:
-        headers = _get_analysis_file_headers(pipeline_config,  export_timestamps)
+        headers = _get_analysis_file_headers(pipeline_config, export_timestamps)
         writer = csv.DictWriter(f, fieldnames=headers)
         writer.writeheader()
 
