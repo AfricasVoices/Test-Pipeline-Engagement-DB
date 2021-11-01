@@ -45,7 +45,7 @@ class GoogleDriveUploadConfiguration:
 
 
 @dataclass
-class MembershipGroupConfiguration(object):
+class MembershipGroupConfiguration:
     membership_group_csv_urls: {}
 
 
