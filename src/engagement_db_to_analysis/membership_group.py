@@ -53,7 +53,7 @@ def tag_membership_groups_participants(user, column_view_traced_data, membership
     :type: list of core_data_modules.traced_data.TracedData
     :param membership_group_dir_path: Path to directory containing de-identified membership groups CSVs containing membership groups data
                         stored as `avf-phone-uuid` and `Name` columns.
-    :type user: str
+    :type membership_group_dir_path: str
     :param membership_group_csv_urls: Dict of membership group name to group g-cloud csv url(s).
     :type membership_group_csv_urls: Dict
     """
