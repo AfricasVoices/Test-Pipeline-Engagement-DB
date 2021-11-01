@@ -34,7 +34,7 @@ def get_membership_groups_csvs(google_cloud_credentials_file_path, membership_gr
                 continue
 
             try:
-                log.info(f"Saving '{membership_group_csv}' to file f'{membership_group_dir_path}...")
+                log.info(f"Saving '{membership_group_csv}' to directory f'{membership_group_dir_path}...")
                 IOUtils.ensure_dirs_exist_for_file(export_file_path)
                 with open(export_file_path, "wb") as membership_group_csv_file:
                     google_cloud_utils.download_blob_to_file(
