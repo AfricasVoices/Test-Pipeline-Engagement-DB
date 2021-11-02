@@ -32,7 +32,7 @@ ARCHIVE_FILE="$ARCHIVE_LOCATION/data-$RUN_ID.tar.gzip"
                         "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE" "$DATA_DIR"
 
 ./docker-sync-coda-to-engagement-db.sh --incremental-cache-volume "$PIPELINE_NAME-coda-to-engagement-db-cache" "$USER" \
-                        "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE"
+                        "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE" "$DATA_DIR"
 
 ./docker-run-engagement-db-to-analysis.sh --incremental-cache-volume "$PIPELINE_NAME-engagement-db-to-analysis-cache" \
                         "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE" "$DATA_DIR"

@@ -98,6 +98,12 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json",
             drive_dir="pipeline_upload_test"
         ),
+        membership_group_configuration=MembershipGroupConfiguration(
+            membership_group_csv_urls={ "listening_group": [
+                "gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/test-pipeline-engagement-db-listening-group.csv"
+            ]
+            },
+        ),
         dataset_configurations=[
             AnalysisDatasetConfiguration(
                 engagement_db_datasets=["s01e01"],
@@ -169,5 +175,5 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     archive_configuration = ArchiveConfiguration(
         archive_upload_bucket = "gs://pipeline-execution-backup-archive",
         bucket_dir_path =  "2021/TEST-PIPELINE_DB"
-        )
+    )
 )
