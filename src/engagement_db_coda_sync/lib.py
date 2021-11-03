@@ -10,6 +10,28 @@ from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, EngagementDBT
 log = Logger(__name__)
 
 
+def ensure_coda_datasets_exists(user_id, coda, coda_config):
+    """
+    Ensures coda datasets specified in coda dataset configurations exist.
+
+    :param user_id: Identifier of the user launching this program
+    :type user_id: str
+    :param coda: Coda instance to add the message to.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
+    :param coda_config: Configuration for the update.
+    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    """
+    dataset_ids = coda.get_dataset_ids()
+    for dataset_config in coda_config.dataset_configurations:
+        dataset_id = dataset_config.coda_dataset_id
+        if dataset_id not in dataset_ids:
+            coda.set_dataset_user_ids(dataset_id, user_ids=[user_id])
+            existing_ids = [scheme.scheme_id for scheme in coda.get_all_code_schemes(dataset_id)]
+            scheme = coda_config.ws_correct_dataset_code_scheme
+            if scheme.scheme_id not in existing_ids:
+                coda.set_dataset_code_scheme(dataset_id, scheme)
+
+
 def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message):
     """
     Adds a message to Coda.
