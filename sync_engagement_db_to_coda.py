@@ -6,6 +6,7 @@ from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
 from src.engagement_db_coda_sync.engagement_db_to_coda import sync_engagement_db_to_coda
+from src.engagement_db_coda_sync.lib import ensure_coda_datasets_exists
 
 log = Logger(__name__)
 
@@ -43,4 +44,5 @@ if __name__ == "__main__":
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
     coda = pipeline_config.coda_sync.coda.init_coda_client(google_cloud_credentials_file_path)
 
-    sync_engagement_db_to_coda(engagement_db, coda, pipeline_config.coda_sync.sync_config, incremental_cache_path)
+    ensure_coda_datasets_exists(user, coda, pipeline_config.coda_sync.sync_config)
+    # sync_engagement_db_to_coda(engagement_db, coda, pipeline_config.coda_sync.sync_config, incremental_cache_path)
