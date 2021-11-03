@@ -89,7 +89,7 @@
                 "mapping"
             ],
             "git": "https://github.com/AfricasVoices/CoreDataModules",
-            "ref": "499e6946fced500e860e6697fadc933d8c5ce322"
+            "ref": "363bd9e6593d76f9c5da79e48f25f53723816dc2"
         },
         "cycler": {
             "hashes": [

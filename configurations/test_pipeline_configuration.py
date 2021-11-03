@@ -47,7 +47,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     coda_dataset_id="TEST_gender",
                     engagement_db_dataset="gender",
                     code_scheme_configurations=[
-                        CodeSchemeConfiguration(code_scheme=load_code_scheme("gender"), auto_coder=swahili.DemographicCleaner.clean_gender)
+                        CodeSchemeConfiguration(
+                            code_scheme=load_code_scheme("gender"),
+                            auto_coder=swahili.DemographicCleaner.clean_gender
+                        )
                     ],
                     ws_code_string_value="gender"
                 ),
@@ -64,7 +67,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     coda_dataset_id="TEST_age",
                     engagement_db_dataset="age",
                     code_scheme_configurations=[
-                        CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None), #Todo add auto_code function
+                        CodeSchemeConfiguration(
+                            code_scheme=load_code_scheme("age"),
+                            auto_coder=lambda x: str(swahili.DemographicCleaner.clean_age_within_range(x))
+                        )
                     ],
                     ws_code_string_value="age"
                 ),
