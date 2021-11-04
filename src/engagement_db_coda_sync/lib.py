@@ -27,7 +27,7 @@ def ensure_coda_datasets_exists(user_id, coda, coda_config):
         if dataset_id not in dataset_ids:
             coda.set_dataset_user_ids(dataset_id, user_ids=[user_id])
             existing_ids = [scheme.scheme_id for scheme in coda.get_all_code_schemes(dataset_id)]
-            scheme = coda_config.ws_correct_dataset_code_scheme
+            ws_correct_dataset_code_scheme = coda_config.ws_correct_dataset_code_scheme
             if scheme.scheme_id not in existing_ids:
                 coda.set_dataset_code_scheme(dataset_id, scheme)
 
