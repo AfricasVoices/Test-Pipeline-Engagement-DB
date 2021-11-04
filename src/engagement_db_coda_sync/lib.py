@@ -21,7 +21,7 @@ def ensure_coda_datasets_exists(user_id, coda, coda_config):
     :param coda_config: Configuration for the update.
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     """
-    dataset_ids = coda.get_dataset_ids()
+    existing_dataset_ids = coda.get_dataset_ids()
     for dataset_config in coda_config.dataset_configurations:
         dataset_id = dataset_config.coda_dataset_id
         if dataset_id not in dataset_ids:
