@@ -169,5 +169,5 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     archive_configuration = ArchiveConfiguration(
         archive_upload_bucket = "gs://pipeline-execution-backup-archive",
         bucket_dir_path =  "2021/TEST-PIPELINE_DB"
-        )
+    )
 )
