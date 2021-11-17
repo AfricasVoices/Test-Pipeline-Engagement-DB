@@ -306,7 +306,8 @@ def _make_location_code(scheme, clean_value):
         return scheme.get_code_with_match_value(clean_value)
 
 
-def _impute_location_codes(user, messages_traced_data, location_engagement_db_datasets, coding_config_cleaner_tuples):
+def _impute_location_codes_for_dataset(user, messages_traced_data, location_engagement_db_datasets,
+                                       coding_config_cleaner_tuples):
     """
     Imputes location labels for location dataset messages.
 
@@ -394,6 +395,53 @@ def _impute_location_codes(user, messages_traced_data, location_engagement_db_da
              f"{imputed_meta_labels} meta, and {imputed_control_labels} control location labels.")
 
 
+def _impute_location_codes(user, messages_traced_data, analysis_dataset_configs, analysis_locations_to_cleaners):
+    """
+    Imputes location codes for the given analysis configurations.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param messages_traced_data: Messages TracedData objects to impute age_category.
+    :type messages_traced_data: list of TracedData
+    :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    :param analysis_locations_to_cleaners: Dictionary of AnalysisLocation -> location code cleaner (a function which,
+                                           given a location code, returns the location code for this variable)
+    :type analysis_locations_to_cleaners: dict of str -> (func of str -> str)
+    """
+    # Search each analysis dataset configuration for coding configurations tagged with the analysis locations of
+    # interest e.g. the constituencies and counties in Kenya.
+    for analysis_dataset_config in analysis_dataset_configs:
+        location_engagement_db_datasets = analysis_dataset_config.engagement_db_datasets
+
+        # dict of location -> (None | coding_config_cleaner_tuple)
+        locations_dict = {location: None for location in analysis_locations_to_cleaners}
+        for coding_config in analysis_dataset_config.coding_configs:
+            analysis_location = coding_config.kenya_analysis_location
+            if analysis_location not in analysis_locations_to_cleaners:
+                continue
+
+            log.info(f"Found coding config '{coding_config.analysis_dataset}' for analysis location "
+                     f"'{analysis_location}'")
+            assert locations_dict[analysis_location] is None
+            locations_dict[analysis_location] = (
+                coding_config, analysis_locations_to_cleaners[analysis_location]
+            )
+
+        # If we didn't find any analysis locations, then skip this analysis_dataset_config without imputing anything.
+        found_analysis_locations = len([loc_tuple for loc_tuple in locations_dict.values() if loc_tuple is not None])
+        if found_analysis_locations == 0:
+            continue
+        if found_analysis_locations < len(locations_dict):
+            log.error(f"Found {found_analysis_locations} locations, but {locations_dict} locations were searched for. "
+                      f"Partial location imputation is not yet supported")
+            exit(1)
+
+        _impute_location_codes_for_dataset(
+            user, messages_traced_data, location_engagement_db_datasets, locations_dict.values()
+        )
+
+
 def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_configs):
     """
     Imputes Kenya location labels for location dataset messages.
@@ -405,37 +453,11 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
     :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
     """
-    for analysis_dataset_config in analysis_dataset_configs:
-        constituency_coding_config = None
-        county_coding_config = None
-        location_engagement_db_datasets = None
-        for coding_config in analysis_dataset_config.coding_configs:
-            if coding_config.kenya_analysis_location == AnalysisLocations.KENYA_CONSTITUENCY:
-                log.info(f"Found kenya_analysis_location in county {coding_config.analysis_dataset} coding config")
-
-                assert constituency_coding_config is None, f"Found more than one constituency_coding_config in " \
-                    f"analysis_dataset_config, expected one crashing"
-                constituency_coding_config = coding_config
-                location_engagement_db_datasets = analysis_dataset_config.engagement_db_datasets
-
-            elif coding_config.kenya_analysis_location == AnalysisLocations.KENYA_COUNTY:
-                log.info(f"Found kenya_analysis_location in constituency {coding_config.analysis_dataset} coding config")
-
-                assert county_coding_config is None, f"Found more than one county_coding_config in " \
-                    f"analysis_dataset_config, expected one crashing"
-                county_coding_config = coding_config
-
-        if constituency_coding_config is None and county_coding_config is None:
-            continue
-
-        log.info("Imputing Kenyan location codes...")
-        _impute_location_codes(
-            user, messages_traced_data, location_engagement_db_datasets,
-            [
-                (constituency_coding_config, KenyaLocations.constituency_for_location_code),
-                (county_coding_config, KenyaLocations.county_for_location_code)
-            ]
-        )
+    analysis_locations_to_cleaners = {
+        AnalysisLocations.KENYA_CONSTITUENCY: KenyaLocations.constituency_for_location_code,
+        AnalysisLocations.KENYA_COUNTY: KenyaLocations.county_for_location_code
+    }
+    _impute_location_codes(user, messages_traced_data, analysis_dataset_configs, analysis_locations_to_cleaners)
 
 
 def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme):
