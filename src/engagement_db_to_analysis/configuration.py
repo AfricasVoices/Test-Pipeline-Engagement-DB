@@ -21,6 +21,12 @@ class AnalysisLocations:
     KENYA_COUNTY = "kenya_county"
     KENYA_CONSTITUENCY = "kenya_constituency"
 
+    MOGADISHU_SUB_DISTRICT = "mogadishu_sub_district"
+    SOMALIA_DISTRICT = "somalia_district"
+    SOMALIA_REGION = "somalia_region"
+    SOMALIA_STATE = "somalia_state"
+    SOMALIA_ZONE = "somalia_zone"
+
 
 @dataclass
 class CodingConfiguration:
