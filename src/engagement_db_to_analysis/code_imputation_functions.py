@@ -30,7 +30,9 @@ def _clear_latest_labels(user, message_td, code_schemes):
                     TimeUtils.utc_now_as_iso_string(),
                     Origin(Metadata.get_call_location(), "Engagement DB -> Analysis", "External")
                 )
-        assert cleared_label is not None
+        assert cleared_label is not None, f"Label to be cleared had scheme_id {label.scheme_id}, but this was not " \
+                                          f"present in any of the given code schemes. Do you need to add this code " \
+                                          f"scheme to the analysis configuration?"
         _insert_label_to_message_td(user, message_td, cleared_label)
 
 
