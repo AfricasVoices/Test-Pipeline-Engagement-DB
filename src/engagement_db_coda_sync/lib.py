@@ -1,35 +1,96 @@
+import json
+
+from coda_v2_python_client.firebase_client_wrapper import CodaV2Client
 from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.data_models import Message as CodaMessage, Label, Origin
 from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
 from engagement_database.data_models import HistoryEntryOrigin
+from storage.google_cloud import google_cloud_utils
 
 from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, EngagementDBToCodaSyncStats
 
 log = Logger(__name__)
 
 
-def ensure_coda_datasets_exists(user_id, coda, coda_config):
+def get_coda_users_from_gcloud(coda_dataset_users_file_url, google_cloud_credentials_file_path):
+    return json.loads(google_cloud_utils.download_blob_to_string(
+        google_cloud_credentials_file_path, coda_dataset_users_file_url
+    ))
+
+def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_file_path): 
     """
     Ensures coda datasets specified in coda dataset configurations exist.
 
-    :param user_id: Identifier of the user launching this program
-    :type user_id: str
     :param coda: Coda instance to add the message to.
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_config: Configuration for the update.
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     """
-    existing_dataset_ids = coda.get_dataset_ids()
+    all_datasets_have_user_file_url = all(
+        dataset_config.coda_dataset_users_file_url is not None for dataset_config in coda_config.dataset_configurations)
+
+    default_user_ids = []
+    if not all_datasets_have_user_file_url:
+        assert coda_config.project_users_file_url is not None, \
+         f"Specify user_ids for coda datasets in CodaDatasetConfiguration or user_ids for this project in CodaSyncConfiguration"
+        default_user_ids.extend(get_coda_users_from_gcloud(coda_config.project_users_file_url, google_cloud_credentials_file_path))
+
+    ws_correct_dataset_code_scheme = coda_config.ws_correct_dataset_code_scheme
     for dataset_config in coda_config.dataset_configurations:
-        dataset_id = dataset_config.coda_dataset_id
-        if dataset_id not in existing_dataset_ids:
-            coda.set_dataset_user_ids(dataset_id, user_ids=[user_id])
-            existing_ids = [scheme.scheme_id for scheme in coda.get_all_code_schemes(dataset_id)]
-            ws_correct_dataset_code_scheme = coda_config.ws_correct_dataset_code_scheme
-            if ws_correct_dataset_code_scheme.scheme_id not in existing_ids:
-                coda.set_dataset_code_scheme(dataset_id, ws_correct_dataset_code_scheme)
+        user_ids = []
+        if dataset_config.coda_dataset_users_file_url:
+            user_ids.append(get_coda_users_from_gcloud(dataset_config.coda_dataset_users_file_url))
+        else:
+            user_ids = default_user_ids
+
+        coda_user_ids = coda.get_dataset_user_ids(dataset_config.coda_dataset_id)
+        if coda_user_ids:
+            user_ids = list(set(user_ids) - set(coda_user_ids))
+            coda.update_dataset_user_ids(dataset_config.coda_dataset_id, user_ids)
+        else:
+            coda.set_dataset_user_ids(dataset_config.coda_dataset_id, user_ids)
+
+        repo_code_schemes = []
+        for code_scheme_config in dataset_config.code_scheme_configurations:
+            for count in range(1, code_scheme_config.coda_code_schemes_count + 1):
+                if count == 1:
+                    repo_code_schemes.append(code_scheme_config.code_scheme)
+                else:
+                    code_scheme_copy = CodeScheme.from_firebase_map(code_scheme_config.code_scheme.to_firebase_map())
+                    code_scheme_copy.scheme_id = f"{code_scheme_copy.scheme_id}-{count}"
+                    repo_code_schemes.append(code_scheme_copy)
+        repo_code_schemes.append(ws_correct_dataset_code_scheme)
+        repo_code_schemes_lut = {code_scheme.scheme_id: code_scheme for code_scheme in repo_code_schemes}
+
+        coda_code_schemes = coda.get_all_code_schemes(dataset_config.coda_dataset_id)
+        coda_scheme_ids = [code_scheme.scheme_id for code_scheme in coda_code_schemes]
+
+        if len(repo_code_schemes) != len(coda_code_schemes):
+            for scheme_id in coda_scheme_ids:
+                if scheme_id not in repo_code_schemes_lut.keys():
+                    log.warning(f"There are code schemes in coda not in this repo; The code schemes will be ignored")
+                    coda_code_schemes.remove(repo_code_schemes_lut[scheme_id])
+
+            for scheme_id, code_scheme in repo_code_schemes_lut.items():
+                if scheme_id not in coda_scheme_ids:
+                    coda.set_dataset_code_scheme(dataset_config.coda_dataset_id, code_scheme)
+                    repo_code_schemes.remove(code_scheme)
+
+        assert len(repo_code_schemes) == len(coda_code_schemes), \
+                f"`repo_code_schemes` must be equal to `coda_code_schemes`"
+        
+        repo_code_schemes.sort(key=lambda s: s.scheme_id)
+        coda_code_schemes.sort(key=lambda s: s.scheme_id)
+
+        repo_and_coda_code_schemes_pairs = zip(repo_code_schemes, coda_code_schemes)
+        differing_code_schemes = [x for x, y in repo_and_coda_code_schemes_pairs if x != y]
+        if len(differing_code_schemes) > 0:
+            log.info(f"This repo has a different code schemes to coda; Updating codes schemes in coda...")
+            for repo_code_scheme in differing_code_schemes:
+                coda.set_dataset_code_scheme(dataset_config.coda_dataset_id, repo_code_scheme)
+                log.info(f"Updated code scheme {repo_code_scheme.scheme_id}")
 
 
 def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message):
