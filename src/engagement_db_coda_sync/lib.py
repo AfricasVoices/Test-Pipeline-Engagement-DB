@@ -2,6 +2,7 @@ import json
 
 from coda_v2_python_client.firebase_client_wrapper import CodaV2Client
 from core_data_modules.cleaners import Codes
+from core_data_modules.data_models import CodeScheme
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.data_models import Message as CodaMessage, Label, Origin
 from core_data_modules.logging import Logger
