@@ -84,7 +84,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 ),
             ],
             ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset"),
-            project_users_file_url="gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/users.json"
+            project_users_file_url="gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/coda_users.json"
         )
     ),
     rapid_pro_target=RapidProTarget(
