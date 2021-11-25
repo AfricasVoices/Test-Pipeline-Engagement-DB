@@ -44,9 +44,8 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
 
     ws_correct_dataset_code_scheme = coda_config.ws_correct_dataset_code_scheme
     for dataset_config in coda_config.dataset_configurations:
-        user_ids = []
         if dataset_config.coda_dataset_users_file_url:
-            user_ids.append(get_coda_users_from_gcloud(dataset_config.coda_dataset_users_file_url))
+            user_ids = get_coda_users_from_gcloud(dataset_config.coda_dataset_users_file_url)
         else:
             user_ids = default_user_ids
 
