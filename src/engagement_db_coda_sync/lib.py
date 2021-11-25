@@ -59,6 +59,8 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
 
         repo_code_schemes = []
         for code_scheme_config in dataset_config.code_scheme_configurations:
+            assert code_scheme_config.coda_code_schemes_count < 5, \
+                "`code_scheme_configuration.coda_code_schemes_count` exceeds number of columns that can be displayed in coda"
             for count in range(1, code_scheme_config.coda_code_schemes_count + 1):
                 if count == 1:
                     repo_code_schemes.append(code_scheme_config.code_scheme)
