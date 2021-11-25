@@ -98,6 +98,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
             for repo_code_scheme in differing_code_schemes:
                 coda.set_dataset_code_scheme(dataset_config.coda_dataset_id, repo_code_scheme)
                 log.info(f"Updated code scheme {repo_code_scheme.scheme_id}")
+                # TODO: Log differing keys; for codes display differing code id. Update differing keys in coda only.
 
 
 def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message):
