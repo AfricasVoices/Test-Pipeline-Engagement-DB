@@ -22,7 +22,7 @@ def get_coda_users_from_gcloud(coda_dataset_users_file_url, google_cloud_credent
 
 def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_file_path): 
     """
-    Ensures coda datasets specified in coda dataset configurations exist.
+    Ensures coda datasets are up to date based on coda configuration. 
 
     :param coda: Coda instance to add the message to.
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
