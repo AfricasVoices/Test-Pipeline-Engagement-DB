@@ -36,7 +36,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
     if not all_datasets_have_user_file_url:
         assert coda_config.project_users_file_url is not None, \
          f"Specify user_ids for coda datasets in CodaDatasetConfiguration or user_ids for this project in CodaSyncConfiguration"
-        default_user_ids.extend(get_coda_users_from_gcloud(coda_config.project_users_file_url, google_cloud_credentials_file_path))
+        default_user_ids = get_coda_users_from_gcloud(coda_config.project_users_file_url, google_cloud_credentials_file_path)
 
     ws_correct_dataset_code_scheme = coda_config.ws_correct_dataset_code_scheme
     for dataset_config in coda_config.dataset_configurations:
