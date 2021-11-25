@@ -20,10 +20,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Check that the correct number of arguments were provided.
-if [[ $# -ne 3 ]]; then
+if [[ $# -ne 4 ]]; then
     echo "Usage: $0 
     [--incremental-cache-volume <incremental-cache-volume>] 
-    <user> <google-cloud-credentials-file-path> <configuration-module>"
+    <user> <google-cloud-credentials-file-path> <configuration-module> <data-dir>"
     exit
 fi
 

@@ -247,7 +247,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 dataset=flow_config.engagement_db_dataset,
                 labels=[],
                 origin=MessageOrigin(
-                    origin_id=f"rapid_pro.workspace_{workspace_uuid}.flow_{flow_id}.run_{run.id}.result_{rapid_pro_result.name}"
+                    origin_id=f"rapid_pro.workspace_{workspace_uuid}.flow_{flow_id}.run_{run.id}.result_{rapid_pro_result.name}",
+                    origin_type="rapid_pro"
                 )
             )
             message_origin_details = {

@@ -38,7 +38,7 @@ docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
 CMD="pipenv run python -u engagement_db_to_analysis.py ${INCREMENTAL_ARG} ${USER} \
-    /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE} /data/analysis-outputs"
+    /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE} /data/membership-groups /data/analysis-outputs"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
     container="$(docker container create -w /app --mount source="$INCREMENTAL_CACHE_VOLUME_NAME",target=/cache "$IMAGE_NAME" /bin/bash -c "$CMD")"
@@ -57,10 +57,9 @@ docker cp "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$container:/credentials/google-cloud
 echo "Starting container $container_short_id"
 docker start -a -i "$container"
 
-# Copy the anaysis output data back out of the container
-echo "Copying $container_short_id:/data/analysis-outputs/. -> $DATA_DIR"
-mkdir -p "$DATA_DIR/Analysis-Outputs"
-docker cp "$container:/data/analysis-outputs/." "$DATA_DIR/Analysis-Outputs"
+# Copy the output data back out of the container
+echo "Copying $container_short_id:/data/. -> $DATA_DIR"
+docker cp "$container:/data/." "$DATA_DIR"
 
 # Copy cache data out of the container for backup
 if [[ "$INCREMENTAL_ARG" ]]; then

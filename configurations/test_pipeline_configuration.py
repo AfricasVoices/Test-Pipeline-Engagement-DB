@@ -47,7 +47,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     coda_dataset_id="TEST_gender",
                     engagement_db_dataset="gender",
                     code_scheme_configurations=[
-                        CodeSchemeConfiguration(code_scheme=load_code_scheme("gender"), auto_coder=swahili.DemographicCleaner.clean_gender)
+                        CodeSchemeConfiguration(
+                            code_scheme=load_code_scheme("gender"),
+                            auto_coder=swahili.DemographicCleaner.clean_gender
+                        )
                     ],
                     ws_code_string_value="gender"
                 ),
@@ -64,7 +67,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     coda_dataset_id="TEST_age",
                     engagement_db_dataset="age",
                     code_scheme_configurations=[
-                        CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None), #Todo add auto_code function
+                        CodeSchemeConfiguration(
+                            code_scheme=load_code_scheme("age"),
+                            auto_coder=lambda x: str(swahili.DemographicCleaner.clean_age_within_range(x))
+                        )
                     ],
                     ws_code_string_value="age"
                 ),
@@ -98,6 +104,12 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         google_drive_upload=GoogleDriveUploadConfiguration(
             credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json",
             drive_dir="pipeline_upload_test"
+        ),
+        membership_group_configuration=MembershipGroupConfiguration(
+            membership_group_csv_urls={ "listening_group": [
+                "gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/test-pipeline-engagement-db-listening-group.csv"
+            ]
+            },
         ),
         dataset_configurations=[
             AnalysisDatasetConfiguration(
