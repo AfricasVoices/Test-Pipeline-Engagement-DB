@@ -28,6 +28,9 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_config: Configuration for the update.
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    :param google_cloud_credentials_file_path: Path to a Google Cloud service account credentials file 
+                                               to use to access the credentials bucket.
+    :type google_cloud_credentials_file_path: str
     """
     all_datasets_have_user_file_url = all(
         dataset_config.coda_dataset_users_file_url is not None for dataset_config in coda_config.dataset_configurations)
