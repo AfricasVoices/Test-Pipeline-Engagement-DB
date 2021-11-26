@@ -91,7 +91,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
         repo_and_coda_code_schemes_pairs = zip(repo_code_schemes, coda_code_schemes)
         differing_code_schemes = [x for x, y in repo_and_coda_code_schemes_pairs if x != y]
         if len(differing_code_schemes) > 0:
-            log.info(f"This repo has different code schemes to coda; Updating code schemes in coda...")
+            log.info(f"This repo has differing code schemes to coda; Updating code schemes in coda...")
             for repo_code_scheme in differing_code_schemes:
                 coda.set_dataset_code_scheme(dataset_config.coda_dataset_id, repo_code_scheme)
                 log.info(f"Updated code scheme {repo_code_scheme.scheme_id}")
