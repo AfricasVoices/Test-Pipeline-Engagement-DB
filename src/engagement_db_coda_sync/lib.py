@@ -2,7 +2,6 @@ import json
 
 from coda_v2_python_client.firebase_client_wrapper import CodaV2Client
 from core_data_modules.cleaners import Codes
-from core_data_modules.data_models import CodeScheme
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.data_models import Message as CodaMessage, Label, Origin
 from core_data_modules.logging import Logger
@@ -63,7 +62,8 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
                 if count == 1:
                     repo_code_schemes.append(code_scheme_config.code_scheme)
                 else:
-                    code_scheme_copy = CodeScheme.from_firebase_map(code_scheme_config.code_scheme.to_firebase_map())
+                    print(code_scheme_config.code_scheme)
+                    code_scheme_copy = code_scheme_config.code_scheme.copy()
                     code_scheme_copy.scheme_id = f"{code_scheme_copy.scheme_id}-{count}"
                     repo_code_schemes.append(code_scheme_copy)
         repo_code_schemes.append(ws_correct_dataset_code_scheme)

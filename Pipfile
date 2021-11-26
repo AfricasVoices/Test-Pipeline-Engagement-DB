@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-CoreDataModules = {editable = true,git = "https://www.github.com/AfricasVoices/CoreDataModules",ref = "v0.16.0",extras=["mapping"]}
+CoreDataModules = {editable = true,git = "https://www.github.com/AfricasVoices/CoreDataModules",ref = "enable-copying-code-schemes",extras=["mapping"]}
 RapidProTools = {editable = true,git = "https://www.github.com/AfricasVoices/RapidProTools",ref = "v0.3.9"}
 CodaV2PythonClient = {editable = true,git = "https://www.github.com/AfricasVoices/CodaV2PythonClient",ref = "support-automatic-coda-dataset-creation"}
 PipelineInfrastructure = {editable = true,git = "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",ref = "v0.1.1"}
