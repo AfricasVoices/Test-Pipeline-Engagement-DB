@@ -34,7 +34,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
     :type google_cloud_credentials_file_path: str
     """
     all_datasets_have_user_file_url = all(
-        dataset_config.coda_dataset_users_file_url is not None for dataset_config in coda_config.dataset_configurations)
+        dataset_config.dataset_users_file_url is not None for dataset_config in coda_config.dataset_configurations)
 
     default_user_ids = []
     if not all_datasets_have_user_file_url:
@@ -44,8 +44,8 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
 
     ws_correct_dataset_code_scheme = coda_config.ws_correct_dataset_code_scheme
     for dataset_config in coda_config.dataset_configurations:
-        if dataset_config.coda_dataset_users_file_url:
-            user_ids = get_coda_users_from_gcloud(dataset_config.coda_dataset_users_file_url)
+        if dataset_config.dataset_users_file_url:
+            user_ids = get_coda_users_from_gcloud(dataset_config.dataset_users_file_url)
         else:
             user_ids = default_user_ids
 
