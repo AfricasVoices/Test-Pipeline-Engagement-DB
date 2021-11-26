@@ -17,7 +17,7 @@ class CodaDatasetConfiguration:
     engagement_db_dataset: str
     code_scheme_configurations: [CodeSchemeConfiguration]
     ws_code_string_value: str
-    coda_dataset_users_file_url: Optional[str] = None
+    dataset_users_file_url: Optional[str] = None
 
 
 @dataclass
