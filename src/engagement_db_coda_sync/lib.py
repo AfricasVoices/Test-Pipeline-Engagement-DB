@@ -15,9 +15,9 @@ from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, EngagementDBT
 log = Logger(__name__)
 
 
-def get_coda_users_from_gcloud(coda_dataset_users_file_url, google_cloud_credentials_file_path):
+def get_coda_users_from_gcloud(dataset_users_file_url, google_cloud_credentials_file_path):
     return json.loads(google_cloud_utils.download_blob_to_string(
-        google_cloud_credentials_file_path, coda_dataset_users_file_url
+        google_cloud_credentials_file_path, dataset_users_file_url
     ))
 
 
