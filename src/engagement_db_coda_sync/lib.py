@@ -62,7 +62,6 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
                 if count == 1:
                     repo_code_schemes.append(code_scheme_config.code_scheme)
                 else:
-                    print(code_scheme_config.code_scheme)
                     code_scheme_copy = code_scheme_config.code_scheme.copy()
                     code_scheme_copy.scheme_id = f"{code_scheme_copy.scheme_id}-{count}"
                     repo_code_schemes.append(code_scheme_copy)
