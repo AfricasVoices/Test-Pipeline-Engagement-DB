@@ -36,25 +36,26 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
     all_datasets_have_user_file_url = all(
         dataset_config.dataset_users_file_url is not None for dataset_config in coda_config.dataset_configurations)
 
-    default_user_ids = []
+    default_config_user_ids = []
     if not all_datasets_have_user_file_url:
         assert coda_config.project_users_file_url is not None, \
-         f"Specify user_ids for coda datasets in CodaDatasetConfiguration or user_ids for this project in CodaSyncConfiguration"
-        default_user_ids = get_coda_users_from_gcloud(coda_config.project_users_file_url, google_cloud_credentials_file_path)
+         f"Specify user ids for coda datasets in CodaDatasetConfiguration or user ids for this project in CodaSyncConfiguration"
+        default_config_user_ids = get_coda_users_from_gcloud(coda_config.project_users_file_url, google_cloud_credentials_file_path)
 
     ws_correct_dataset_code_scheme = coda_config.ws_correct_dataset_code_scheme
     for dataset_config in coda_config.dataset_configurations:
+        config_user_ids = []
         if dataset_config.dataset_users_file_url:
-            user_ids = get_coda_users_from_gcloud(dataset_config.dataset_users_file_url)
+            config_user_ids = get_coda_users_from_gcloud(dataset_config.dataset_users_file_url)
         else:
-            user_ids = default_user_ids
+            config_user_ids = default_config_user_ids
 
         coda_user_ids = coda.get_dataset_user_ids(dataset_config.coda_dataset_id)
         if coda_user_ids:
-            user_ids = list(set(user_ids) - set(coda_user_ids))
-            coda.update_dataset_user_ids(dataset_config.coda_dataset_id, user_ids)
+            config_user_ids = list(set(config_user_ids) - set(coda_user_ids))
+            coda.update_dataset_user_ids(dataset_config.coda_dataset_id, config_user_ids)
         else:
-            coda.set_dataset_user_ids(dataset_config.coda_dataset_id, user_ids)
+            coda.set_dataset_user_ids(dataset_config.coda_dataset_id, config_user_ids)
 
         repo_code_schemes = []
         for code_scheme_config in dataset_config.code_scheme_configurations:
@@ -93,7 +94,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
         repo_and_coda_code_schemes_pairs = zip(repo_code_schemes, coda_code_schemes)
         differing_code_schemes = [x for x, y in repo_and_coda_code_schemes_pairs if x != y]
         if len(differing_code_schemes) > 0:
-            log.info(f"This repo has different code schemes to coda; Updating codes schemes in coda...")
+            log.info(f"This repo has different code schemes to coda; Updating code schemes in coda...")
             for repo_code_scheme in differing_code_schemes:
                 coda.set_dataset_code_scheme(dataset_config.coda_dataset_id, repo_code_scheme)
                 log.info(f"Updated code scheme {repo_code_scheme.scheme_id}")
