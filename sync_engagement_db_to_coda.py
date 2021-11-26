@@ -44,5 +44,5 @@ if __name__ == "__main__":
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
     coda = pipeline_config.coda_sync.coda.init_coda_client(google_cloud_credentials_file_path)
 
-    ensure_coda_datasets_up_to_date(user, coda, pipeline_config.coda_sync.sync_config)
+    ensure_coda_datasets_up_to_date(coda, pipeline_config.coda_sync.sync_config, google_cloud_credentials_file_path)
     sync_engagement_db_to_coda(engagement_db, coda, pipeline_config.coda_sync.sync_config, incremental_cache_path)
