@@ -26,7 +26,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
 
     :param coda: Coda instance to add the message to.
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
-    :param coda_config: Configuration for the update.
+    :param coda_config: Coda sync configuration.
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param google_cloud_credentials_file_path: Path to a Google Cloud service account credentials file 
                                                to use to access the credentials bucket.
