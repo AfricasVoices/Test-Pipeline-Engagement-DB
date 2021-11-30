@@ -3,6 +3,7 @@ from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO
 from core_data_modules.util import TimeUtils
 
+from src.common.get_messages_in_datasets import get_messages_in_datasets
 from src.engagement_db_to_analysis import google_drive_upload
 from src.engagement_db_to_analysis.analysis_files import export_production_file, export_analysis_file
 from src.engagement_db_to_analysis.automated_analysis import run_automated_analysis
@@ -16,122 +17,6 @@ from src.engagement_db_to_analysis.membership_group import (get_membership_group
                                                             tag_membership_groups_participants)
 
 log = Logger(__name__)
-
-
-def _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path=None):
-    """
-    Downloads project messages from engagement database. It performs a full download if there is no cache path and
-    incrementally otherwise.
-
-    :param analysis_dataset_configurations: Analysis dataset configurations in pipeline configuration module.
-    :type analysis_dataset_configurations: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
-    :param engagement_db: Engagement database to download the messages from.
-    :type engagement_db: engagement_database.EngagementDatabase
-    :param cache_path: Path to a directory to use to cache results needed for incremental operation.
-                       If None, runs in non-incremental mode.
-    :type cache_path: str
-    :return: engagement_db_dataset_messages_map of engagement_db_dataset to list of messages.
-    :rtype: dict of str -> list of engagement_database.data_models.Message
-    """
-
-    if cache_path is None:
-        cache = None
-        log.warning(f"No `cache_path` provided. This tool will perform a full download of project messages from engagement database")
-    else:
-        log.info(f"Initialising EngagementAnalysisCache at '{cache_path}/engagement_db_to_analysis'")
-        cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
-
-    engagement_db_dataset_messages_map = {}  # of engagement_db_dataset to list of messages
-    for analysis_dataset_config in analysis_dataset_configurations:
-        for engagement_db_dataset in analysis_dataset_config.engagement_db_datasets:
-            messages = []
-            latest_message_timestamp = None if cache is None else cache.get_latest_message_timestamp(engagement_db_dataset)
-            full_download_required = latest_message_timestamp is None
-            if not full_download_required:
-                log.info(f"Performing incremental download for {engagement_db_dataset} messages...")
-
-                # Download messages that have been updated/created after the previous run
-                incremental_messages_filter = lambda q: q \
-                    .where("dataset", "==", engagement_db_dataset) \
-                    .where("last_updated", ">", latest_message_timestamp)
-
-                updated_messages = engagement_db.get_messages(firestore_query_filter=incremental_messages_filter)
-                messages.extend(updated_messages)
-
-                # Check and remove cached messages that have been ws corrected away from this dataset after the previous
-                # run. We do this by searching for all messages that used to be in this dataset, that we haven't
-                # already seen.
-                latest_ws_message_timestamp = cache.get_latest_message_timestamp(f"{engagement_db_dataset}_ws")
-                if latest_ws_message_timestamp is None:
-                    ws_corrected_messages_filter = lambda q: q \
-                        .where("previous_datasets", "array_contains", engagement_db_dataset)
-                else:
-                    ws_corrected_messages_filter = lambda q: q \
-                        .where("previous_datasets", "array_contains", engagement_db_dataset) \
-                        .where("last_updated", ">", latest_ws_message_timestamp)
-
-                ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
-
-                log.info(f"Downloaded {len(updated_messages)} updated messages in this dataset, and "
-                         f"{len(ws_corrected_messages)} messages that were previously in this dataset but have moved.")
-
-                # Update the latest seen ws message from this dataset
-                if len(ws_corrected_messages) > 0:
-                    for msg in ws_corrected_messages:
-                        if latest_ws_message_timestamp is None or msg.last_updated > latest_ws_message_timestamp:
-                            latest_ws_message_timestamp = msg.last_updated
-                    cache.set_latest_message_timestamp(f"{engagement_db_dataset}_ws", latest_ws_message_timestamp)
-
-                cache_messages = cache.get_messages(engagement_db_dataset)
-                for msg in cache_messages:
-                    if msg.message_id in {msg.message_id for msg in ws_corrected_messages}:
-                        continue
-                    messages.append(msg)
-
-            else:
-                log.warning(f"Performing a full download for {engagement_db_dataset} messages...")
-
-                full_download_filter = lambda q: q \
-                    .where("dataset", "==", engagement_db_dataset)
-
-                messages = engagement_db.get_messages(firestore_query_filter=full_download_filter)
-                log.info(f"Downloaded {len(messages)} messages")
-
-            # Filter messages for their latest versions
-            # (Filter by sorting in reverse order of last_updated and keeping the first snapshot we see of each id)
-            latest_messages = []
-            seen_message_ids = set()
-            messages.sort(key=lambda msg: msg.last_updated, reverse=True)
-            for msg in messages:
-                if msg.message_id not in seen_message_ids:
-                    seen_message_ids.add(msg.message_id)
-                    latest_messages.append(msg)
-
-            log.info(f"Filtered for latest message snapshots: {len(latest_messages)}/{len(messages)} snapshots remain")
-            messages = latest_messages
-            engagement_db_dataset_messages_map[engagement_db_dataset] = messages
-
-            # Update latest_message_timestamp
-            for msg in messages:
-                msg_last_updated = msg.last_updated
-                if latest_message_timestamp is None or msg_last_updated > latest_message_timestamp:
-                    latest_message_timestamp = msg_last_updated
-
-            if cache is not None:
-                # Export latest message timestamp to cache.
-                if latest_message_timestamp is not None:
-                    cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
-
-                if full_download_required:
-                    # Export this as the ws case too, as there will be no need to check for ws messages that moved from
-                    # this dataset before this initial fetch.
-                    cache.set_latest_message_timestamp(f"{engagement_db_dataset}_ws", latest_message_timestamp)
-
-                # Export project engagement_dataset files
-                if len(messages) > 0:
-                    cache.set_messages(engagement_db_dataset, messages)
-
-    return engagement_db_dataset_messages_map
 
 
 def _convert_messages_to_traced_data(user, messages_map):
@@ -169,7 +54,17 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
     # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
 
-    messages_map = _get_project_messages_from_engagement_db(analysis_dataset_configurations, engagement_db, cache_path)
+    if cache_path is None:
+        cache = None
+        log.warning(f"No `cache_path` provided. This tool will perform a full download of project messages from engagement database")
+    else:
+        log.info(f"Initialising EngagementAnalysisCache at '{cache_path}/engagement_db_to_analysis'")
+        cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
+
+    engagement_db_datasets = []
+    for config in analysis_dataset_configurations:
+        engagement_db_datasets.extend(config.engagement_db_datasets)
+    messages_map = get_messages_in_datasets(engagement_db, engagement_db_datasets, cache)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
