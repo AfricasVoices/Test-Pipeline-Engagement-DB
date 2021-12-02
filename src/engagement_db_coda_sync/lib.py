@@ -48,13 +48,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
             repo_user_ids = get_coda_users_from_gcloud(dataset_config.dataset_users_file_url, google_cloud_credentials_file_path)
         else:
             repo_user_ids = default_repo_user_ids
-
-        coda_user_ids = coda.get_dataset_user_ids(dataset_config.coda_dataset_id)
-        if coda_user_ids:
-            repo_user_ids = list(set(repo_user_ids) - set(coda_user_ids))
-            coda.update_dataset_user_ids(dataset_config.coda_dataset_id, repo_user_ids)
-        else:
-            coda.set_dataset_user_ids(dataset_config.coda_dataset_id, repo_user_ids)
+        coda.set_dataset_user_ids(dataset_config.coda_dataset_id, repo_user_ids)
 
         repo_code_schemes = []
         for code_scheme_config in dataset_config.code_scheme_configurations:
