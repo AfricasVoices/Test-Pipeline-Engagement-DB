@@ -84,7 +84,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
         repo_and_coda_code_schemes_pairs = zip(repo_code_schemes, coda_code_schemes)
         for repo_code_scheme, coda_code_scheme in repo_and_coda_code_schemes_pairs:
             if repo_code_scheme != coda_code_scheme:
-                log.info(f"Updating code scheme {repo_code_scheme.scheme_id} in coda with the one in this repository")
+                log.info(f"Updating code scheme {coda_code_scheme.scheme_id} in coda with the one in this repository")
                 coda.set_dataset_code_scheme(dataset_config.coda_dataset_id, repo_code_scheme)
 
 def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message):
