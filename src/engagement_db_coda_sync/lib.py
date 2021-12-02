@@ -80,16 +80,12 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
         
         repo_code_schemes.sort(key=lambda s: s.scheme_id)
         coda_code_schemes.sort(key=lambda s: s.scheme_id)
-
+        
         repo_and_coda_code_schemes_pairs = zip(repo_code_schemes, coda_code_schemes)
-        differing_code_schemes = [x for x, y in repo_and_coda_code_schemes_pairs if x != y]
-        if len(differing_code_schemes) > 0:
-            log.info(f"This repo has differing code schemes to coda; Updating code schemes in coda...")
-            for repo_code_scheme in differing_code_schemes:
+        for repo_code_scheme, coda_code_scheme in repo_and_coda_code_schemes_pairs:
+            if repo_code_scheme != coda_code_scheme:
+                log.info(f"Updating code scheme {repo_code_scheme.scheme_id} in coda with the one in this repository")
                 coda.set_dataset_code_scheme(dataset_config.coda_dataset_id, repo_code_scheme)
-                log.info(f"Updated code scheme {repo_code_scheme.scheme_id}")
-                # TODO: Log differing keys; for codes display differing code id. Experiment updating differing keys in coda only.
-
 
 def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message):
     """
