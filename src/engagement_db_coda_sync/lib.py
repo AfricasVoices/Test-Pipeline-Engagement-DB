@@ -63,15 +63,15 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
         repo_code_schemes_lut = {code_scheme.scheme_id: code_scheme for code_scheme in repo_code_schemes}
 
         coda_code_schemes = coda.get_all_code_schemes(dataset_config.coda_dataset_id)
-        coda_scheme_ids = [code_scheme.scheme_id for code_scheme in coda_code_schemes]
+        coda_code_schemes_lut = {code_scheme.scheme_id: code_scheme for code_scheme in coda_code_schemes}
 
-        for coda_scheme_id in coda_scheme_ids:
+        for coda_scheme_id, coda_code_scheme in coda_code_schemes_lut.items():
             if coda_scheme_id not in repo_code_schemes_lut.keys():
                 log.warning(f"There are code schemes in coda not in this repo; The code schemes will be ignored")
-                coda_code_schemes.remove(repo_code_schemes_lut[coda_scheme_id])
+                coda_code_schemes.remove(coda_code_scheme)
 
         for repo_scheme_id, repo_code_scheme in repo_code_schemes_lut.items():
-            if repo_scheme_id not in coda_scheme_ids:
+            if repo_scheme_id not in coda_code_schemes_lut.keys():
                 coda.set_dataset_code_scheme(dataset_config.coda_dataset_id, repo_code_scheme)
                 repo_code_schemes.remove(repo_code_scheme)
 
