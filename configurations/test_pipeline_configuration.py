@@ -69,21 +69,24 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(
                             code_scheme=load_code_scheme("age"),
-                            auto_coder=lambda x: str(swahili.DemographicCleaner.clean_age_within_range(x))
+                            auto_coder=lambda x: str(swahili.DemographicCleaner.clean_age_within_range(x)),
+                            coda_code_schemes_count=2
                         )
                     ],
-                    ws_code_string_value="age"
+                    ws_code_string_value="age",
+                    dataset_users_file_url=f"gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/TEST_age_coda_users.json"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="TEST_s01e01",
                     engagement_db_dataset="s01e01",
                     code_scheme_configurations=[
-                        CodeSchemeConfiguration(code_scheme=load_code_scheme("s01e01"), auto_coder=None)
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("s01e01"), auto_coder=None, coda_code_schemes_count=3)
                     ],
                     ws_code_string_value="s01e01"
                 ),
             ],
-            ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset")
+            ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset"),
+            project_users_file_url="gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/coda_users.json"
         )
     ),
     rapid_pro_target=RapidProTarget(
