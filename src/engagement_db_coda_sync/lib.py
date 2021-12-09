@@ -92,6 +92,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
                 log.info(f"Updating code scheme {coda_code_scheme.scheme_id} in coda with the one in this repository")
                 coda.set_dataset_code_scheme(dataset_config.coda_dataset_id, repo_code_scheme)
 
+
 def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message):
     """
     Adds a message to Coda.
