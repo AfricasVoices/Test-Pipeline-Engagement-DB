@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "579b47a35d960737b866cf626c65386595a910ecc86d0b899bfc49472be79b01"
+            "sha256": "1b3e46d9ad120861b1c72159d1e05733d13a9505399a0bf96bfc3c0dc8494949"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -49,11 +49,11 @@
         },
         "charset-normalizer": {
             "hashes": [
-                "sha256:735e240d9a8506778cd7a453d97e817e536bb1fc29f4f6961ce297b9c7a917b0",
-                "sha256:83fcdeb225499d6344c8f7f34684c2981270beacc32ede2e669e94f7fa544405"
+                "sha256:1eecaa09422db5be9e29d7fc65664e6c33bd06f9ced7838578ba40d58bdf3721",
+                "sha256:b0b883e8e874edfdece9c28f314e3dd5badf067342e42fb162203335ae61aa2c"
             ],
             "markers": "python_version >= '3'",
-            "version": "==2.0.8"
+            "version": "==2.0.9"
         },
         "click": {
             "hashes": [
@@ -81,15 +81,15 @@
         "codav2pythonclient": {
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/CodaV2PythonClient",
-            "ref": "c8421af63939a541aabadfb0b7eabe9b006fbcdc"
+            "ref": "ed7166738d259a4cbb107df0f90b95af44ae2da0"
         },
         "coredatamodules": {
             "editable": true,
             "extras": [
                 "mapping"
             ],
-            "git": "https://www.github.com/AfricasVoices/CoreDataModules",
-            "ref": "abc272f22eb2099b937372b180cb4dbb4f15e488"
+            "git": "https://github.com/AfricasVoices/CoreDataModules",
+            "ref": "05df823deadbda10d586c4a045949e788083aa82"
         },
         "cycler": {
             "hashes": [
@@ -139,19 +139,19 @@
         },
         "google-api-core": {
             "hashes": [
-                "sha256:97349cc18c2bb2415f64f1353a80273a289a61294ce3eb2f7ce682d251bdd997",
-                "sha256:e7853735d4f51f4212d6bf9750620d76fc0106c0f271be0c3f43b73501c7ddf9"
+                "sha256:538cd927bfe0f7c63bc1eb5fcadeeeb52f90bb29117dea87ae8cae48953d4c60",
+                "sha256:65fe1d9d8dde7a5ddc43d5cc134560c2a76b1a26c9f70c3c24f13b7910e89e10"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==2.2.2"
+            "version": "==2.3.0"
         },
         "google-api-python-client": {
             "hashes": [
-                "sha256:3f64a5eee6fa03ab51806dccf48e342fda83fea60c290518c6a2dfdbf2de9efd",
-                "sha256:d9f1539db48abfea3d7d65e4cfba258a5a95c901e99fb49c7cfe4de99921a757"
+                "sha256:1322d026110bc62eb29a4a25a15895dac51486b30a29b5943bc456318677280b",
+                "sha256:38e98611794632a12479fafbabe0b5027e8fcfc412e8375f1b23db0bc0209181"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==2.31.0"
+            "version": "==2.33.0"
         },
         "google-auth": {
             "hashes": [
@@ -251,11 +251,11 @@
         },
         "googleapis-common-protos": {
             "hashes": [
-                "sha256:a88ee8903aa0a81f6c3cec2d5cf62d3c8aa67c06439b0496b49048fb1854ebf4",
-                "sha256:f6d561ab8fb16b30020b940e2dd01cd80082f4762fa9f3ee670f4419b4b8dbd0"
+                "sha256:a4031d6ec6c2b1b6dc3e0be7e10a1bd72fb0b18b07ef9be7b51f2c1004ce2437",
+                "sha256:e54345a2add15dc5e1a7891c27731ff347b4c33765d79b5ed7026a6c0c7cbcae"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==1.53.0"
+            "version": "==1.54.0"
         },
         "grpcio": {
             "hashes": [
@@ -821,6 +821,9 @@
                 "sha256:93378f3d14fff07572392ce6a6a2ceb3a1f237733bd6dcb9eb6a2b29b0d19085",
                 "sha256:95c2d250074cfa76715d58830579c64dff7354484b284c2b8b87e5a38321672c",
                 "sha256:ab5875facfdef77e0a47d5fd39ea178b58e60e454a4c85aa1e52fcb80db7babf",
+                "sha256:b0e0aeb061a1d7dcd2ed59ea57ee56c9b23dd60100825f98238c06ee5cc4467e",
+                "sha256:b78a35c5c74d336f42f44106174b9851c783184a85a3fe3e68857259b37b9ffb",
+                "sha256:c9e04d7e9b03a8a6ac2045f7c5ef741be86727d8f49c45db45f244bdd2bcff17",
                 "sha256:ca36e7d9430f7481fc7d11e015ae16fbd5575615a8e9060538104778be84addf",
                 "sha256:ceebc3c4f6a109777c0053dfa0282fddb8893eddfb0d598574acfb734a926168",
                 "sha256:e2c036492e673aad1b7b0d0ccdc0cb30a968353d2c4bf92ac8e73509e1bf212c",
@@ -836,11 +839,11 @@
         },
         "setuptools": {
             "hashes": [
-                "sha256:157d21de9d055ab9e8ea3186d91e7f4f865e11f42deafa952d90842671fc2576",
-                "sha256:4adde3d1e1c89bde1c643c64d89cdd94cbfd8c75252ee459d4500bccb9c7d05d"
+                "sha256:6d10741ff20b89cd8c6a536ee9dc90d3002dec0226c78fb98605bfb9ef8a7adf",
+                "sha256:d144f85102f999444d06f9c0e8c737fd0194f10f2f7e5fdb77573f6e2fa4fad0"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==59.2.0"
+            "version": "==59.5.0"
         },
         "shapely": {
             "hashes": [
