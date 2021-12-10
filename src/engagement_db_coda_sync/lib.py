@@ -50,9 +50,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
             config_user_ids = default_project_user_ids
 
         coda_user_ids = coda.get_dataset_user_ids(dataset_config.coda_dataset_id)
-        if coda_user_ids is not None:
-            config_user_ids_not_in_coda = set(config_user_ids) - set(coda_user_ids)
-        if config_user_ids_not_in_coda:
+        if  set(coda_user_ids) != set(config_user_ids):
             coda.set_dataset_user_ids(dataset_config.coda_dataset_id, config_user_ids)
 
         repo_code_schemes = []
