@@ -10,11 +10,11 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
     :param engagement_db: Engagement database to fetch messages from.
     :type engagement_db: engagement_database.EngagementDatabase
     :param engagement_db_datasets: Datasets to download.
-    :type engagement_db_datasets: list of str
+    :type engagement_db_datasets: iterable of str
     :param cache: Cache to use, or None. If None, downloads all messages from the engagement database. If a cache is
                   specified, writes all the fetched messages to the cache and only queries for messages changed since
                   the most recently updated message in the cache.
-    :type cache: TODO: Common cache definition
+    :type cache: src.common.cache.Cache
     :return: Dictionary of engagement db dataset -> list of Messages in dataset.
     :rtype: dict of str -> list of engagement_database.data_models.Message
     """
@@ -22,7 +22,7 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
 
     for engagement_db_dataset in engagement_db_datasets:
         messages = []
-        latest_message_timestamp = None if cache is None else cache.get_latest_message_timestamp(engagement_db_dataset)
+        latest_message_timestamp = None if cache is None else cache.get_date_time(engagement_db_dataset)
         full_download_required = latest_message_timestamp is None
         if not full_download_required:
             log.info(f"Performing incremental download for {engagement_db_dataset} messages...")
@@ -38,7 +38,7 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
             # Check and remove cached messages that have been ws corrected away from this dataset after the previous
             # run. We do this by searching for all messages that used to be in this dataset, that we haven't
             # already seen.
-            latest_ws_message_timestamp = cache.get_latest_message_timestamp(f"{engagement_db_dataset}_ws")
+            latest_ws_message_timestamp = cache.get_date_time(f"{engagement_db_dataset}_ws")
             if latest_ws_message_timestamp is None:
                 ws_corrected_messages_filter = lambda q: q \
                     .where("previous_datasets", "array_contains", engagement_db_dataset)
@@ -57,7 +57,7 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
                 for msg in ws_corrected_messages:
                     if latest_ws_message_timestamp is None or msg.last_updated > latest_ws_message_timestamp:
                         latest_ws_message_timestamp = msg.last_updated
-                cache.set_latest_message_timestamp(f"{engagement_db_dataset}_ws", latest_ws_message_timestamp)
+                cache.set_date_time(f"{engagement_db_dataset}_ws", latest_ws_message_timestamp)
 
             cache_messages = cache.get_messages(engagement_db_dataset)
             for msg in cache_messages:
@@ -96,12 +96,12 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
         if cache is not None and latest_message_timestamp is not None:
             # Export latest message timestamp to cache.
             if latest_message_timestamp is not None:
-                cache.set_latest_message_timestamp(engagement_db_dataset, latest_message_timestamp)
+                cache.set_date_time(engagement_db_dataset, latest_message_timestamp)
 
             if full_download_required:
                 # Export this as the ws case too, as there will be no need to check for ws messages that moved from
                 # this dataset before this initial fetch.
-                cache.set_latest_message_timestamp(f"{engagement_db_dataset}_ws", latest_message_timestamp)
+                cache.set_date_time(f"{engagement_db_dataset}_ws", latest_message_timestamp)
 
             # Export project engagement_dataset files
             if len(messages) > 0:
