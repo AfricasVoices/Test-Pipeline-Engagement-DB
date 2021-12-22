@@ -48,7 +48,10 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
             config_user_ids = get_coda_users_from_gcloud(dataset_config.dataset_users_file_url, google_cloud_credentials_file_path)
         else:
             config_user_ids = default_project_user_ids
-        coda.set_dataset_user_ids(dataset_config.coda_dataset_id, config_user_ids)
+
+        coda_user_ids = coda.get_dataset_user_ids(dataset_config.coda_dataset_id)
+        if coda_user_ids is None or set(coda_user_ids) != set(config_user_ids):
+            coda.set_dataset_user_ids(dataset_config.coda_dataset_id, config_user_ids)
 
         repo_code_schemes = []
         for code_scheme_config in dataset_config.code_scheme_configurations:
@@ -86,6 +89,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
             if repo_code_scheme != coda_code_scheme:
                 log.info(f"Updating code scheme {coda_code_scheme.scheme_id} in coda with the one in this repository")
                 coda.set_dataset_code_scheme(dataset_config.coda_dataset_id, repo_code_scheme)
+
 
 def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message):
     """
