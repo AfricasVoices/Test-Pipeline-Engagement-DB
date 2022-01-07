@@ -5,7 +5,6 @@ from collections import defaultdict
 from core_data_modules.cleaners import Codes
 from core_data_modules.data_models import CodeScheme
 from core_data_modules.logging import Logger
-from engagement_database.data_models import MessageStatuses
 
 from src.common.cache import Cache
 from src.common.get_messages_in_datasets import get_messages_in_datasets
