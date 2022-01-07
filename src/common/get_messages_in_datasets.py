@@ -107,4 +107,14 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
             if len(messages) > 0:
                 cache.set_messages(engagement_db_dataset, messages)
 
+    # Ensure that origin_ids in the exported messages are all unique. If we have multiple messages with the same
+    # origin_id, that means there is a problem with the database or with the cache.
+    # (Most likely we added the same message twice or we deleted a message and forgot to delete the analysis cache).
+    all_message_origins = set()
+    for messages in engagement_db_messages_map.values():
+        for msg in messages:
+            assert msg.origin.origin_id not in all_message_origins, f"Multiple messages had the same origin id: " \
+                                                                    f"'{msg.origin.origin_id}'"
+            all_message_origins.add(msg.origin.origin_id)
+
     return engagement_db_messages_map
