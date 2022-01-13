@@ -240,7 +240,8 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         log.info(f"Syncing message {i + 1}/{len(messages_triggering_sync)}: {message.message_id}...")
         participant_uuid = message.participant_uuid
         if participant_uuid in participants_synced_this_cycle:
-            log.info(f"Skipping this message because we've already synced participant_uuid {participant_uuid} this run")
+            log.info(f"Skipping this message because we've already synced participant_uuid {participant_uuid} in this "
+                     f"pipeline run")
             if cache is not None:
                 cache.set_message("last_synced", message)
             continue
