@@ -152,12 +152,12 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     CodingConfiguration(
                         code_scheme=load_code_scheme("kenya_constituency"),
                         analysis_dataset="constituency",
-                        kenya_analysis_location=AnalysisLocations.KENYA_CONSTITUENCY
+                        analysis_location=AnalysisLocations.KENYA_CONSTITUENCY
                     ),
                     CodingConfiguration(
                         code_scheme=load_code_scheme("kenya_county"),
                         analysis_dataset="county",
-                        kenya_analysis_location=AnalysisLocations.KENYA_COUNTY
+                        analysis_location=AnalysisLocations.KENYA_COUNTY
                     )
                 ]
             )
