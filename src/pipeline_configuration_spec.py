@@ -14,10 +14,10 @@ from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidPro
                                                           WriteModes, ContactField)
 from src.rapid_pro_to_engagement_db.configuration import (FlowResultConfiguration, UuidFilter,
                                                           RapidProToEngagementDBConfiguration)
-from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfiguration, DatasetTypes,
-                                                         AgeCategoryConfiguration, AnalysisLocations, CodingConfiguration,
-                                                         GoogleDriveUploadConfiguration, MembershipGroupConfiguration,
-                                                         AnalysisConfiguration)
+from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfiguration, OperatorDatasetConfiguration,
+                                                         DatasetTypes, AgeCategoryConfiguration, AnalysisLocations,
+                                                         CodingConfiguration, GoogleDriveUploadConfiguration,
+                                                         MembershipGroupConfiguration, AnalysisConfiguration)
 
 
 def load_code_scheme(fname):

@@ -125,6 +125,15 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     )
                 ]
             ),
+            OperatorDatasetConfiguration(
+                raw_dataset="operator_raw",
+                coding_configs=[
+                    CodingConfiguration(
+                        code_scheme=load_code_scheme("operator"),
+                        analysis_dataset="operator"
+                    )
+                ]
+            ),
             AnalysisDatasetConfiguration(
                 engagement_db_datasets=["gender"],
                 dataset_type=DatasetTypes.DEMOGRAPHIC,

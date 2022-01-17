@@ -1,0 +1,36 @@
+{
+  "SchemeID": "Scheme-f86cff0b",
+  "Name": "Operator",
+  "Version": "0.0.1.0",
+  "Codes": [
+    {
+      "CodeID": "code-ecf723eb",
+      "CodeType": "Normal",
+      "DisplayText": "telegram",
+      "NumericValue": 7,
+      "StringValue": "telegram",
+      "VisibleInCoda": true,
+      "MatchValues":  [
+        "telegram"
+      ]
+    },
+    {
+      "CodeID": "code-NC-42f1d983",
+      "CodeType": "Control",
+      "ControlCode": "NC",
+      "DisplayText": "NC (not coded)",
+      "NumericValue": -30,
+      "StringValue": "NC",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-STOP-08b832a8",
+      "CodeType": "Control",
+      "ControlCode": "STOP",
+      "DisplayText": "STOP",
+      "NumericValue": -90,
+      "StringValue": "STOP",
+      "VisibleInCoda": false
+    }
+  ]
+}
