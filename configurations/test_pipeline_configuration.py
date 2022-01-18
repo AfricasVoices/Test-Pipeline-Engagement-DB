@@ -173,13 +173,17 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                                 (18, 35): "18 to 35",
                                 (36, 54): "36 to 54",
                                 (55, 99): "55 to 99"
-                             }
-                      )
+                            }
+                        )
                     ),
-                ]
+                ],
             )
         ],
-        ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset")
+        ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset"),
+        traffic_labels=[
+            TrafficLabel(isoparse("2021-04-01T00:00+03:00"), isoparse("2021-05-01T00:00+03:00"), "April"),
+            TrafficLabel(isoparse("2021-05-01T00:00+03:00"), isoparse("2021-06-01T00:00+03:00"), "May")
+        ]
     ),
     archive_configuration = ArchiveConfiguration(
         archive_upload_bucket = "gs://pipeline-execution-backup-archive",
