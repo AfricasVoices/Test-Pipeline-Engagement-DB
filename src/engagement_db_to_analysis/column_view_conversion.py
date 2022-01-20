@@ -1,12 +1,12 @@
 from core_data_modules.analysis import AnalysisConfiguration
+from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.logging import Logger
 from core_data_modules.traced_data import Metadata, TracedData
 from core_data_modules.traced_data.util.fold_traced_data import FoldStrategies
 from core_data_modules.util import TimeUtils
 from engagement_database.data_models import Message
 
-from src.engagement_db_to_analysis.configuration import DatasetTypes
-
+from src.engagement_db_to_analysis.configuration import DatasetTypes, OperatorDatasetConfiguration
 
 """
 This module contains utility functions for converting configurations and datasets from the format used in the pipeline
@@ -241,6 +241,34 @@ def _add_message_to_column_td(user, message_td, column_td, analysis_dataset_conf
     column_td.append_data(updated_column_data, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
 
 
+def _add_operators_to_column_td(user, column_td, operators, dataset_config):
+    """
+    Adds the given operators to the column traced data.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param column_td: An existing TracedData object in column-view format, to which the operator(s) will be appended.
+    :type column_td: core_data_modules.traced_data.TracedData
+    :param operators: Operator strings to add
+    :type operators: iterable of str
+    :param dataset_config: Configuration for the operators dataset
+    :type dataset_config: src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
+    """
+    for column_config in analysis_dataset_config_to_column_configs(dataset_config):
+        labels = []
+        for operator in set(operators):
+            labels.append(CleaningUtils.make_label_from_cleaner_code(
+                    column_config.code_scheme,
+                    column_config.code_scheme.get_code_with_match_value(operator),
+                    Metadata.get_call_location()
+                ).to_dict())
+
+        column_td.append_data({
+            dataset_config.raw_dataset: ";".join(operators),
+            column_config.coded_field: labels
+        }, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+
+
 def convert_to_messages_column_format(user, messages_traced_data, analysis_config):
     """
     Converts a list of messages traced data into "column-view" format by rqa-message.
@@ -278,6 +306,11 @@ def convert_to_messages_column_format(user, messages_traced_data, analysis_confi
             Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
         )
         _add_message_to_column_td(user, msg_td, column_td, analysis_config.dataset_configurations)
+
+        # Assign operators
+        for dataset_config in analysis_config.dataset_configurations:
+            if type(dataset_config) == OperatorDatasetConfiguration:
+                _add_operators_to_column_td(user, column_td, [message.channel_operator], dataset_config)
 
         # Add to the list of converted rqa messages for this participant.
         if message.participant_uuid not in messages_by_column:
@@ -326,6 +359,7 @@ def convert_to_participants_column_format(user, messages_traced_data, analysis_c
              f"participant...")
     messages_traced_data = _filter_out_demogs_only(messages_traced_data, analysis_config.dataset_configurations)
 
+    uuids_to_operators = dict()  # of participant_uuid -> set of channel_operators
     participants_by_column = dict()  # of participant_uuid -> participant traced data in column view
     for msg_td in messages_traced_data:
         message = Message.from_dict(dict(msg_td))
@@ -337,9 +371,22 @@ def convert_to_participants_column_format(user, messages_traced_data, analysis_c
                 Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
             )
 
+        # If this message is an RQA message, add its operator to the set of operators for this participant
+        analysis_dataset_config = analysis_dataset_config_for_message(analysis_config.dataset_configurations, message)
+        if analysis_dataset_config.dataset_type == DatasetTypes.RESEARCH_QUESTION_ANSWER:
+            if message.participant_uuid not in uuids_to_operators:
+                uuids_to_operators[message.participant_uuid] = set()
+            uuids_to_operators[message.participant_uuid].add(message.channel_operator)
+
         # Add this message to the relevant participant's column-view TracedData.
         participant = participants_by_column[message.participant_uuid]
         _add_message_to_column_td(user, msg_td, participant, analysis_config.dataset_configurations)
+
+    # Assign operator codes to each participant's column_td
+    for participant_uuid, column_td in participants_by_column.items():
+        for dataset_config in analysis_config.dataset_configurations:
+            if type(dataset_config) == OperatorDatasetConfiguration:
+                _add_operators_to_column_td(user, column_td, uuids_to_operators[participant_uuid], dataset_config)
 
     log.info(f"Converted {len(messages_traced_data)} messages traced data objects to "
              f"{len(participants_by_column.values())} column-view format objects, by participant")

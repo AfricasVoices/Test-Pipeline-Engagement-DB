@@ -39,6 +39,11 @@ class AnalysisDatasetConfiguration:
     coding_configs: [CodingConfiguration]
 
 
+class OperatorDatasetConfiguration(AnalysisDatasetConfiguration):
+    def __init__(self, raw_dataset: str, coding_configs: [CodingConfiguration]):
+        super().__init__([], DatasetTypes.DEMOGRAPHIC, raw_dataset, coding_configs)
+
+
 @dataclass
 class GoogleDriveUploadConfiguration:
     credentials_file_url: str
