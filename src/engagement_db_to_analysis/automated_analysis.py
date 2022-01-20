@@ -1,5 +1,5 @@
 from core_data_modules.analysis import (engagement_counts, repeat_participations, theme_distributions, sample_messages,
-                                        AnalysisConfiguration)
+                                        AnalysisConfiguration, traffic_analysis)
 from core_data_modules.analysis.mapping import participation_maps, kenya_mapper
 from core_data_modules.logging import Logger
 from core_data_modules.util import IOUtils
@@ -58,6 +58,16 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
         sample_messages.export_sample_messages_csv(
             messages_by_column, "consent_withdrawn", rqa_column_configs, f, limit_per_code=100
         )
+
+    if analysis_config.traffic_labels is not None:
+        log.info("Exporting traffic analysis...")
+        with open(f"{export_dir_path}/traffic_analysis.csv", "w") as f:
+            traffic_analysis.export_traffic_analysis_csv(
+                messages_by_column, "consent_withdrawn", rqa_column_configs, "timestamp",
+                analysis_config.traffic_labels, f
+            )
+    else:
+        log.debug("Not running any traffic analysis because analysis_configuration.traffic_labels is None")
 
     log.info(f"Exporting participation maps for each location dataset...")
     mappers = {

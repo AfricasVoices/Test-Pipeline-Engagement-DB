@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Iterable
 
+from core_data_modules.analysis.traffic_analysis import TrafficLabel
 from core_data_modules.data_models import CodeScheme
 
 
@@ -58,6 +59,6 @@ class MembershipGroupConfiguration:
 class AnalysisConfiguration:
     dataset_configurations: [AnalysisDatasetConfiguration]
     ws_correct_dataset_code_scheme: CodeScheme
-    # operator_configuration: Optional[OperatorDatasetConfiguration] = None
+    traffic_labels: Optional[Iterable[TrafficLabel]] = None
     google_drive_upload: Optional[GoogleDriveUploadConfiguration] = None
     membership_group_configuration: Optional[MembershipGroupConfiguration] = None
