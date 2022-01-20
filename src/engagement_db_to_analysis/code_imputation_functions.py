@@ -1,6 +1,6 @@
 from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
-from core_data_modules.cleaners.location_tools import KenyaLocations
+from core_data_modules.cleaners.location_tools import KenyaLocations, SomaliaLocations
 from core_data_modules.data_models import Label, Origin
 from core_data_modules.data_models.code_scheme import CodeTypes
 from core_data_modules.logging import Logger
@@ -461,6 +461,26 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
     }
     _impute_location_codes(user, messages_traced_data, analysis_dataset_configs, analysis_locations_to_cleaners)
 
+def _impute_somalia_location_codes(user, messages_traced_data, analysis_dataset_configs):
+    """
+    Imputes Somalia location labels for location dataset messages.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param messages_traced_data: Messages TracedData objects to impute age_category.
+    :type messages_traced_data: list of TracedData
+    :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    """
+    analysis_locations_to_cleaners = {
+        AnalysisLocations.MOGADISHU_SUB_DISTRICT: SomaliaLocations.mogadishu_sub_district_for_location_code,
+        AnalysisLocations.SOMALIA_DISTRICT: SomaliaLocations.district_for_location_code,
+        AnalysisLocations.SOMALIA_REGION: SomaliaLocations.region_for_location_code,
+        AnalysisLocations.SOMALIA_STATE: SomaliaLocations.state_for_location_code,
+        AnalysisLocations.SOMALIA_ZONE: SomaliaLocations.zone_for_location_code
+    }
+    _impute_location_codes(user, messages_traced_data, analysis_dataset_configs, analysis_locations_to_cleaners)
+
 
 def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme):
     """
@@ -483,7 +503,9 @@ def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs
     _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme)
     _impute_ws_coding_errors(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme)
     _impute_age_category(user, messages_traced_data, analysis_dataset_configs)
+
     _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_configs)
+    _impute_somalia_location_codes(user, messages_traced_data, analysis_dataset_configs)
 
 
 def _impute_true_missing(user, column_traced_data_iterable, analysis_dataset_configs):

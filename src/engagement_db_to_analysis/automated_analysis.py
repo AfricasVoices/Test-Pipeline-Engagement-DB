@@ -1,6 +1,6 @@
 from core_data_modules.analysis import (engagement_counts, repeat_participations, theme_distributions, sample_messages,
                                         AnalysisConfiguration, traffic_analysis)
-from core_data_modules.analysis.mapping import participation_maps, kenya_mapper
+from core_data_modules.analysis.mapping import participation_maps, kenya_mapper, somalia_mapper
 from core_data_modules.logging import Logger
 from core_data_modules.util import IOUtils
 
@@ -72,12 +72,16 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
     log.info(f"Exporting participation maps for each location dataset...")
     mappers = {
         AnalysisLocations.KENYA_COUNTY: kenya_mapper.export_kenya_counties_map,
-        AnalysisLocations.KENYA_CONSTITUENCY: kenya_mapper.export_kenya_constituencies_map
+        AnalysisLocations.KENYA_CONSTITUENCY: kenya_mapper.export_kenya_constituencies_map,
+
+        AnalysisLocations.MOGADISHU_SUB_DISTRICT: somalia_mapper.export_mogadishu_sub_district_frequencies_map,
+        AnalysisLocations.SOMALIA_DISTRICT: somalia_mapper.export_somalia_district_frequencies_map,
+        AnalysisLocations.SOMALIA_REGION: somalia_mapper.export_somalia_region_frequencies_map
     }
 
     for analysis_dataset_config in analysis_config.dataset_configurations:
         for coding_config in analysis_dataset_config.coding_configs:
-            if coding_config.kenya_analysis_location is not None:
+            if coding_config.kenya_analysis_location in mappers:
                 location_column_config = AnalysisConfiguration(
                     dataset_name=coding_config.analysis_dataset,
                     raw_field=analysis_dataset_config.raw_dataset,
