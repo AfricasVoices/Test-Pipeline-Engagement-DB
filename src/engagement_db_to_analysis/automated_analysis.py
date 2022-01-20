@@ -81,7 +81,7 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
 
     for analysis_dataset_config in analysis_config.dataset_configurations:
         for coding_config in analysis_dataset_config.coding_configs:
-            if coding_config.kenya_analysis_location in mappers:
+            if coding_config.analysis_location in mappers:
                 location_column_config = AnalysisConfiguration(
                     dataset_name=coding_config.analysis_dataset,
                     raw_field=analysis_dataset_config.raw_dataset,
@@ -91,6 +91,6 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
 
                 participation_maps.export_participation_maps(
                     participants_by_column, "consent_withdrawn", rqa_column_configs, location_column_config,
-                    mappers[coding_config.kenya_analysis_location],
+                    mappers[coding_config.analysis_location],
                     f"{export_dir_path}/maps/{location_column_config.dataset_name}/{location_column_config.dataset_name}_"
                 )

@@ -419,7 +419,7 @@ def _impute_location_codes(user, messages_traced_data, analysis_dataset_configs,
         # dict of location -> (None | coding_config_cleaner_tuple)
         locations_dict = {location: None for location in analysis_locations_to_cleaners}
         for coding_config in analysis_dataset_config.coding_configs:
-            analysis_location = coding_config.kenya_analysis_location
+            analysis_location = coding_config.analysis_location
             if analysis_location not in analysis_locations_to_cleaners:
                 continue
 
