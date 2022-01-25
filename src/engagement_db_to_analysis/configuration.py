@@ -27,6 +27,7 @@ class AnalysisLocations:
     SOMALIA_REGION = "somalia_region"
     SOMALIA_STATE = "somalia_state"
     SOMALIA_ZONE = "somalia_zone"
+    SOMALIA_OPERATOR = "somalia_operator"
 
 
 @dataclass

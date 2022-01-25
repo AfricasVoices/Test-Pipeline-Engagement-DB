@@ -18,6 +18,25 @@ of analysis (that operate on collated data, either by participant, rqa message, 
 log = Logger(__name__)
 
 
+def coding_config_to_column_config(coding_config, raw_dataset):
+    """
+    Converts a coding configuration to a "column-view" configuration.
+
+    :param coding_config: Coding configuration to convert.
+    :type coding_config: src.engagement_db_to_analysis.configuration.CodingConfiguration
+    :param raw_dataset: Raw dataset field name.
+    :type raw_dataset: str
+    :return: Column configuration for the given coding configuration.
+    :rtype: core_data_modules.analysis.analysis_utils.AnalysisConfiguration
+    """
+    return AnalysisConfiguration(
+        dataset_name=coding_config.analysis_dataset,
+        raw_field=raw_dataset,
+        coded_field=f"{coding_config.analysis_dataset}_labels",
+        code_scheme=coding_config.code_scheme
+    )
+
+
 def analysis_dataset_config_to_column_configs(analysis_dataset_config):
     """
     Converts an analysis dataset configuration to the relevant "column-view" configurations.
