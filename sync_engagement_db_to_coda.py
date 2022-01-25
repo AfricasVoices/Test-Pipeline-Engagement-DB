@@ -27,7 +27,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    is_dry_run = args.dry_run
     incremental_cache_path = args.incremental_cache_path
+
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
@@ -37,6 +39,9 @@ if __name__ == "__main__":
     project = subprocess.check_output(["git", "config", "--get", "remote.origin.url"]).decode().strip()
 
     HistoryEntryOrigin.set_defaults(user, project, pipeline, commit)
+    
+    dry_run_text = "(dry run)" if is_dry_run else ""
+    log.info(f"synchronizing data from an engagement database to Coda {dry_run_text}")
 
     if pipeline_config.coda_sync is None:
         log.info(f"No Coda sync configuration provided; exiting")
