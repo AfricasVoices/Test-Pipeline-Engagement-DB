@@ -41,7 +41,7 @@ if __name__ == "__main__":
     HistoryEntryOrigin.set_defaults(user, project, pipeline, commit)
     
     dry_run_text = "(dry run)" if is_dry_run else ""
-    log.info(f"synchronizing data from an engagement database to Coda {dry_run_text}")
+    log.info(f"Synchronizing data from an engagement database to Coda {dry_run_text}")
 
     if pipeline_config.coda_sync is None:
         log.info(f"No Coda sync configuration provided; exiting")
