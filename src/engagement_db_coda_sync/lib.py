@@ -107,7 +107,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
             log.info(f"Code schemes are up to date")
 
 
-def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message):
+def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message, is_dry_run=False):
     """
     Adds a message to Coda.
 
@@ -124,6 +124,8 @@ def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_sche
     :type ws_correct_dataset_code_scheme: core_data_modules.data_models.CodeScheme
     :param engagement_db_message: Message to add to Coda.
     :type engagement_db_message: engagement_database.data_models.Message
+    :param is_dry_run: Whether to perform a dry run.
+    :type is_dry_run: bool
     """
     log.debug("Adding message to Coda")
 
@@ -164,7 +166,8 @@ def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_sche
                 coda_message.labels.append(label)
 
     # Add the message to the Coda dataset.
-    coda.add_message_to_dataset(coda_dataset_config.coda_dataset_id, coda_message)
+    if not is_dry_run:
+        coda.add_message_to_dataset(coda_dataset_config.coda_dataset_id, coda_message)
 
 
 def _code_for_label(label, code_schemes):
