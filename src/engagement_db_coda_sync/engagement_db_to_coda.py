@@ -11,7 +11,7 @@ log = Logger(__name__)
 
 
 @firestore.transactional
-def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, coda_config, dataset_config, last_seen_message):
+def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, coda_config, dataset_config, last_seen_message, is_dry_run=False):
     """
     Syncs a message from an engagement database to Coda.
 
@@ -35,6 +35,8 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
                               If provided, downloads the least recently updated (next) message after this one, otherwise
                               downloads the least recently updated message in the database.
     :type last_seen_message: engagement_database.data_models.Message | None
+    :param is_dry_run: Whether to perform a dry run.
+    :type is_dry_run: bool
     :return: A tuple of:
              1. The engagement database message that was synced. If there was no new message to sync, returns None.
              2. Sync stats.
@@ -74,11 +76,12 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
         log.debug("Creating coda id")
         sync_stats.add_event(CodaSyncEvents.SET_CODA_ID)
         engagement_db_message.coda_id = SHAUtils.sha_string(engagement_db_message.text)
-        engagement_db.set_message(
-            message=engagement_db_message,
-            origin=HistoryEntryOrigin(origin_name="Set coda_id", details={}),
-            transaction=transaction
-        )
+        if not is_dry_run:
+            engagement_db.set_message(
+                message=engagement_db_message,
+                origin=HistoryEntryOrigin(origin_name="Set coda_id", details={}),
+                transaction=transaction
+            )
     assert engagement_db_message.coda_id == SHAUtils.sha_string(engagement_db_message.text)
 
     # Look-up this message in Coda
@@ -88,14 +91,14 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
     if coda_message is not None:
         log.debug("Message already exists in Coda")
         update_sync_events = _update_engagement_db_message_from_coda_message(
-            engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction
+            engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction, is_dry_run=is_dry_run
         )
         sync_stats.add_events(update_sync_events)
         return engagement_db_message, sync_stats
 
     # The message isn't in Coda, so add it
     sync_stats.add_event(CodaSyncEvents.ADD_MESSAGE_TO_CODA)
-    _add_message_to_coda(coda, dataset_config, coda_config.ws_correct_dataset_code_scheme, engagement_db_message)
+    _add_message_to_coda(coda, dataset_config, coda_config.ws_correct_dataset_code_scheme, engagement_db_message, is_dry_run)
 
     return engagement_db_message, sync_stats
 
