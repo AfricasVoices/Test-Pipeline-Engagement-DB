@@ -248,7 +248,7 @@ def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_sche
 
 
 def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db_message, coda_message, coda_config,
-                                                    transaction=None):
+                                                    transaction=None, is_dry_run=False):
     """
     Updates a message in the engagement database based on the labels in the Coda message.
 
@@ -266,6 +266,8 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     :type coda_config:  src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param transaction: Transaction in the engagement database to perform the update in.
     :type transaction: google.cloud.firestore.Transaction | None
+    :param is_dry_run: Whether to perform a dry run.
+    :type is_dry_run: bool
     :return: Sync events for the update.
     :rtype: list of str
     """
@@ -317,11 +319,13 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
 
         origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
                           "coda_message": coda_message.to_dict(serialize_datetimes_to_str=True)}
-        engagement_db.set_message(
-            message=engagement_db_message,
-            origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync (WS Correction)", details=origin_details),
-            transaction=transaction
-        )
+
+        if not is_dry_run:
+            engagement_db.set_message(
+                message=engagement_db_message,
+                origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync (WS Correction)", details=origin_details),
+                transaction=transaction
+            )
 
         sync_events.append(CodaSyncEvents.WS_CORRECTION)
         return sync_events
@@ -331,11 +335,13 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     engagement_db_message.labels = coda_message.labels
     origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
                       "coda_message": coda_message.to_dict(serialize_datetimes_to_str=True)}
-    engagement_db.set_message(
-        message=engagement_db_message,
-        origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync", details=origin_details),
-        transaction=transaction
-    )
+
+    if not is_dry_run:
+        engagement_db.set_message(
+            message=engagement_db_message,
+            origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync", details=origin_details),
+            transaction=transaction
+        )
 
     sync_events.append(CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS)
     return sync_events
