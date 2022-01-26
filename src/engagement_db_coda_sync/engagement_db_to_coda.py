@@ -150,7 +150,7 @@ def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, datase
     return sync_stats
 
 
-def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None):
+def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None, is_dry_run=False):
     """
     Syncs messages from an engagement database to Coda.
 
@@ -163,6 +163,8 @@ def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
                        If None, runs in non-incremental mode.
     :type cache_path: str | None
+    :param is_dry_run: Whether to perform a dry run.
+    :type is_dry_run: bool
     """
     # Initialise the cache
     if cache_path is None:
@@ -177,7 +179,7 @@ def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None
     for dataset_config in coda_config.dataset_configurations:
         log.info(f"Syncing engagement db dataset {dataset_config.engagement_db_dataset} to Coda dataset "
                  f"{dataset_config.coda_dataset_id}...")
-        dataset_sync_stats = _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache)
+        dataset_sync_stats = _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache, is_dry_run)
         dataset_to_sync_stats[dataset_config.engagement_db_dataset] = dataset_sync_stats
 
     # Log the summaries of actions taken for each dataset then for all datasets combined.
