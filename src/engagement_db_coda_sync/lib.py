@@ -34,8 +34,6 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
     :param is_dry_run: Whether to perform a dry run.
     :type is_dry_run: bool
     """
-    dry_run_text = "(dry run)" if is_dry_run else ""
-
     all_datasets_have_user_file_url = all(
         dataset_config.dataset_users_file_url is not None for dataset_config in coda_config.dataset_configurations)
 
@@ -47,7 +45,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
 
     ws_correct_dataset_code_scheme = coda_config.ws_correct_dataset_code_scheme
     for dataset_config in coda_config.dataset_configurations:
-        log.info(f"Updating user ids and code schemes in {dataset_config.coda_dataset_id}")
+        log.info(f"Updating user ids and code schemes in coda dataset '{dataset_config.coda_dataset_id}'")
         config_user_ids = []
         if dataset_config.dataset_users_file_url:
             config_user_ids = get_coda_users_from_gcloud(dataset_config.dataset_users_file_url, google_cloud_credentials_file_path)
@@ -58,7 +56,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
         if coda_user_ids is None or set(coda_user_ids) != set(config_user_ids):
             if not is_dry_run:
                 coda.set_dataset_user_ids(dataset_config.coda_dataset_id, config_user_ids)
-            log.info(f"User ids added to Coda: {len(config_user_ids)} {dry_run_text}")
+            log.info(f"User ids added to Coda: {len(config_user_ids)}")
         else:
             log.info(f"User ids are up to date")
 
@@ -102,9 +100,9 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
         if len(updated_code_schemes) > 0:
             if not is_dry_run:
                 coda.add_and_update_dataset_code_schemes(dataset_config.coda_dataset_id, updated_code_schemes)
-            log.info(f"Code schemes added to Coda: {len(updated_code_schemes)} {dry_run_text}") # Specify duplicates
+            log.info(f"Code schemes added to Coda: {len(updated_code_schemes)}") # Specify duplicates
             for code_scheme in updated_code_schemes:
-                log.info(f"Added code scheme {code_scheme.scheme_id} {dry_run_text}")
+                log.info(f"Added code scheme {code_scheme.scheme_id}")
         else:
             log.info(f"Code schemes are up to date")
 
