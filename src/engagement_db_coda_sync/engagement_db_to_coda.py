@@ -100,7 +100,7 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
     return engagement_db_message, sync_stats
 
 
-def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache):
+def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache, is_dry_run=False):
     """
     Syncs messages from one engagement database dataset to Coda.
 
@@ -114,6 +114,8 @@ def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, datase
     :type dataset_config: src.engagement_db_coda_sync.configuration.CodaDatasetConfiguration
     :param cache: Coda sync cache.
     :type cache: src.engagement_db_coda_sync.cache.CodaSyncCache | None
+    :param is_dry_run: Whether to perform a dry run.
+    :type is_dry_run: bool
     :return: Sync stats for the update.
     :rtype: src.engagement_db_coda_sync.sync_stats.EngagementDBToCodaSyncStats
     """
@@ -128,14 +130,14 @@ def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, datase
         first_run = False
 
         last_seen_message, message_sync_stats = _sync_next_engagement_db_message_to_coda(
-            engagement_db.transaction(), engagement_db, coda, coda_config, dataset_config, last_seen_message
+            engagement_db.transaction(), engagement_db, coda, coda_config, dataset_config, last_seen_message, is_dry_run
         )
         sync_stats.add_stats(message_sync_stats)
 
         if last_seen_message is not None:
             synced_messages += 1
             synced_message_ids.add(last_seen_message.message_id)
-            if cache is not None:
+            if cache is not None and not is_dry_run:
                 cache.set_last_seen_message(dataset_config.engagement_db_dataset, last_seen_message)
 
             # We can see the same message twice in a run if we need to set a coda id, labels, or do WS correction,
