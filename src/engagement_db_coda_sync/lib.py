@@ -20,7 +20,7 @@ def get_coda_users_from_gcloud(dataset_users_file_url, google_cloud_credentials_
     ))
 
 
-def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_file_path, is_dry_run): 
+def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_file_path, dry_run): 
     """
     Ensures coda datasets are up to date based on coda configuration. 
 
@@ -31,8 +31,8 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
     :param google_cloud_credentials_file_path: Path to a Google Cloud service account credentials file 
                                                to use to access the credentials bucket.
     :type google_cloud_credentials_file_path: str
-    :param is_dry_run: Whether to perform a dry run.
-    :type is_dry_run: bool
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     """
     all_datasets_have_user_file_url = all(
         dataset_config.dataset_users_file_url is not None for dataset_config in coda_config.dataset_configurations)
@@ -54,7 +54,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
 
         coda_user_ids = coda.get_dataset_user_ids(dataset_config.coda_dataset_id)
         if coda_user_ids is None or set(coda_user_ids) != set(config_user_ids):
-            if not is_dry_run:
+            if not dry_run:
                 coda.set_dataset_user_ids(dataset_config.coda_dataset_id, config_user_ids)
             log.info(f"User ids added to Coda: {len(config_user_ids)}")
         else:
@@ -98,7 +98,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
                 updated_code_schemes.append(repo_code_scheme)
 
         if len(updated_code_schemes) > 0:
-            if not is_dry_run:
+            if not dry_run:
                 coda.add_and_update_dataset_code_schemes(dataset_config.coda_dataset_id, updated_code_schemes)
             log.info(f"Code schemes added to Coda: {len(updated_code_schemes)}") # Specify duplicates
             for code_scheme in updated_code_schemes:
@@ -107,7 +107,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
             log.info(f"Code schemes are up to date")
 
 
-def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message, is_dry_run=False):
+def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_scheme, engagement_db_message, dry_run=False):
     """
     Adds a message to Coda.
 
@@ -124,8 +124,8 @@ def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_sche
     :type ws_correct_dataset_code_scheme: core_data_modules.data_models.CodeScheme
     :param engagement_db_message: Message to add to Coda.
     :type engagement_db_message: engagement_database.data_models.Message
-    :param is_dry_run: Whether to perform a dry run.
-    :type is_dry_run: bool
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     """
     log.debug("Adding message to Coda")
 
@@ -166,7 +166,7 @@ def _add_message_to_coda(coda, coda_dataset_config, ws_correct_dataset_code_sche
                 coda_message.labels.append(label)
 
     # Add the message to the Coda dataset.
-    if not is_dry_run:
+    if not dry_run:
         coda.add_message_to_dataset(coda_dataset_config.coda_dataset_id, coda_message)
 
 
@@ -248,7 +248,7 @@ def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_sche
 
 
 def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db_message, coda_message, coda_config,
-                                                    transaction=None, is_dry_run=False):
+                                                    transaction=None, dry_run=False):
     """
     Updates a message in the engagement database based on the labels in the Coda message.
 
@@ -266,8 +266,8 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     :type coda_config:  src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param transaction: Transaction in the engagement database to perform the update in.
     :type transaction: google.cloud.firestore.Transaction | None
-    :param is_dry_run: Whether to perform a dry run.
-    :type is_dry_run: bool
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: Sync events for the update.
     :rtype: list of str
     """
@@ -320,7 +320,7 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
         origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
                           "coda_message": coda_message.to_dict(serialize_datetimes_to_str=True)}
 
-        if not is_dry_run:
+        if not dry_run:
             engagement_db.set_message(
                 message=engagement_db_message,
                 origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync (WS Correction)", details=origin_details),
@@ -336,7 +336,7 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
                       "coda_message": coda_message.to_dict(serialize_datetimes_to_str=True)}
 
-    if not is_dry_run:
+    if not dry_run:
         engagement_db.set_message(
             message=engagement_db_message,
             origin=HistoryEntryOrigin(origin_name="Coda -> Database Sync", details=origin_details),

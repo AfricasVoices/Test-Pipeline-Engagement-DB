@@ -11,7 +11,7 @@ log = Logger(__name__)
 
 
 @firestore.transactional
-def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, coda_config, dataset_config, last_seen_message, dry_run=False):
+def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, coda_config, dataset_config, last_seen_message, dry_runlse):
     """
     Syncs a message from an engagement database to Coda.
 
@@ -35,8 +35,8 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
                               If provided, downloads the least recently updated (next) message after this one, otherwise
                               downloads the least recently updated message in the database.
     :type last_seen_message: engagement_database.data_models.Message | None
-    :param is_dry_run: Whether to perform a dry run.
-    :type is_dry_run: bool
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: A tuple of:
              1. The engagement database message that was synced. If there was no new message to sync, returns None.
              2. Sync stats.
@@ -76,7 +76,7 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
         log.debug("Creating coda id")
         sync_stats.add_event(CodaSyncEvents.SET_CODA_ID)
         engagement_db_message.coda_id = SHAUtils.sha_string(engagement_db_message.text)
-        if not is_dry_run:
+        if not dry_run:
             engagement_db.set_message(
                 message=engagement_db_message,
                 origin=HistoryEntryOrigin(origin_name="Set coda_id", details={}),
@@ -91,19 +91,19 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
     if coda_message is not None:
         log.debug("Message already exists in Coda")
         update_sync_events = _update_engagement_db_message_from_coda_message(
-            engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction, is_dry_run=is_dry_run
+            engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction, dry_run=dry_run
         )
         sync_stats.add_events(update_sync_events)
         return engagement_db_message, sync_stats
 
     # The message isn't in Coda, so add it
     sync_stats.add_event(CodaSyncEvents.ADD_MESSAGE_TO_CODA)
-    _add_message_to_coda(coda, dataset_config, coda_config.ws_correct_dataset_code_scheme, engagement_db_message, is_dry_run)
+    _add_message_to_coda(coda, dataset_config, coda_config.ws_correct_dataset_code_scheme, engagement_db_message, dry_run)
 
     return engagement_db_message, sync_stats
 
 
-def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache, is_dry_run=False):
+def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache, dry_run=False):
     """
     Syncs messages from one engagement database dataset to Coda.
 
@@ -117,8 +117,8 @@ def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, datase
     :type dataset_config: src.engagement_db_coda_sync.configuration.CodaDatasetConfiguration
     :param cache: Coda sync cache.
     :type cache: src.engagement_db_coda_sync.cache.CodaSyncCache | None
-    :param is_dry_run: Whether to perform a dry run.
-    :type is_dry_run: bool
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: Sync stats for the update.
     :rtype: src.engagement_db_coda_sync.sync_stats.EngagementDBToCodaSyncStats
     """
@@ -133,14 +133,14 @@ def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, datase
         first_run = False
 
         last_seen_message, message_sync_stats = _sync_next_engagement_db_message_to_coda(
-            engagement_db.transaction(), engagement_db, coda, coda_config, dataset_config, last_seen_message, is_dry_run
+            engagement_db.transaction(), engagement_db, coda, coda_config, dataset_config, last_seen_message, dry_run
         )
         sync_stats.add_stats(message_sync_stats)
 
         if last_seen_message is not None:
             synced_messages += 1
             synced_message_ids.add(last_seen_message.message_id)
-            if cache is not None and not is_dry_run:
+            if cache is not None and not dry_run:
                 cache.set_last_seen_message(dataset_config.engagement_db_dataset, last_seen_message)
 
             # We can see the same message twice in a run if we need to set a coda id, labels, or do WS correction,
@@ -155,7 +155,7 @@ def _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, datase
     return sync_stats
 
 
-def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None, is_dry_run=False):
+def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None, dry_run=False):
     """
     Syncs messages from an engagement database to Coda.
 
@@ -168,8 +168,8 @@ def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
                        If None, runs in non-incremental mode.
     :type cache_path: str | None
-    :param is_dry_run: Whether to perform a dry run.
-    :type is_dry_run: bool
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     """
     # Initialise the cache
     if cache_path is None:
@@ -184,7 +184,7 @@ def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None
     for dataset_config in coda_config.dataset_configurations:
         log.info(f"Syncing engagement db dataset {dataset_config.engagement_db_dataset} to Coda dataset "
                  f"{dataset_config.coda_dataset_id}...")
-        dataset_sync_stats = _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache, is_dry_run)
+        dataset_sync_stats = _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache, dry_run)
         dataset_to_sync_stats[dataset_config.engagement_db_dataset] = dataset_sync_stats
 
     # Log the summaries of actions taken for each dataset then for all datasets combined.
