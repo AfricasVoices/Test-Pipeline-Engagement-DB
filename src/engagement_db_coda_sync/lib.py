@@ -100,7 +100,7 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
         if len(updated_code_schemes) > 0:
             if not dry_run:
                 coda.add_and_update_dataset_code_schemes(dataset_config.coda_dataset_id, updated_code_schemes)
-            log.info(f"Code schemes added to Coda: {len(updated_code_schemes)}") # Specify duplicates
+            log.info(f"Code schemes added to Coda: {len(updated_code_schemes)}")
             for code_scheme in updated_code_schemes:
                 log.info(f"Added code scheme {code_scheme.scheme_id}")
         else:
