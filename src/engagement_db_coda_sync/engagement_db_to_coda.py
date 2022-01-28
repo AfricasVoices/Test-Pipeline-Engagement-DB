@@ -11,7 +11,7 @@ log = Logger(__name__)
 
 
 @firestore.transactional
-def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, coda_config, dataset_config, last_seen_message, is_dry_run=False):
+def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, coda_config, dataset_config, last_seen_message, dry_run=False):
     """
     Syncs a message from an engagement database to Coda.
 
