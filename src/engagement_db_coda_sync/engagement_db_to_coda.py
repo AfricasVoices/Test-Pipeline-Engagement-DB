@@ -187,6 +187,8 @@ def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None
         dataset_sync_stats = _sync_engagement_db_dataset_to_coda(engagement_db, coda, coda_config, dataset_config, cache, dry_run)
         dataset_to_sync_stats[dataset_config.engagement_db_dataset] = dataset_sync_stats
 
+    dry_run_text = "(dry run)" if dry_run else ""
+
     # Log the summaries of actions taken for each dataset then for all datasets combined.
     all_sync_stats = EngagementDBToCodaSyncStats()
     for dataset_config in coda_config.dataset_configurations:
@@ -194,5 +196,5 @@ def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None
         dataset_to_sync_stats[dataset_config.engagement_db_dataset].print_summary()
         all_sync_stats.add_stats(dataset_to_sync_stats[dataset_config.engagement_db_dataset])
 
-    log.info(f"Summary of actions for all datasets:")
+    log.info(f"Summary of actions for all datasets: {dry_run_text}")
     all_sync_stats.print_summary()
