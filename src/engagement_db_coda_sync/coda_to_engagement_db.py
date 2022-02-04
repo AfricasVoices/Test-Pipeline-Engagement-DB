@@ -80,6 +80,8 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
     for _ in coda_messages:
         sync_stats.add_event(CodaSyncEvents.READ_MESSAGE_FROM_CODA)
 
+    coda_messages.sort(key=lambda msg: msg.last_updated)
+
     for i, coda_message in enumerate(coda_messages):
         log.info(f"Processing Coda message {i + 1}/{len(coda_messages)}: {coda_message.message_id}...")
         message_sync_stats = _sync_coda_message_to_engagement_db(
@@ -88,10 +90,10 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
         )
         sync_stats.add_stats(message_sync_stats)
 
-    seen_timestamps = [msg.last_updated for msg in coda_messages if msg.last_updated is not None]
-    if cache is not None and len(seen_timestamps) > 0:
-        most_recently_updated_timestamp = sorted(seen_timestamps)[-1]
-        cache.set_last_updated_timestamp(dataset_config.coda_dataset_id, most_recently_updated_timestamp)
+        # If there's a cache and we've read the last message, or the next message has a different modification
+        # timestamp, update the cache.
+        if cache is not None and (i == len(coda_messages) - 1 or coda_messages[i + 1].last_updated > coda_message.last_updated):
+            cache.set_last_updated_timestamp(dataset_config.coda_dataset_id, coda_message.last_updated)
 
     return sync_stats
 
