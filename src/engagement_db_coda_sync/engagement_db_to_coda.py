@@ -180,6 +180,10 @@ def sync_engagement_db_to_coda(engagement_db, coda, coda_config, cache_path=None
         log.info(f"Initialising Coda sync cache at '{cache_path}/engagement_db_to_coda'")
         cache = CodaSyncCache(f"{cache_path}/engagement_db_to_coda")
 
+    if dry_run:
+        log.warning("Running without --dry-run may cause more reads than suggested here, because any update made to "
+                    "an engagement db message when syncing it will result in it being synced again")
+
     # Sync each dataset in turn to Coda
     dataset_to_sync_stats = dict()  # of engagement db dataset -> EngagementDBToCodaSyncStats
     for dataset_config in coda_config.dataset_configurations:
