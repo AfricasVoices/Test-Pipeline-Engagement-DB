@@ -50,7 +50,8 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
             .order_by("message_id") \
             .limit(1)
     else:
-        # Get the next message modified at or later than the `last_seen_message`, excluding the `last_seen_message`.
+        # Get the next message modified at or later than the `last_seen_message`, excluding the `last_seen_message` except
+        # if we need to set a coda id, labels, or do WS correction after which the last updated timestamp is modified.
         messages_filter = lambda q: q \
             .where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]) \
             .where("dataset", "==", dataset_config.engagement_db_dataset) \
