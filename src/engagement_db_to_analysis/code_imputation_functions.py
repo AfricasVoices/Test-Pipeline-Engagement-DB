@@ -1,3 +1,4 @@
+from core_data_modules.analysis import AnalysisConfiguration
 from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.cleaners.location_tools import KenyaLocations, SomaliaLocations
@@ -9,10 +10,11 @@ from core_data_modules.util import TimeUtils
 from engagement_database.data_models import Message
 
 from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs,
-                                                                  analysis_dataset_configs_to_demog_column_configs)
+                                                                  analysis_dataset_configs_to_demog_column_configs,
+                                                                  coding_config_to_column_config)
 from src.engagement_db_to_analysis.column_view_conversion import (get_latest_labels_with_code_scheme,
                                                                   analysis_dataset_config_for_message)
-from src.pipeline_configuration_spec import *
+from src.engagement_db_to_analysis.configuration import AnalysisLocations
 
 log = Logger(__name__)
 
@@ -461,6 +463,7 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
     }
     _impute_location_codes(user, messages_traced_data, analysis_dataset_configs, analysis_locations_to_cleaners)
 
+
 def _impute_somalia_location_codes(user, messages_traced_data, analysis_dataset_configs):
     """
     Imputes Somalia location labels for location dataset messages.
@@ -711,6 +714,92 @@ def _impute_consent_withdrawn(user, column_traced_data_iterable, analysis_datase
              f"{len(consent_withdrawn_uuids)} items were marked as consent_withdrawn")
 
 
+def _impute_somalia_zone_from_somalia_operator(user, column_traced_data_iterable, analysis_dataset_configs):
+    """
+    Imputes Somalia zone labels that are currently 'NC' by attempting to use the message operator to assign the
+    zone instead.
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param column_traced_data_iterable: Column-view traced data objects to apply the impute function to.
+    :type column_traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
+    :param analysis_dataset_configs: Analysis dataset configurations for the imputation.
+    :type analysis_dataset_configs: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
+    """
+    # Search for a Somalia operator and Somalia zone configuration in the analysis configs.
+    somalia_operator_column_config = None
+    somalia_zone_column_config = None
+    for dataset_config in analysis_dataset_configs:
+        for coding_config in dataset_config.coding_configs:
+            if coding_config.analysis_location == AnalysisLocations.SOMALIA_OPERATOR:
+                assert somalia_operator_column_config is None, \
+                    f"Detected multiple coding configurations with " \
+                    f"`analysis_location` {AnalysisLocations.SOMALIA_OPERATOR}"
+                somalia_operator_column_config = coding_config_to_column_config(coding_config, dataset_config.raw_dataset)
+            if coding_config.analysis_location == AnalysisLocations.SOMALIA_ZONE:
+                assert somalia_zone_column_config is None, \
+                    f"Detected multiple coding configurations with " \
+                    f"`analysis_location` {AnalysisLocations.SOMALIA_ZONE}"
+                somalia_zone_column_config = coding_config_to_column_config(coding_config, dataset_config.raw_dataset)
+
+    # If we don't find both, return.
+    if somalia_operator_column_config is None or somalia_zone_column_config is None:
+        log.debug(f"Not imputing Somalia zone from operator because there were no configurations for both "
+                  f"Somalia zone and operator")
+        return
+
+    # Search the column_td for messages with zones that are 'NC' and impute with operator-derived zone codes.
+    log.info(f"Imputing 'NC' Somalia zone labels from operator codes...")
+    imputed_labels = 0
+    for column_td in column_traced_data_iterable:
+        # Get the existing zone labels for this td, and check if they have normal/NC codes
+        zone_labels = column_td[somalia_zone_column_config.coded_field]
+        zone_codes = [somalia_zone_column_config.code_scheme.get_code_with_code_id(l["CodeID"]) for l in zone_labels]
+
+        has_nc_code = False
+        has_normal_code = False
+        for code in zone_codes:
+            if code.control_code == Codes.NOT_CODED:
+                has_nc_code = True
+            if code.code_type == CodeTypes.NORMAL:
+                has_normal_code = True
+
+        # If there is no NC code, then the zone has been usefully labelled as something else e.g. 'nez', 'NR' etc.
+        # Skip this column_td without modifying it.
+        if not has_nc_code:
+            continue
+
+        assert not has_normal_code
+
+        # This column_td has a zone that is labelled as NC only (+ meta codes).
+        # Derive the zone from the operator instead.
+        zone_string = SomaliaLocations.zone_for_operator_code(column_td[somalia_operator_column_config.raw_field])
+        if zone_string == Codes.NOT_CODED:
+            zone_code = somalia_zone_column_config.code_scheme.get_code_with_control_code(Codes.NOT_CODED)
+        else:
+            zone_code = somalia_zone_column_config.code_scheme.get_code_with_match_value(zone_string)
+
+        new_zone_label = CleaningUtils.make_label_from_cleaner_code(
+            somalia_zone_column_config.code_scheme, zone_code, Metadata.get_call_location()
+        )
+
+        # Replace the nc zone label with the new zone label that was created from the operator
+        new_zone_labels = [
+            label for label in zone_labels
+            if somalia_zone_column_config.code_scheme.get_code_with_code_id(label["CodeID"]).control_code != Codes.NOT_CODED
+        ]
+        new_zone_labels.append(new_zone_label.to_dict())
+
+        column_td.append_data(
+            {somalia_zone_column_config.coded_field: new_zone_labels},
+            Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
+        )
+        imputed_labels += 1
+
+    log.info(f"Imputed {imputed_labels} Somalia zone labels from operator codes for {len(column_traced_data_iterable)} "
+             f"traced data items")
+
+
 def impute_codes_by_column_traced_data(user, column_traced_data_iterable, analysis_dataset_configs):
     """
     Imputes codes for column-view TracedData in-place.
@@ -728,5 +817,6 @@ def impute_codes_by_column_traced_data(user, column_traced_data_iterable, analys
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
     """
     _impute_true_missing(user, column_traced_data_iterable, analysis_dataset_configs)
+    _impute_somalia_zone_from_somalia_operator(user, column_traced_data_iterable, analysis_dataset_configs)
     _impute_nic_demogs(user, column_traced_data_iterable, analysis_dataset_configs)
     _impute_consent_withdrawn(user, column_traced_data_iterable, analysis_dataset_configs)
