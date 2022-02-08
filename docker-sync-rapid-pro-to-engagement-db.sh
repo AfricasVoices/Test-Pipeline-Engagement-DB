@@ -7,6 +7,9 @@ IMAGE_NAME=$PROJECT_NAME-sync-rapid-pro-to-engagement-db
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --dry-run)
+            DRY_RUN="--dry-run"
+            shift;;
         --incremental-cache-volume)
             INCREMENTAL_ARG="--incremental-cache-path /cache"
             INCREMENTAL_CACHE_VOLUME_NAME="$2"
@@ -25,7 +28,7 @@ done
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 4 ]]; then
     echo "Usage: $0 
-    [--incremental-cache-volume <incremental-cache-volume>] 
+    [--dry-run] [--incremental-cache-volume <incremental-cache-volume>]
     [--local-archive <local_archive>] : set a single option with argument, repeat it multiple times
     <user> <google-cloud-credentials-file-path> <configuration-module> <data-dir>"
     exit
