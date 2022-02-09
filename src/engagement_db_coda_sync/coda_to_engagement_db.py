@@ -54,7 +54,7 @@ def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db
     return sync_stats
 
 
-def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, dataset_config, cache=None):
+def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, dataset_config, cache=None, dry_run=False):
     """
     Syncs messages from one Coda dataset to an engagement database.
     
@@ -66,6 +66,8 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param cache: Coda sync cache.
     :type cache: src.engagement_db_coda_sync.cache.CodaSyncCache | None
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return Sync stats for the update.
     :rtype: src.engagement_db_coda_sync.sync_stats.CodaToEngagementDBSyncStats
     """
@@ -86,13 +88,14 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
         log.info(f"Processing Coda message {i + 1}/{len(coda_messages)}: {coda_message.message_id}...")
         message_sync_stats = _sync_coda_message_to_engagement_db(
             engagement_db.transaction(), coda_message, engagement_db, dataset_config.engagement_db_dataset,
-            coda_config
+            coda_config, dry_run
         )
         sync_stats.add_stats(message_sync_stats)
 
         # If there's a cache and we've read the last message, or the next message's last updated timestamp is greater
         # than the message we are currently syncing, update the cache.
-        if cache is not None and (i == len(coda_messages) - 1 or coda_messages[i + 1].last_updated > coda_message.last_updated):
+        if not dry_run and cache is not None and \
+        (i == len(coda_messages) - 1 or coda_messages[i + 1].last_updated > coda_message.last_updated):
             cache.set_last_updated_timestamp(dataset_config.coda_dataset_id, coda_message.last_updated)
 
     return sync_stats
