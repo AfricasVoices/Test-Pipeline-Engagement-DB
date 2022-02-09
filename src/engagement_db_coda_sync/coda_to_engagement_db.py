@@ -98,7 +98,7 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
     return sync_stats
 
 
-def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None):
+def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None, dry_run=False):
     """
     Syncs messages from Coda to an engagement database.
 
@@ -111,6 +111,8 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
                        If None, runs in non-incremental mode.
     :type cache_path: str | None
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     """
     # Initialise the cache
     if cache_path is None:
@@ -125,8 +127,10 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None
     for dataset_config in coda_config.dataset_configurations:
         log.info(f"Syncing Coda dataset {dataset_config.coda_dataset_id} to engagement db dataset "
                  f"{dataset_config.coda_dataset_id}")
-        dataset_sync_stats = _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, dataset_config, cache)
+        dataset_sync_stats = _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, dataset_config, cache, dry_run)
         dataset_to_sync_stats[dataset_config.coda_dataset_id] = dataset_sync_stats
+
+    dry_run_text = "(dry run)" if dry_run else ""
 
     # Log the summaries of actions taken for each dataset then for all datasets combined.
     all_sync_stats = CodaToEngagementDBSyncStats()
@@ -135,5 +139,5 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None
         dataset_to_sync_stats[dataset_config.coda_dataset_id].print_summary()
         all_sync_stats.add_stats(dataset_to_sync_stats[dataset_config.coda_dataset_id])
 
-    log.info(f"Summary of actions for all datasets:")
+    log.info(f"Summary of actions for all datasets: {dry_run_text}")
     all_sync_stats.print_summary()
