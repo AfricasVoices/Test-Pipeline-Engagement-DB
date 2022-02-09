@@ -10,7 +10,7 @@ log = Logger(__name__)
 
 
 @firestore.transactional
-def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db, engagement_db_dataset, coda_config):
+def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db, engagement_db_dataset, coda_config, dry_run=False):
     """
     Syncs a coda message to an engagement database, by downloading all the engagement database messages which match the
     coda message's id and dataset, and making sure the labels match.
@@ -25,6 +25,8 @@ def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db
     :type engagement_db_dataset: str
     :param coda_config: Configuration for the update.
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return Sync stats.
     :rtype src.engagement_db_coda_sync.sync_stats.CodaToEngagementDBSyncStats
     """
@@ -48,7 +50,7 @@ def _sync_coda_message_to_engagement_db(transaction, coda_message, engagement_db
         log.info(f"Processing matching engagement message {i + 1}/{len(engagement_db_messages)}: "
                  f"{engagement_db_message.message_id}...")
         message_sync_events = _update_engagement_db_message_from_coda_message(
-            engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction)
+            engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction, dry_run=dry_run)
         sync_stats.add_events(message_sync_events)
 
     return sync_stats
