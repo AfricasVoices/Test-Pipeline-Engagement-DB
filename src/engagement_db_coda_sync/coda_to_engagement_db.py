@@ -11,7 +11,7 @@ log = Logger(__name__)
 
 @firestore.transactional
 def _sync_coda_message_to_engagement_db_batch(transaction, coda_message, engagement_db, engagement_db_dataset,
-                                              coda_config, start_after=None):
+                                              coda_config, start_after=None, dry_run=False):
     """
     Syncs a Coda message to a batch of up to 250 engagement database messages.
 
@@ -68,7 +68,8 @@ def _sync_coda_message_to_engagement_db_batch(transaction, coda_message, engagem
         log.info(f"Processing matching engagement message {i + 1}/{len(engagement_db_messages)}: "
                  f"{engagement_db_message.message_id}...")
         message_sync_events = _update_engagement_db_message_from_coda_message(
-            engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction, dry_run=dry_run)
+            engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction, dry_run=dry_run
+        )
         sync_stats.add_events(message_sync_events)
 
     # If we downloaded a full-batch worth of messages, return a next_start_after document so the calling function
