@@ -80,7 +80,7 @@ def _sync_coda_message_to_engagement_db_batch(transaction, coda_message, engagem
     return next_start_after, sync_stats
 
 
-def _sync_coda_message_to_engagement_db(coda_message, engagement_db, engagement_db_dataset, coda_config):
+def _sync_coda_message_to_engagement_db(coda_message, engagement_db, engagement_db_dataset, coda_config, dry_run=False):
     """
     Syncs a coda message to an engagement database, by downloading all the engagement database messages which match the
     coda message's id and dataset, and making sure the labels match.
@@ -93,6 +93,8 @@ def _sync_coda_message_to_engagement_db(coda_message, engagement_db, engagement_
     :type engagement_db_dataset: str
     :param coda_config: Configuration for the update.
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return Sync stats.
     :rtype src.engagement_db_coda_sync.sync_stats.CodaToEngagementDBSyncStats
     """
@@ -106,7 +108,7 @@ def _sync_coda_message_to_engagement_db(coda_message, engagement_db, engagement_
     while first_run or start_after is not None:
         first_run = False
         start_after, batch_sync_stats = _sync_coda_message_to_engagement_db_batch(
-            engagement_db.transaction(), coda_message, engagement_db, engagement_db_dataset, coda_config, start_after
+            engagement_db.transaction(), coda_message, engagement_db, engagement_db_dataset, coda_config, start_after, dry_run
         )
         sync_stats.add_stats(batch_sync_stats)
         batches += 1
