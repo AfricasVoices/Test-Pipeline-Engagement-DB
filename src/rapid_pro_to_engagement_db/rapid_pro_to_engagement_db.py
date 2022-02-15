@@ -128,7 +128,7 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     return RapidProSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 
-def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_pro_config, google_cloud_credentials_file_path, cache_path=None):
+def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_pro_config, google_cloud_credentials_file_path, cache_path=None, dry_run=False):
     """
     Synchronises runs from a Rapid Pro workspace to an engagement database.
 
