@@ -100,7 +100,7 @@ def _engagement_db_has_message(engagement_db, message):
     return len(matching_messages) > 0
 
 
-def _ensure_engagement_db_has_message(engagement_db, message, message_origin_details):
+def _ensure_engagement_db_has_message(engagement_db, message, message_origin_details, dry_run=False):
     """
     Ensures that the given message exists in an engagement database.
 
@@ -113,6 +113,8 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     :type message: engagement_database.data_models.Message
     :param message_origin_details: Message origin details, to be logged in the HistoryEntryOrigin.details.
     :type message_origin_details: dict
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return sync_events: Sync event.
     :rtype string
     """
@@ -121,10 +123,11 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
         return RapidProSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
 
     log.debug(f"Adding message to engagement database")
-    engagement_db.set_message(
-        message,
-        HistoryEntryOrigin(origin_name="Rapid Pro -> Database Sync", details=message_origin_details)
-    )
+    if not dry_run:
+        engagement_db.set_message(
+            message,
+            HistoryEntryOrigin(origin_name="Rapid Pro -> Database Sync", details=message_origin_details)
+        )
     return RapidProSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 
