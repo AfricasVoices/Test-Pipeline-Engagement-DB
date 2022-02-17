@@ -14,7 +14,7 @@ from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, EngagementDBT
 log = Logger(__name__)
 
 
-def get_coda_users_from_gcloud(dataset_users_file_url, google_cloud_credentials_file_path):
+def _get_coda_users_from_gcloud(dataset_users_file_url, google_cloud_credentials_file_path):
     return json.loads(google_cloud_utils.download_blob_to_string(
         google_cloud_credentials_file_path, dataset_users_file_url
     ))
@@ -41,14 +41,14 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
     if not all_datasets_have_user_file_url:
         assert coda_config.project_users_file_url is not None, \
          f"Specify user ids for coda datasets in CodaDatasetConfiguration or user ids for this project in CodaSyncConfiguration"
-        default_project_user_ids = get_coda_users_from_gcloud(coda_config.project_users_file_url, google_cloud_credentials_file_path)
+        default_project_user_ids = _get_coda_users_from_gcloud(coda_config.project_users_file_url, google_cloud_credentials_file_path)
 
     ws_correct_dataset_code_scheme = coda_config.ws_correct_dataset_code_scheme
     for dataset_config in coda_config.dataset_configurations:
         log.info(f"Updating user ids and code schemes in coda dataset '{dataset_config.coda_dataset_id}'")
         config_user_ids = []
         if dataset_config.dataset_users_file_url:
-            config_user_ids = get_coda_users_from_gcloud(dataset_config.dataset_users_file_url, google_cloud_credentials_file_path)
+            config_user_ids = _get_coda_users_from_gcloud(dataset_config.dataset_users_file_url, google_cloud_credentials_file_path)
         else:
             config_user_ids = default_project_user_ids
 
