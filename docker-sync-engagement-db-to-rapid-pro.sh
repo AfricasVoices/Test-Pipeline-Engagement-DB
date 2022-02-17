@@ -7,6 +7,9 @@ IMAGE_NAME=$PROJECT_NAME-sync-engagement-db-to-rapidpro
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --dry-run)
+            DRY_RUN="--dry-run"
+            shift;;
         --incremental-cache-volume)
             INCREMENTAL_ARG="--incremental-cache-path /cache"
             INCREMENTAL_CACHE_VOLUME_NAME="$2"
@@ -22,7 +25,7 @@ done
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 3 ]]; then
     echo "Usage: $0
-    [--incremental-cache-volume <incremental-cache-volume>]
+    [--dry-run] [--incremental-cache-volume <incremental-cache-volume>]
     <user> <google-cloud-credentials-file-path> <configuration-module>"
     exit
 fi
@@ -36,7 +39,7 @@ CONFIGURATION_MODULE=$3
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u sync_engagement_db_to_rapid_pro.py ${INCREMENTAL_ARG} ${USER} \
+CMD="pipenv run python -u sync_engagement_db_to_rapid_pro.py ${DRY_RUN} ${INCREMENTAL_ARG} ${USER} \
     /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE}"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
