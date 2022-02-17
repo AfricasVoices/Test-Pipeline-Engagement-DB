@@ -204,5 +204,5 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None
         dataset_to_sync_stats[dataset_config.coda_dataset_id].print_summary()
         all_sync_stats.add_stats(dataset_to_sync_stats[dataset_config.coda_dataset_id])
 
-    log.info(f"Summary of actions for all datasets: {dry_run_text}")
+    log.info(f"Summary of actions for all datasets{dry_run_text}:")
     all_sync_stats.print_summary()
