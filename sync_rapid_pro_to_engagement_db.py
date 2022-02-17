@@ -13,6 +13,8 @@ log = Logger(__name__)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Syncs data from a Rapid Pro workspace to an engagement database")
 
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Logs the updates that would be made without updating anything.")
     parser.add_argument("--incremental-cache-path",
                         help="Path to a directory to use to cache results needed for incremental operation.")
     parser.add_argument("--local-archive", action="append",
@@ -30,11 +32,16 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    dry_run = args.dry_run
     incremental_cache_path = args.incremental_cache_path
     local_archives = [] if args.local_archive is None else args.local_archive
+
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
+
+    dry_run_text = "(dry run)" if dry_run else ""
+    log.info(f"Synchronizing data from rapidpro to an engagement database {dry_run_text}")
 
     # Parse any local archive arguments, validating that all arguments do override a Rapid Pro source
     local_archives_map = dict()  # of gs url -> local path
@@ -78,5 +85,5 @@ if __name__ == "__main__":
 
         sync_rapid_pro_to_engagement_db(
             rapid_pro, engagement_db, uuid_table, rapid_pro_config.sync_config, google_cloud_credentials_file_path,
-            incremental_cache_path
+            incremental_cache_path, dry_run
         )
