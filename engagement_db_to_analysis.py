@@ -10,6 +10,8 @@ log = Logger(__name__)
 if __name__ == "__main__":
      parser = argparse.ArgumentParser(description="Runs the engagement to analysis phases of the pipeline")
 
+     parser.add_argument("--dry-run", action="store_true",
+                         help="Logs the updates that would be made without updating anything.")
      parser.add_argument("--incremental-cache-path",
                          help="Path to a directory to use to cache results needed for incremental operation.")
 
@@ -28,7 +30,9 @@ if __name__ == "__main__":
 
      args = parser.parse_args()
 
+     dry_run = args.dry_run
      incremental_cache_path = args.incremental_cache_path
+
      user = args.user
      google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
      pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
@@ -37,8 +41,11 @@ if __name__ == "__main__":
 
      pipeline = pipeline_config.pipeline_name
 
+     dry_run_text = "(dry run)" if dry_run else ""
+     log.info(f"Running the engagement to analysis phases of the pipeline {dry_run_text}")
+
      uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
      engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
 
      generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, engagement_db, membership_group_dir_path,
-                             output_dir, incremental_cache_path)
+                             output_dir, incremental_cache_path, dry_run)
