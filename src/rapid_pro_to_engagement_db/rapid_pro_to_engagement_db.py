@@ -280,6 +280,6 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
         dataset_to_sync_stats[result_field].print_summary()
         all_sync_stats.add_stats(dataset_to_sync_stats[result_field])
 
-    dry_run_text = " (dry run)" if dry_run else ""
-    log.info(f"Summary of actions for all flow result fields{dry_run_text}:")
+    dry_run_text = "(dry run)" if dry_run else ""
+    log.info(f"Summary of actions for all flow result fields {dry_run_text}:")
     all_sync_stats.print_summary()
