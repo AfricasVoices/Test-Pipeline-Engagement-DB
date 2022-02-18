@@ -44,7 +44,7 @@ if __name__ == "__main__":
     dry_run_text = "(dry run)" if dry_run else ""
     log.info(f"Running the engagement to analysis phases of the pipeline {dry_run_text}")
 
-    uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
+    # uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
 
     generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, engagement_db, membership_group_dir_path,
