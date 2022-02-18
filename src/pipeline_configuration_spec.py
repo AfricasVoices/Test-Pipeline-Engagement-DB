@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional, List
 
 from core_data_modules.data_models import CodeScheme
 from core_data_modules.analysis.traffic_analysis import TrafficLabel
@@ -8,6 +9,7 @@ from core_data_modules.analysis.traffic_analysis import TrafficLabel
 from src.common.configuration import (RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration,
                                       EngagementDatabaseClientConfiguration, OperationsDashboardConfiguration,
                                       ArchiveConfiguration)
+from src.csv_to_engagement_db.configuration import CSVSource
 
 from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, CodaDatasetConfiguration,
                                                        CodeSchemeConfiguration)
@@ -57,6 +59,7 @@ class PipelineConfiguration:
     test_participant_uuids: [] = None
     description: str = None
     rapid_pro_sources: [RapidProSource] = None
+    csv_sources: Optional[List[CSVSource]] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
     analysis: AnalysisConfiguration = None
