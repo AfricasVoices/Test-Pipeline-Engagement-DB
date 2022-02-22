@@ -174,7 +174,7 @@ def _labels_contain_consent_withdrawn(labels, code_schemes):
     return False
 
 
-def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_config, cache_path=None):
+def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_config, cache_path=None, dry_run=False):
     """
     Synchronises an engagement database to Rapid Pro.
 
@@ -189,6 +189,8 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
                        If None, runs in non-incremental mode.
     :type cache_path: str | None
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     """
     # Initialise the cache
     if cache_path is None:
@@ -242,7 +244,7 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         if participant_uuid in participants_synced_this_cycle:
             log.info(f"Skipping this message because we've already synced participant_uuid {participant_uuid} in this "
                      f"pipeline run")
-            if cache is not None:
+            if cache is not None and not dry_run:
                 cache.set_message("last_synced", message)
             continue
 
@@ -261,10 +263,11 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         urn = uuid_table.uuid_to_data(participant_uuid)
 
         # Write the contact fields to rapid pro
-        rapid_pro.update_contact(urn, contact_fields=contact_fields)
+        if not dry_run:
+            rapid_pro.update_contact(urn, contact_fields=contact_fields)
 
         participants_synced_this_cycle.add(participant_uuid)
-        if cache is not None:
+        if cache is not None and not dry_run:
             cache.set_message("last_synced", message)
 
     log.info(f"Done")

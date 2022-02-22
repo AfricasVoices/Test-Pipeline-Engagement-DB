@@ -12,6 +12,8 @@ log = Logger(__name__)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Syncs data from an engagement database to Rapid Pro")
 
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Logs the updates that would be made without updating anything.")
     parser.add_argument("--incremental-cache-path",
                         help="Path to a directory to use to cache results needed for incremental operation.")
     parser.add_argument("user", help="Identifier of the user launching this program")
@@ -24,7 +26,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    dry_run = args.dry_run
     incremental_cache_path = args.incremental_cache_path
+
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
@@ -35,6 +39,9 @@ if __name__ == "__main__":
 
     HistoryEntryOrigin.set_defaults(user, project, pipeline, commit)
 
+    dry_run_text = "(dry run)" if dry_run else ""
+    log.info(f"Synchronizing data from an engagement database to Rapid Pro {dry_run_text}")
+
     if pipeline_config.rapid_pro_target is None:
         log.info(f"No rapid_pro_target provided in configuration; exiting")
         exit(0)
@@ -44,4 +51,4 @@ if __name__ == "__main__":
     rapid_pro = pipeline_config.rapid_pro_target.rapid_pro.init_rapid_pro_client(google_cloud_credentials_file_path)
     sync_config = pipeline_config.rapid_pro_target.sync_config
 
-    sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_config, incremental_cache_path)
+    sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_config, incremental_cache_path, dry_run)
