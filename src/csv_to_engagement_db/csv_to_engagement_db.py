@@ -58,7 +58,7 @@ def _csv_message_to_engagement_db_message(csv_message, uuid_table, dataset, orig
     channel_operator = URNCleaner.clean_operator(participant_urn)
 
     return Message(
-        participant_uuid=csv_message["Sender"],
+        participant_uuid=participant_uuid,
         text=csv_message["Message"],
         timestamp=_parse_date_string(csv_message["ReceivedOn"], timezone),
         direction=MessageDirections.IN,
