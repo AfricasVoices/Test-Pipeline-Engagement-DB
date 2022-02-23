@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional, List
 
 from core_data_modules.data_models import CodeScheme
 from core_data_modules.analysis.traffic_analysis import TrafficLabel
@@ -19,6 +20,7 @@ from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfigur
                                                          DatasetTypes, AgeCategoryConfiguration, AnalysisLocations,
                                                          CodingConfiguration, GoogleDriveUploadConfiguration,
                                                          MembershipGroupConfiguration, AnalysisConfiguration)
+from src.social_media_to_engagement_db.configuration import (FacebookSource, FacebookDataset, FacebookSearch)
 
 
 def load_code_scheme(fname):
@@ -57,6 +59,7 @@ class PipelineConfiguration:
     test_participant_uuids: [] = None
     description: str = None
     rapid_pro_sources: [RapidProSource] = None
+    facebook_sources: Optional[List[FacebookSource]] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
     analysis: AnalysisConfiguration = None
