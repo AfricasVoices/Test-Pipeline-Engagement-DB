@@ -9,7 +9,7 @@ from core_data_modules.analysis.traffic_analysis import TrafficLabel
 from src.common.configuration import (RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration,
                                       EngagementDatabaseClientConfiguration, OperationsDashboardConfiguration,
                                       ArchiveConfiguration)
-from src.csv_to_engagement_db.configuration import CSVSource
+from src.csv_to_engagement_db.configuration import (CSVSource, CSVDatasetConfiguration)
 
 from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, CodaDatasetConfiguration,
                                                        CodeSchemeConfiguration)

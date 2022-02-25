@@ -36,22 +36,22 @@ def _parse_date_string(date_string, timezone):
     return pytz.timezone(timezone).localize(parsed_raw_date)
 
 
-def _csv_message_to_engagement_db_message(csv_message, uuid_table, dataset, origin_id, timezone):
+def _csv_message_to_engagement_db_message(csv_message, uuid_table, origin_id, csv_source):
     """
     Converts a CSV message to an engagement database message.
+
+    If there is no valid dataset for this converted message, returns None.
 
     :param csv_message: Dictionary containing the headers: 'Sender', 'Message', and 'ReceivedOn'.
     :type csv_message: dict
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
-    :param dataset: Initial dataset to assign this message to in the engagement database.
-    :type dataset: str
     :param origin_id: Origin id, for the message origin field.
     :type origin_id: str
-    :param timezone: Timezone to use when interpreting the message's date string e.g. 'Africa/Nairobi'.
-    :type timezone: str
+    :param csv_source:
+    :type csv_source: src.csv_to_engagement_db.configuration.CSVSource
     :return: `csv_message` as an engagement db message.
-    :rtype: engagement_database.data_models.Message
+    :rtype: engagement_database.data_models.Message | None
     """
     participant_uuid = csv_message["Sender"]
     assert participant_uuid.startswith(uuid_table._uuid_prefix), f"Sender uuid does not start with uuid prefix " \
@@ -59,10 +59,17 @@ def _csv_message_to_engagement_db_message(csv_message, uuid_table, dataset, orig
     participant_urn = uuid_table.uuid_to_data(participant_uuid)
     channel_operator = URNCleaner.clean_operator(participant_urn)
 
+    timestamp = _parse_date_string(csv_message["ReceivedOn"], csv_source.timezone)
+
+    try:
+        dataset = csv_source.get_dataset_for_timestamp(timestamp)
+    except LookupError:
+        return None
+
     return Message(
         participant_uuid=participant_uuid,
         text=csv_message["Message"],
-        timestamp=_parse_date_string(csv_message["ReceivedOn"], timezone),
+        timestamp=timestamp,
         direction=MessageDirections.IN,
         channel_operator=channel_operator,
         status=MessageStatuses.LIVE,
@@ -113,7 +120,7 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
         log.debug(f"Message already in engagement database")
         return CSVSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
 
-    log.debug(f"Adding message to engagement database")
+    log.debug(f"Adding message to engagement database dataset {message.dataset}...")
     engagement_db.set_message(
         message,
         HistoryEntryOrigin(origin_name="CSV -> Database Sync", details=message_origin_details)
@@ -150,8 +157,14 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
         log.info(f"Processing message {i + 1}/{len(raw_data)}...")
         sync_stats.add_event(CSVSyncEvents.READ_ROW_FROM_CSV)
         engagement_db_message = _csv_message_to_engagement_db_message(
-            csv_msg, uuid_table, csv_source.engagement_db_dataset, f"csv_{csv_hash}.row_{i}", csv_source.timezone
+            csv_msg, uuid_table, f"csv_{csv_hash}.row_{i}", csv_source
         )
+
+        if engagement_db_message is None:
+            log.info(f"No matching dataset for this message, sent at time '{csv_msg['ReceivedOn']}'")
+            sync_stats.add_event(CSVSyncEvents.MESSAGE_SKIPPED_NO_MATCHING_TIMESTAMP)
+            continue
+
         message_origin_details = {
             "csv_row_number": i,
             "csv_row_data": csv_msg,
