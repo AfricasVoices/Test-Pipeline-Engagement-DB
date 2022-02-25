@@ -10,6 +10,8 @@ from engagement_database.data_models import (Message, MessageDirections, Message
                                              HistoryEntryOrigin)
 from storage.google_cloud import google_cloud_utils
 
+from src.csv_to_engagement_db.sync_stats import CSVSyncEvents, CSVToEngagementDBSyncStats
+
 log = Logger(__name__)
 
 
@@ -104,16 +106,19 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     :type message: engagement_database.data_models.Message
     :param message_origin_details: Message origin details, to be logged in the HistoryEntryOrigin.details.
     :type message_origin_details: dict
+    :return sync_events: Sync event.
+    :rtype str
     """
     if _engagement_db_has_message(engagement_db, message):
         log.debug(f"Message already in engagement database")
-        return
+        return CSVSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
 
     log.debug(f"Adding message to engagement database")
     engagement_db.set_message(
         message,
         HistoryEntryOrigin(origin_name="CSV -> Database Sync", details=message_origin_details)
     )
+    return CSVSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 
 def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table):
@@ -129,7 +134,11 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :return: Sync stats for the sync.
+    :rtype: CSVToEngagementDBSyncStats
     """
+    sync_stats = CSVToEngagementDBSyncStats()
+
     log.info(f"Downloading csv from '{csv_source.gs_url}'...")
     raw_csv_string = google_cloud_utils.download_blob_to_string(
         google_cloud_credentials_file_path, csv_source.gs_url)
@@ -139,6 +148,7 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
 
     for i, csv_msg in enumerate(raw_data):
         log.info(f"Processing message {i + 1}/{len(raw_data)}...")
+        sync_stats.add_event(CSVSyncEvents.READ_ROW_FROM_CSV)
         engagement_db_message = _csv_message_to_engagement_db_message(
             csv_msg, uuid_table, csv_source.engagement_db_dataset, f"csv_{csv_hash}.row_{i}", csv_source.timezone
         )
@@ -148,7 +158,10 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
             "csv_sync_configuration": csv_source.to_dict(),
             "csv_hash": csv_hash
         }
-        _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details)
+        sync_event = _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details)
+        sync_stats.add_event(sync_event)
+
+    return sync_stats
 
 
 def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, engagement_db, uuid_table):
@@ -170,6 +183,18 @@ def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, 
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
     """
+    source_to_sync_stats = dict()
     for i, csv_source in enumerate(csv_sources):
         log.info(f"Syncing csv {i + 1}/{len(csv_sources)}: {csv_source.gs_url}...")
-        _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table)
+        source_sync_stats = _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table)
+        source_to_sync_stats[csv_source.gs_url] = source_sync_stats
+
+    # Log the summaries of actions taken for each dataset then for all datasets combined.
+    all_sync_stats = CSVToEngagementDBSyncStats()
+    for csv_source in csv_sources:
+        log.info(f"Summary of actions for csv source '{csv_source.gs_url}':")
+        source_to_sync_stats[csv_source.gs_url].print_summary()
+        all_sync_stats.add_stats(source_to_sync_stats[csv_source.gs_url])
+
+    log.info(f"Summary of actions for all {len(csv_sources)} csv source(s): ")
+    all_sync_stats.print_summary()
