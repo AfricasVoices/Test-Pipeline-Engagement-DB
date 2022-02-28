@@ -26,7 +26,7 @@ class FacebookDataset:
             self.search = FacebookSearch.to_dict(search)
 
         assert self.post_ids is not None or self.search is not None, \
-            "Must provide at least one of post_id or search"
+            "Must provide at least a post_id or search"
 
     def to_dict(self):
         return {
@@ -47,5 +47,4 @@ class FacebookSearch:
         "match": self.match,
         "start_date": isoparse(self.start_date),
         "end_date": isoparse(self.end_date)
-
     }
