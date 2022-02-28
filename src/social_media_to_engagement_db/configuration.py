@@ -7,7 +7,6 @@ class FacebookSource:
         self.token_file_url = token_file_url
         self.datasets = datasets
 
-
     def to_dict(self):
         return {
             "page_id": self.page_id,
