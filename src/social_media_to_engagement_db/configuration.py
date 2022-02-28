@@ -17,9 +17,10 @@ class FacebookSource:
 
 
 class FacebookDataset:
-    def __init__(self, name, post_ids=None, search=None):
-        self.name = name
+    def __init__(self, engagement_db_dataset, post_ids=None, search=None):
+        self.engagement_db_dataset = engagement_db_dataset
         self.post_ids = post_ids
+        self.search = search
 
         if search is not None:
             self.search = FacebookSearch.to_dict(search)
@@ -29,7 +30,7 @@ class FacebookDataset:
 
     def to_dict(self):
         return {
-        "name":self.name,
+        "engagement_db_dataset":self.engagement_db_dataset,
         "post_ids":self.post_ids,
         "search":self.search
         }
