@@ -135,7 +135,6 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
     """
 
-
     log.info("Fetching data from Facebook...")
     log.info("Downloading Facebook access token...")
     facebook_token = google_cloud_utils.download_blob_to_string(
