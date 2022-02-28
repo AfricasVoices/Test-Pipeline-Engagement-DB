@@ -161,7 +161,6 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
                 if "parent" not in comment:
                     comment["parent"] = {}
 
-
                 origin_id = f'page_id_{facebook_source.page_id}.user_id_{comment["from"]["id"]}._comment_id_{comment["id"]}'
                 message = _facebook_comment_to_engagement_db_message(comment, dataset.engagement_db_dataset,
                                                                      origin_id, uuid_table)
