@@ -153,7 +153,6 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     # This implementation is WIP. It shows how we can non-incrementally synchronise a workspace to the database.
     # To enter production, we still need the following:
     # TODO: Handle deleted contacts.
-    # TODO: Optimise fetching fields from the same flows, so we don't have to download the same runs multiple times.
     workspace_name, workspace_uuid = rapid_pro.get_workspace_name(), rapid_pro.get_workspace_uuid()
 
     if rapid_pro_config.uuid_filter is not None:
