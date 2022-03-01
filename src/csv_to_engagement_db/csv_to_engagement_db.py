@@ -218,5 +218,6 @@ def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, 
         source_to_sync_stats[csv_source.gs_url].print_summary()
         all_sync_stats.add_stats(source_to_sync_stats[csv_source.gs_url])
 
-    log.info(f"Summary of actions for all {len(csv_sources)} csv source(s): ")
+    dry_run_text = " (dry run)" if dry_run else ""
+    log.info(f"Summary of actions for all {len(csv_sources)} csv source(s){dry_run_text}:")
     all_sync_stats.print_summary()
