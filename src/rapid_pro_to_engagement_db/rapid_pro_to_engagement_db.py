@@ -174,13 +174,13 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     flow_result_configs_by_flow_name = groupby(rapid_pro_config.flow_result_configurations, lambda x: x.flow_name)
     dataset_to_sync_stats = dict()  # of '{flow_name}.{flow_result_field}' -> RapidProToEngagementDBSyncStats
     for flow_name, flow_configs in flow_result_configs_by_flow_name:
-        flow_sync_stats = RapidProToEngagementDBSyncStats()
+        initial_sync_stats = RapidProToEngagementDBSyncStats()
         # Get the latest runs for this flow.
         flow_id = rapid_pro.get_flow_id(flow_name)
         runs = _get_new_runs(rapid_pro, flow_id, cache)
 
         for _ in runs:
-            flow_sync_stats.add_event(RapidProSyncEvents.READ_RUN_FROM_RAPID_PRO)
+            initial_sync_stats.add_event(RapidProSyncEvents.READ_RUN_FROM_RAPID_PRO)
 
         # Get any contacts that have been updated since we last asked, in case any of the downloaded runs are for very
         # new contacts.
@@ -198,7 +198,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
             if len(run.values) == 0:
                 log.debug("No relevant run results for all fields; skipping")
                 for _ in flow_configs:
-                    flow_sync_stats.add_event(RapidProSyncEvents.RUN_EMPTY)
+                    initial_sync_stats.add_event(RapidProSyncEvents.RUN_EMPTY)
                 # Update the cache so we know not to check this run again in this flow 
                 if cache is not None and not dry_run:
                     cache.set_latest_run_timestamp(flow_id, run.modified_on)
@@ -209,7 +209,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 log.warning(f"Found a run from a contact that isn't present in the contacts export; skipping. "
                             f"This is most likely because the contact was deleted, but could suggest a more serious "
                             f"problem.")
-                flow_sync_stats.add_event(RapidProSyncEvents.RUN_CONTACT_UUID_NOT_IN_CONTACTS)
+                initial_sync_stats.add_event(RapidProSyncEvents.RUN_CONTACT_UUID_NOT_IN_CONTACTS)
                 if cache is not None and not dry_run:
                     cache.set_latest_run_timestamp(flow_id, run.modified_on)
                 continue
@@ -224,14 +224,14 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 if not uuid_table.has_data(contact_urn):
                     log.info("A uuid filter was specified but the message is not from a participant in the "
                              "uuid_table; skipping")
-                    flow_sync_stats.add_event(RapidProSyncEvents.UUID_FILTER_CONTACT_NOT_IN_UUID_TABLE)
+                    initial_sync_stats.add_event(RapidProSyncEvents.UUID_FILTER_CONTACT_NOT_IN_UUID_TABLE)
                     if cache is not None and not dry_run:
                         cache.set_latest_run_timestamp(flow_id, run.modified_on)
                     continue
                 if uuid_table.data_to_uuid(contact_urn) not in valid_participant_uuids:
                     log.info("A uuid filter was specified and the message is from a participant in the "
                              "uuid_table but is not in the uuid filter; skipping")
-                    flow_sync_stats.add_event(RapidProSyncEvents.CONTACT_NOT_IN_UUID_FILTER)
+                    initial_sync_stats.add_event(RapidProSyncEvents.CONTACT_NOT_IN_UUID_FILTER)
                     if cache is not None and not dry_run:
                         cache.set_latest_run_timestamp(flow_id, run.modified_on)
                     continue
@@ -240,7 +240,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
 
             for config in flow_configs:
                 sync_stats = RapidProToEngagementDBSyncStats()
-                sync_stats.add_stats(flow_sync_stats)
+                sync_stats.add_stats(initial_sync_stats)
                 # Get the relevant result from this run, if it exists.
                 rapid_pro_result = run.values.get(config.flow_result_field)
                 if rapid_pro_result is None:
