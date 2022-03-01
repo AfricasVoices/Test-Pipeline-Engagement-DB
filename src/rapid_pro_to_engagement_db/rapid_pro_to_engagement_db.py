@@ -171,7 +171,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     # (If the cache or a contacts file for this workspace don't exist, `contacts` will be `None` for now)
     contacts = _get_contacts_from_cache(cache)
 
-    flow_result_configs_by_flow_name = groupby(flow_result_configurations, lambda x: x.flow_name)
+    flow_result_configs_by_flow_name = groupby(rapid_pro_config.flow_result_configurations, lambda x: x.flow_name)
     flow_to_sync_stats = dict()  # of flow_name -> RapidProToEngagementDBSyncStats
     for flow_name, flow_configs in flow_result_configs_by_flow_name:
         flow_sync_stats = RapidProToEngagementDBSyncStats()
@@ -191,7 +191,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
 
         # Process each run in turn, adding its values to the engagement database if it contains messages relevant to this flow
         # configurations and the messages haven't already been added to the engagement database.
-        log.info(f"Processing {len(runs)} new runs for flow '{flow_config.flow_name}'")
+        log.info(f"Processing {len(runs)} new runs for flow '{flow_name}'")
         for i, run in enumerate(runs):
             log.debug(f"Processing run {i + 1}/{len(runs)}, id {run.id}...")
 
@@ -272,7 +272,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 }
                 sync_event = _ensure_engagement_db_has_message(engagement_db, msg, message_origin_details, dry_run)
                 dataset_sync_stats.add_event(sync_event)
-                dataset_to_sync_stats[f"{flow_name}.{flow_config.flow_result_field}"] = dataset_sync_stats
+                dataset_to_sync_stats[f"{flow_name}.{config.flow_result_field}"] = dataset_sync_stats
 
             # Update the cache so we know not to check this run again in this flow + result field context.
             # TODO: Update the cache if we've read the last run, or the next run's last modified timestamp is greater
