@@ -27,7 +27,7 @@ def _get_contacts_from_cache(cache=None):
         return cache.get_contacts()
 
 
-def _get_new_runs(rapid_pro, flow_id, flow_result_field, cache=None):
+def _get_new_runs(rapid_pro, flow_id, cache=None):
     """
     Gets new runs from Rapid Pro for the given flow.
 
@@ -38,8 +38,6 @@ def _get_new_runs(rapid_pro, flow_id, flow_result_field, cache=None):
     :type rapid_pro: rapid_pro_tools.rapid_pro_client.RapidProClient
     :param flow_id: Flow id to download runs for.
     :type flow_id: str
-    :param flow_result_field: Result field in the flow.
-    :type flow_result_field: str
     :param cache: Cache to check for a timestamp of a previous export. If None, downloads all runs.
     :type cache: src.rapid_pro_to_engagement_db.cache.RapidProSyncCache | None
     :return: Runs modified for the given flow since the cache was last updated, if possible, else from all of time.
@@ -48,7 +46,7 @@ def _get_new_runs(rapid_pro, flow_id, flow_result_field, cache=None):
     # Try to get the last modified timestamp from the cache
     flow_last_updated = None
     if cache is not None:
-        flow_last_updated = cache.get_latest_run_timestamp(flow_id, flow_result_field)
+        flow_last_updated = cache.get_latest_run_timestamp(flow_id)
 
     # If there is a last updated timestamp in the cache, only download and return runs that have been modified since.
     filter_last_modified_after = None
