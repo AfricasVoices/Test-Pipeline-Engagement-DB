@@ -100,7 +100,7 @@ def _engagement_db_has_message(engagement_db, message):
     return len(matching_messages) > 0
 
 
-def _ensure_engagement_db_has_message(engagement_db, message, message_origin_details):
+def _ensure_engagement_db_has_message(engagement_db, message, message_origin_details, dry_run=False):
     """
     Ensures that the given message exists in an engagement database.
 
@@ -113,6 +113,8 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     :type message: engagement_database.data_models.Message
     :param message_origin_details: Message origin details, to be logged in the HistoryEntryOrigin.details.
     :type message_origin_details: dict
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return sync_events: Sync event.
     :rtype str
     """
@@ -121,14 +123,15 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
         return CSVSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
 
     log.debug(f"Adding message to engagement database dataset {message.dataset}...")
-    engagement_db.set_message(
-        message,
-        HistoryEntryOrigin(origin_name="CSV -> Database Sync", details=message_origin_details)
-    )
+    if not dry_run:
+        engagement_db.set_message(
+            message,
+            HistoryEntryOrigin(origin_name="CSV -> Database Sync", details=message_origin_details)
+        )
     return CSVSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 
-def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table):
+def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table, dry_run=False):
     """
     Syncs a CSV to an engagement database.
 
@@ -141,6 +144,8 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: Sync stats for the sync.
     :rtype: CSVToEngagementDBSyncStats
     """
@@ -171,13 +176,13 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
             "csv_sync_configuration": csv_source.to_dict(),
             "csv_hash": csv_hash
         }
-        sync_event = _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details)
+        sync_event = _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details, dry_run)
         sync_stats.add_event(sync_event)
 
     return sync_stats
 
 
-def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, engagement_db, uuid_table):
+def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, engagement_db, uuid_table, dry_run=False):
     """
     Syncs CSVs to an engagement database.
 
@@ -195,11 +200,15 @@ def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, 
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     """
     source_to_sync_stats = dict()
     for i, csv_source in enumerate(csv_sources):
         log.info(f"Syncing csv {i + 1}/{len(csv_sources)}: {csv_source.gs_url}...")
-        source_sync_stats = _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table)
+        source_sync_stats = _sync_csv_to_engagement_db(
+            google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table, dry_run
+        )
         source_to_sync_stats[csv_source.gs_url] = source_sync_stats
 
     # Log the summaries of actions taken for each dataset then for all datasets combined.

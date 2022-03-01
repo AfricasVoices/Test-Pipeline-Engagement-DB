@@ -13,6 +13,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Syncs data from CSVs in Google Cloud Storage to an "
                                                  "engagement database")
 
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Logs the updates that would be made without updating anything.")
     parser.add_argument("--incremental-cache-path",
                         help="Path to a directory to use to cache results needed for incremental operation.")
     parser.add_argument("user", help="Identifier of the user launching this program")
@@ -25,6 +27,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    dry_run = args.dry_run
     incremental_cache_path = args.incremental_cache_path
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
@@ -40,7 +43,12 @@ if __name__ == "__main__":
         log.info(f"No CSV sources specified; exiting")
         exit(0)
 
+    dry_run_text = "(dry run)" if dry_run else ""
+    log.info(f"Synchronizing data from CSVs to an engagement database {dry_run_text}")
+
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
     uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
 
-    sync_csvs_to_engagement_db(google_cloud_credentials_file_path, pipeline_config.csv_sources, engagement_db, uuid_table)
+    sync_csvs_to_engagement_db(
+        google_cloud_credentials_file_path, pipeline_config.csv_sources, engagement_db, uuid_table, dry_run
+    )
