@@ -240,32 +240,31 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 if rapid_pro_result is None:
                     log.debug("No relevant run result; skipping")
                     sync_stats.add_event(RapidProSyncEvents.RUN_EMPTY)
-                    continue
-                
-                # Create a message and origin objects for this result and ensure it's in the engagement database.
-                msg = Message(
-                    participant_uuid=participant_uuid,
-                    text=rapid_pro_result.input,  # Raw text received from a participant
-                    timestamp=rapid_pro_result.time,  # Time at which Rapid Pro processed this message in the flow.
-                    direction=MessageDirections.IN,
-                    channel_operator=URNCleaner.clean_operator(contact_urn),
-                    status=MessageStatuses.LIVE,
-                    dataset=config.engagement_db_dataset,
-                    labels=[],
-                    origin=MessageOrigin(
-                        origin_id=f"rapid_pro.workspace_{workspace_uuid}.flow_{flow_id}.run_{run.id}.result_{rapid_pro_result.name}",
-                        origin_type="rapid_pro"
+                else:
+                    # Create a message and origin objects for this result and ensure it's in the engagement database.
+                    msg = Message(
+                        participant_uuid=participant_uuid,
+                        text=rapid_pro_result.input,  # Raw text received from a participant
+                        timestamp=rapid_pro_result.time,  # Time at which Rapid Pro processed this message in the flow.
+                        direction=MessageDirections.IN,
+                        channel_operator=URNCleaner.clean_operator(contact_urn),
+                        status=MessageStatuses.LIVE,
+                        dataset=config.engagement_db_dataset,
+                        labels=[],
+                        origin=MessageOrigin(
+                            origin_id=f"rapid_pro.workspace_{workspace_uuid}.flow_{flow_id}.run_{run.id}.result_{rapid_pro_result.name}",
+                            origin_type="rapid_pro"
+                        )
                     )
-                )
-                message_origin_details = {
-                    "rapid_pro_workspace": workspace_name,
-                    "run_id": run.id,
-                    "flow_id": flow_id,
-                    "flow_name": flow_name,
-                    "run_value": rapid_pro_result.serialize()
-                }
-                sync_event = _ensure_engagement_db_has_message(engagement_db, msg, message_origin_details, dry_run)
-                sync_stats.add_event(sync_event)
+                    message_origin_details = {
+                        "rapid_pro_workspace": workspace_name,
+                        "run_id": run.id,
+                        "flow_id": flow_id,
+                        "flow_name": flow_name,
+                        "run_value": rapid_pro_result.serialize()
+                    }
+                    sync_event = _ensure_engagement_db_has_message(engagement_db, msg, message_origin_details, dry_run)
+                    sync_stats.add_event(sync_event)
                 dataset_to_sync_stats[f"{flow_name}.{config.flow_result_field}"] = sync_stats
 
             # Update the cache so we know not to check this run again in this flow + result field context.
