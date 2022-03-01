@@ -197,7 +197,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
 
             if len(run.values) == 0:
                 log.debug("No relevant run results for all fields; skipping")
-                flow_sync_stats.add_event(RapidProSyncEvents.RUN_EMPTY)
+                for _ in flow_configs:
+                    flow_sync_stats.add_event(RapidProSyncEvents.RUN_EMPTY)
                 # Update the cache so we know not to check this run again in this flow 
                 if cache is not None and not dry_run:
                     cache.set_latest_run_timestamp(flow_id, run.modified_on)
@@ -244,7 +245,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 rapid_pro_result = run.values.get(config.flow_result_field)
                 if rapid_pro_result is None:
                     log.debug("No relevant run result; skipping")
-                    sync_stats.add_event(RapidProSyncEvents.RUN_VALUE_EMPTY)
+                    sync_stats.add_event(RapidProSyncEvents.RUN_EMPTY)
                 
                 # Create a message and origin objects for this result and ensure it's in the engagement database.
                 msg = Message(
