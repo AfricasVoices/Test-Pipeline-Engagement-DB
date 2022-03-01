@@ -195,7 +195,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
         for i, run in enumerate(runs):
             log.debug(f"Processing run {i + 1}/{len(runs)}, id {run.id}...")
 
-            # Not skipping when we don't have run values, so as to record event `RapidProSyncEvents.RUN_EMPTY` by each flow result field
+            # Not skipping when we don't have run values, so as to record event `RapidProSyncEvents.RUN_EMPTY` by each flow result field,
+            # if there are no run values.
             if len(run.values) > 0:
                 # De-identify the contact's full urn.
                 if run.contact.uuid not in contacts_lut:
