@@ -246,6 +246,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 if rapid_pro_result is None:
                     log.debug("No relevant run result; skipping")
                     sync_stats.add_event(RapidProSyncEvents.RUN_EMPTY)
+                    continue
                 
                 # Create a message and origin objects for this result and ensure it's in the engagement database.
                 msg = Message(
