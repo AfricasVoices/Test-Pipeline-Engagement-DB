@@ -195,48 +195,42 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
         for i, run in enumerate(runs):
             log.debug(f"Processing run {i + 1}/{len(runs)}, id {run.id}...")
 
-            if len(run.values) == 0:
-                log.debug("No relevant run results for all fields; skipping")
-                for _ in flow_configs:
-                    initial_sync_stats.add_event(RapidProSyncEvents.RUN_EMPTY)
-                # Update the cache so we know not to check this run again in this flow 
-                if cache is not None and not dry_run:
-                    cache.set_latest_run_timestamp(flow_id, run.modified_on)
-                continue
-
-            # De-identify the contact's full urn.
-            if run.contact.uuid not in contacts_lut:
-                log.warning(f"Found a run from a contact that isn't present in the contacts export; skipping. "
-                            f"This is most likely because the contact was deleted, but could suggest a more serious "
-                            f"problem.")
-                initial_sync_stats.add_event(RapidProSyncEvents.RUN_CONTACT_UUID_NOT_IN_CONTACTS)
-                if cache is not None and not dry_run:
-                    cache.set_latest_run_timestamp(flow_id, run.modified_on)
-                continue
-            contact = contacts_lut[run.contact.uuid]
-            assert len(contact.urns) == 1, len(contact.urns)
-            contact_urn = _normalise_and_validate_contact_urn(contact.urns[0])
-
-            if rapid_pro_config.uuid_filter is not None:
-                # If a uuid filter exists, then only add this message if the sender's uuid exists in the uuid table
-                # and in the valid uuids. The check for presence in the uuid table is to ensure we don't add a uuid
-                # table entry for people who didn't consent for us to continue to keep their data.
-                if not uuid_table.has_data(contact_urn):
-                    log.info("A uuid filter was specified but the message is not from a participant in the "
-                             "uuid_table; skipping")
-                    initial_sync_stats.add_event(RapidProSyncEvents.UUID_FILTER_CONTACT_NOT_IN_UUID_TABLE)
+            # Not skipping when we don't have run values for now, so as to compute the number of `RapidProSyncEvents.RUN_EMPTY` 
+            # per flow result field
+            if len(run.values) > 0:
+                # De-identify the contact's full urn.
+                if run.contact.uuid not in contacts_lut:
+                    log.warning(f"Found a run from a contact that isn't present in the contacts export; skipping. "
+                                f"This is most likely because the contact was deleted, but could suggest a more serious "
+                                f"problem.")
+                    initial_sync_stats.add_event(RapidProSyncEvents.RUN_CONTACT_UUID_NOT_IN_CONTACTS)
                     if cache is not None and not dry_run:
                         cache.set_latest_run_timestamp(flow_id, run.modified_on)
                     continue
-                if uuid_table.data_to_uuid(contact_urn) not in valid_participant_uuids:
-                    log.info("A uuid filter was specified and the message is from a participant in the "
-                             "uuid_table but is not in the uuid filter; skipping")
-                    initial_sync_stats.add_event(RapidProSyncEvents.CONTACT_NOT_IN_UUID_FILTER)
-                    if cache is not None and not dry_run:
-                        cache.set_latest_run_timestamp(flow_id, run.modified_on)
-                    continue
+                contact = contacts_lut[run.contact.uuid]
+                assert len(contact.urns) == 1, len(contact.urns)
+                contact_urn = _normalise_and_validate_contact_urn(contact.urns[0])
 
-            participant_uuid = uuid_table.data_to_uuid(contact_urn)
+                if rapid_pro_config.uuid_filter is not None:
+                    # If a uuid filter exists, then only add this message if the sender's uuid exists in the uuid table
+                    # and in the valid uuids. The check for presence in the uuid table is to ensure we don't add a uuid
+                    # table entry for people who didn't consent for us to continue to keep their data.
+                    if not uuid_table.has_data(contact_urn):
+                        log.info("A uuid filter was specified but the message is not from a participant in the "
+                                "uuid_table; skipping")
+                        initial_sync_stats.add_event(RapidProSyncEvents.UUID_FILTER_CONTACT_NOT_IN_UUID_TABLE)
+                        if cache is not None and not dry_run:
+                            cache.set_latest_run_timestamp(flow_id, run.modified_on)
+                        continue
+                    if uuid_table.data_to_uuid(contact_urn) not in valid_participant_uuids:
+                        log.info("A uuid filter was specified and the message is from a participant in the "
+                                "uuid_table but is not in the uuid filter; skipping")
+                        initial_sync_stats.add_event(RapidProSyncEvents.CONTACT_NOT_IN_UUID_FILTER)
+                        if cache is not None and not dry_run:
+                            cache.set_latest_run_timestamp(flow_id, run.modified_on)
+                        continue
+
+                participant_uuid = uuid_table.data_to_uuid(contact_urn)
 
             for config in flow_configs:
                 sync_stats = RapidProToEngagementDBSyncStats()
