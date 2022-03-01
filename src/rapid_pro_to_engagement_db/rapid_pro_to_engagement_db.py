@@ -237,7 +237,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 # Get the relevant result from this run, if it exists.
                 rapid_pro_result = run.values.get(config.flow_result_field)
                 if rapid_pro_result is None:
-                    log.debug("No relevant run result; skipping")
+                    log.debug(f"Field `{flow_config.flow_result_field}` has no relevant run result.")
                     sync_stats.add_event(RapidProSyncEvents.RUN_EMPTY)
                 else:
                     # Create a message and origin objects for this result and ensure it's in the engagement database.
