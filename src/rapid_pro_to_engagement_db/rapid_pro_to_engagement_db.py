@@ -172,7 +172,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     contacts = _get_contacts_from_cache(cache)
 
     flow_result_configs_by_flow_name = groupby(rapid_pro_config.flow_result_configurations, lambda x: x.flow_name)
-    flow_to_sync_stats = dict()  # of flow_name -> RapidProToEngagementDBSyncStats
+    dataset_to_sync_stats = dict()  # of '{flow_name}.{flow_result_field}' -> RapidProToEngagementDBSyncStats
     for flow_name, flow_configs in flow_result_configs_by_flow_name:
         flow_sync_stats = RapidProToEngagementDBSyncStats()
         # Get the latest runs for this flow.
@@ -234,19 +234,17 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                     if cache is not None and not dry_run:
                         cache.set_latest_run_timestamp(flow_id, run.modified_on)
                     continue
-   
-            flow_to_sync_stats[f"{flow_name}"] = flow_sync_stats
 
             participant_uuid = uuid_table.data_to_uuid(contact_urn)
 
-            dataset_to_sync_stats = dict()  # of '{flow_name}.{flow_result_field}' -> RapidProToEngagementDBSyncStats
             for config in flow_configs:
-                dataset_sync_stats = RapidProToEngagementDBSyncStats()
+                sync_stats = RapidProToEngagementDBSyncStats()
+                sync_stats.add_stats(flow_sync_stats)
                 # Get the relevant result from this run, if it exists.
                 rapid_pro_result = run.values.get(config.flow_result_field)
                 if rapid_pro_result is None:
                     log.debug("No relevant run result; skipping")
-                    dataset_sync_stats.add_event(RapidProSyncEvents.RUN_VALUE_EMPTY)
+                    sync_stats.add_event(RapidProSyncEvents.RUN_VALUE_EMPTY)
                 
                 # Create a message and origin objects for this result and ensure it's in the engagement database.
                 msg = Message(
@@ -271,8 +269,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                     "run_value": rapid_pro_result.serialize()
                 }
                 sync_event = _ensure_engagement_db_has_message(engagement_db, msg, message_origin_details, dry_run)
-                dataset_sync_stats.add_event(sync_event)
-                dataset_to_sync_stats[f"{flow_name}.{config.flow_result_field}"] = dataset_sync_stats
+                sync_stats.add_event(sync_event)
+                dataset_to_sync_stats[f"{flow_name}.{config.flow_result_field}"] = sync_stats
 
             # Update the cache so we know not to check this run again in this flow + result field context.
             # TODO: Update the cache if we've read the last run, or the next run's last modified timestamp is greater
@@ -280,20 +278,14 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
             if cache is not None and not dry_run:
                 cache.set_latest_run_timestamp(flow_id, run.modified_on)
 
-    flows_sync_stats = RapidProToEngagementDBSyncStats()
-    datasets_sync_stats = RapidProToEngagementDBSyncStats()
-    for flow_name, flow_configs in flow_result_configs_by_flow_name:
-        log.info(f"Summary of actions for flow '{flow_name}':")
-        flow_to_sync_stats[flow_name].print_summary()
-        flows_sync_stats.add_stats(flow_to_sync_stats[flow_name])
-
-        for config in flow_configs:
-            result_field = f"{flow_config.flow_name}.{flow_config.flow_result_field}"
-            log.info(f"Summary of actions for flow result field '{result_field}':")
-            dataset_to_sync_stats[result_field].print_summary()
-            datasets_sync_stats.add_stats(dataset_to_sync_stats[result_field])
+    # Log the summaries of actions taken for each dataset then for all datasets combined.
+    all_sync_stats = RapidProToEngagementDBSyncStats()
+    for flow_config in rapid_pro_config.flow_result_configurations:
+        result_field = f"{flow_config.flow_name}.{flow_config.flow_result_field}"
+        log.info(f"Summary of actions for flow result field '{result_field}':")
+        dataset_to_sync_stats[result_field].print_summary()
+        all_sync_stats.add_stats(dataset_to_sync_stats[result_field])
 
     dry_run_text = "(dry run)" if dry_run else ""
-    log.info(f"Summary of actions for all flows and flows result fields {dry_run_text}:")
-    flows_sync_stats.print_summary()
-    datasets_sync_stats.print_summary()
+    log.info(f"Summary of actions for all flow result fields {dry_run_text}:")
+    all_sync_stats.print_summary()
