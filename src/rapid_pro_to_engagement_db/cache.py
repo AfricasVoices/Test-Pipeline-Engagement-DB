@@ -20,28 +20,24 @@ class RapidProSyncCache(Cache):
         """
         self.set_rapid_pro_contacts("contacts", contacts)
 
-    def get_latest_run_timestamp(self, flow_id, result_field):
+    def get_latest_run_timestamp(self, flow_id):
         """
-        Gets the latest seen run.modified_on cache for the given flow_id and result_field context.
+        Gets the latest seen run.modified_on cache for the given flow_id.
 
         :param flow_id: Flow id.
         :type flow_id: str
-        :param result_field: Flow result field.
-        :type result_field: str
-        :return: Cached latest run.modified_on, or None if there is no cached value for this context.
+        :return: Cached latest run.modified_on, or None if there is no cached value for the given flow_id.
         :rtype: datetime.datetime | None
         """
-        return self.get_date_time(f"{flow_id}.{result_field}")
+        return self.get_date_time(flow_id)
 
-    def set_latest_run_timestamp(self, flow_id, result_field, timestamp):
+    def set_latest_run_timestamp(self, flow_id, timestamp):
         """
-        Sets the latest seen run.modified_on cache for the given flow_id and result_field context.
+        Sets the latest seen run.modified_on cache for the given flow_id.
 
         :param flow_id: Flow id.
         :type flow_id: str
-        :param result_field: Flow result field.
-        :type result_field: str
-        :param timestamp: Latest seen run.modified_on for the given floW_id and result_field context.
+        :param timestamp: Latest seen run.modified_on for the given flow_id.
         :type timestamp: datetime.datetime
         """
-        self.set_date_time(f"{flow_id}.{result_field}", timestamp)
+        self.set_date_time(flow_id, timestamp)
