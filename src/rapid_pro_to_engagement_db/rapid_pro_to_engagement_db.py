@@ -199,7 +199,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
 
             if len(run.values) == 0:
                 log.debug("No relevant run results; skipping")
-                flow_sync_stats.add_event(RapidProSyncEvents.RUN_VALUES_EMPTY)
+                flow_sync_stats.add_event(RapidProSyncEvents.RUN_EMPTY)
                 # Update the cache so we know not to check this run again in this flow 
                 if cache is not None and not dry_run:
                     cache.set_latest_run_timestamp(flow_id, run.modified_on)
