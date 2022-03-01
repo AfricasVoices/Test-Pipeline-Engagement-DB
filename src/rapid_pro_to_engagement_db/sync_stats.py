@@ -8,7 +8,6 @@ log = Logger(__name__)
 class RapidProSyncEvents:
     READ_RUN_FROM_RAPID_PRO = "read_run_from_rapid_pro"
     RUN_EMPTY = "run_empty"
-    RUN_VALUE_EMPTY = "run_value_empty"
     RUN_CONTACT_UUID_NOT_IN_CONTACTS = "run_contact_uuid_not_in_contacts"
     UUID_FILTER_CONTACT_NOT_IN_UUID_TABLE = "uuid_filter_contact_not_in_uuid_table"
     CONTACT_NOT_IN_UUID_FILTER = "contact_not_in_uuid_filter"
