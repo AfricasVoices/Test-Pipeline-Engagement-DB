@@ -29,9 +29,9 @@ class FacebookDataset:
 
     def to_dict(self):
         return {
-        "engagement_db_dataset":self.engagement_db_dataset,
-        "post_ids":self.post_ids,
-        "search":self.search
+            "engagement_db_dataset":self.engagement_db_dataset,
+            "post_ids":self.post_ids,
+            "search":self.search
         }
 
 
@@ -43,7 +43,7 @@ class FacebookSearch:
 
     def to_dict(self):
         return {
-        "match": self.match,
-        "start_date": isoparse(self.start_date),
-        "end_date": isoparse(self.end_date)
-    }
+            "match": self.match,
+            "start_date": isoparse(self.start_date),
+            "end_date": isoparse(self.end_date)
+        }

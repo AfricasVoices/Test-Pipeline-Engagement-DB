@@ -100,9 +100,7 @@ def _get_facebook_post_ids(facebook_client, page_id, post_ids=None, search=None,
     :param search: Search parameters for downloading target comments
     :type search: dict containing match, start_date, end_date keys to their values.
     """
-
     combined_post_ids = []
-
     if post_ids is not None:
         combined_post_ids.extend(post_ids)
 
@@ -134,7 +132,6 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
     """
-
     log.info("Fetching data from Facebook...")
     log.info("Downloading Facebook access token...")
     facebook_token = google_cloud_utils.download_blob_to_string(
@@ -190,6 +187,5 @@ def sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
     """
-
     for i, facebook_source in enumerate(facebook_sources):
         _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_source, engagement_db, uuid_table)
