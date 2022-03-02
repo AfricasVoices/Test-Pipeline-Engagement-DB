@@ -153,7 +153,8 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
             # which a comment was made enables downstream features such as post-type labelling and comment context
             # in Coda, as well as allowing us to track how many comments were made on each post.
             post = facebook.get_post(post_id, fields=["attachments"])
-            for comment in post_comments:
+            for comment_count, comment in enumerate(post_comments):
+                log.info(f'Processing comment {comment_count}/{len(post_comments)} ')
                 comment["post"] = post
 
                 # Facebook only returns a parent if the comment is a reply to another comment.
@@ -161,7 +162,7 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
                 if "parent" not in comment:
                     comment["parent"] = {}
 
-                origin_id = f'page_id_{facebook_source.page_id}.user_id_{comment["from"]["id"]}._comment_id_{comment["id"]}'
+                origin_id = f'facebook_comment_id_{comment["id"]}'
                 message = _facebook_comment_to_engagement_db_message(comment, dataset.engagement_db_dataset,
                                                                      origin_id, uuid_table)
 
