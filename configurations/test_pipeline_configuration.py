@@ -42,7 +42,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     csv_sources=[
         CSVSource(
             "gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/test_recovery.csv",
-            engagement_db_dataset="s01e01",
+            engagement_db_datasets=[
+                CSVDatasetConfiguration("s01e01", end_date=isoparse("2021-12-31T24:00:00+03:00")),
+                CSVDatasetConfiguration("age", start_date=isoparse("2022-01-01T00:00:00+03:00"))
+            ],
             timezone="Africa/Mogadishu"
         )
     ],
