@@ -5,7 +5,7 @@ import subprocess
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
-from src.social_media_to_engagement_db.facebook_to_engagement_db import sync_facebook_to_engagement_db
+from src.facebook_to_engagement_db.facebook_to_engagement_db import sync_facebook_to_engagement_db
 
 log = Logger(__name__)
 

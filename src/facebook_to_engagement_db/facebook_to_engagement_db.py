@@ -26,7 +26,7 @@ def _facebook_comment_to_engagement_db_message(facebook_comment, dataset, origin
     :rtype: engagement_database.data_models.Message
     """
     participant_uuid = uuid_table.data_to_uuid(facebook_comment["from"]["id"])
-    channel_operator = 'facebook'
+    channel_operator = 'facebook' #TODO move to core as a CONSTANT
 
     return Message(
         participant_uuid=participant_uuid,

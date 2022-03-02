@@ -21,7 +21,7 @@ from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfigur
                                                          DatasetTypes, AgeCategoryConfiguration, AnalysisLocations,
                                                          CodingConfiguration, GoogleDriveUploadConfiguration,
                                                          MembershipGroupConfiguration, AnalysisConfiguration)
-from src.social_media_to_engagement_db.configuration import (FacebookSource, FacebookDataset, FacebookSearch)
+from src.facebook_to_engagement_db.configuration import (FacebookSource, FacebookDataset, FacebookSearch)
 
 
 def load_code_scheme(fname):
