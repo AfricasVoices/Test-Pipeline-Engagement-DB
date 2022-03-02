@@ -12,7 +12,7 @@ log = Logger(__name__)
 
 def _facebook_comment_to_engagement_db_message(facebook_comment, dataset, origin_id, uuid_table):
     """
-    Converts a Facebook comment  to an engagement database message.
+    Converts a Facebook comment to an engagement database message.
 
     :param facebook_comment: Dictionary containing the facebook comment data values.
     :type facebook_comment: dict

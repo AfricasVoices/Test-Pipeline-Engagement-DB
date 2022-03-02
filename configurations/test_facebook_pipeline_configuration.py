@@ -21,7 +21,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         FacebookSource(
             page_id="AbdirizakHAtosh",
             token_file_url="gs://avf-credentials/AbdirizakHAtosh-facebook-token.txt",
-            datasets= [
+            datasets=[
                 FacebookDataset(
                     engagement_db_dataset="test_facebook_s01e01",
                     search=FacebookSearch(
@@ -99,8 +99,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         ],
         ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset"),
     ),
-    archive_configuration = ArchiveConfiguration(
-        archive_upload_bucket = "gs://pipeline-execution-backup-archive",
-        bucket_dir_path =  "2021/TEST-PIPELINE_DB"
+    archive_configuration=ArchiveConfiguration(
+        archive_upload_bucket="gs://pipeline-execution-backup-archive",
+        bucket_dir_path="2021/TEST-PIPELINE_DB"
     )
 )
