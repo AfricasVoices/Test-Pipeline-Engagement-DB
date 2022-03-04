@@ -28,6 +28,9 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,format=long,prefix=git-commit-
 
       - name: Build and push the image
         uses: docker/build-push-action@v2
