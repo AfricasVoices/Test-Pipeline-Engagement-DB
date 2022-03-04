@@ -20,6 +20,19 @@ class Cache:
         """
         self.cache_dir = cache_dir
 
+    def set_string(self, entry_name, string):
+        export_path = f"{self.cache_dir}/{entry_name}.txt"
+        IOUtils.ensure_dirs_exist_for_file(export_path)
+        with open(export_path, "w") as f:
+            f.write(string)
+
+    def get_string(self, entry_name):
+        try:
+            with open(f"{self.cache_dir}/{entry_name}.txt") as f:
+                return f.read()
+        except FileNotFoundError:
+            return None
+
     def set_date_time(self, entry_name, date_time):
         export_path = f"{self.cache_dir}/{entry_name}.txt"
         IOUtils.ensure_dirs_exist_for_file(export_path)

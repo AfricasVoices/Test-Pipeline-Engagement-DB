@@ -1,4 +1,5 @@
 import csv
+import urllib.parse
 from datetime import datetime
 from io import StringIO
 
@@ -10,6 +11,7 @@ from engagement_database.data_models import (Message, MessageDirections, Message
                                              HistoryEntryOrigin)
 from storage.google_cloud import google_cloud_utils
 
+from src.common.cache import Cache
 from src.csv_to_engagement_db.sync_stats import CSVSyncEvents, CSVToEngagementDBSyncStats
 
 log = Logger(__name__)
@@ -131,7 +133,8 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     return CSVSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 
-def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table, dry_run=False):
+def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table, cache=None,
+                               dry_run=False):
     """
     Syncs a CSV to an engagement database.
 
@@ -144,6 +147,8 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :param cache:
+    :type cache: src.common.cache.Cache
     :param dry_run: Whether to perform a dry run.
     :type dry_run: bool
     :return: Sync stats for the sync.
@@ -157,6 +162,21 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
     csv_hash = SHAUtils.sha_string(raw_csv_string)
     raw_data = list(csv.DictReader(StringIO(raw_csv_string)))
     log.info(f"Downloaded {len(raw_data)} messages in csv '{csv_source.gs_url}'")
+
+    # Convert the gs_url to a format that is safe to use as a cache entry name.
+    escaped_csv_url = urllib.parse.quote_plus(csv_source.gs_url)
+    if cache is None:
+        prev_csv_hash = None
+    else:
+        prev_csv_hash = cache.get_string(escaped_csv_url)
+
+    if prev_csv_hash is not None:
+        assert csv_hash == prev_csv_hash, f"CSV '{csv_source.gs_url}' differs since the last time it was requested. " \
+                                          f"To avoid accidental duplication, please inspect the problem, then clear " \
+                                          f"the cache and re-run when it is safe to proceed."
+        log.info("This file matches a previous version of the file that was processed in the past.")
+        log.info("Returning without reprocessing any of the messages in this file.")
+        return sync_stats
 
     for i, csv_msg in enumerate(raw_data):
         log.info(f"Processing message {i + 1}/{len(raw_data)}...")
@@ -179,10 +199,14 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
         sync_event = _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details, dry_run)
         sync_stats.add_event(sync_event)
 
+    if cache is not None:
+        cache.set_string(escaped_csv_url, csv_hash)
+
     return sync_stats
 
 
-def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, engagement_db, uuid_table, dry_run=False):
+def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, engagement_db, uuid_table,
+                               cache_path=None, dry_run=False):
     """
     Syncs CSVs to an engagement database.
 
@@ -200,14 +224,22 @@ def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, 
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :param cache_path: Path to a directory to use to cache results needed for incremental operation.
+                       If None, runs in non-incremental mode.
+    :type cache_path: str | None
     :param dry_run: Whether to perform a dry run.
     :type dry_run: bool
     """
+    if cache_path is None:
+        cache = None
+    else:
+        cache = Cache(cache_path)
+
     source_to_sync_stats = dict()
     for i, csv_source in enumerate(csv_sources):
         log.info(f"Syncing csv {i + 1}/{len(csv_sources)}: {csv_source.gs_url}...")
         source_sync_stats = _sync_csv_to_engagement_db(
-            google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table, dry_run
+            google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table, cache, dry_run
         )
         source_to_sync_stats[csv_source.gs_url] = source_sync_stats
 
