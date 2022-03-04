@@ -39,6 +39,16 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             )
         )
     ],
+    csv_sources=[
+        CSVSource(
+            "gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/test_recovery.csv",
+            engagement_db_datasets=[
+                CSVDatasetConfiguration("s01e01", end_date=isoparse("2021-12-31T24:00:00+03:00")),
+                CSVDatasetConfiguration("age", start_date=isoparse("2022-01-01T00:00:00+03:00"))
+            ],
+            timezone="Africa/Mogadishu"
+        )
+    ],
     coda_sync=CodaConfiguration(
         coda=CodaClientConfiguration(credentials_file_url="gs://avf-credentials/coda-staging.json"),
         sync_config=CodaSyncConfiguration(

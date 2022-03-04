@@ -156,8 +156,13 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
 
         # If there's a cache and we've read the last message, or the next message's last updated timestamp is greater
         # than the message we are currently syncing, update the cache.
-        if not dry_run and cache is not None and \
-        (i == len(coda_messages) - 1 or coda_messages[i + 1].last_updated > coda_message.last_updated):
+
+        have_read_last_message = (i == len(coda_messages) - 1)
+        # Note that this ensures we don't update the time-based cache when we are processing messages with the same timestamp.
+        if not have_read_last_message:
+            has_timestamp_changed = coda_messages[i + 1].last_updated > coda_message.last_updated
+
+        if not dry_run and cache is not None and (have_read_last_message or has_timestamp_changed):
             cache.set_last_updated_timestamp(dataset_config.coda_dataset_id, coda_message.last_updated)
 
     return sync_stats
