@@ -199,7 +199,7 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
         sync_event = _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details, dry_run)
         sync_stats.add_event(sync_event)
 
-    if cache is not None:
+    if cache is not None and not dry_run:
         cache.set_string(escaped_csv_url, csv_hash)
 
     return sync_stats
