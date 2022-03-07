@@ -23,25 +23,26 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Check that the correct number of arguments were provided.
-if [[ $# -ne 4 ]]; then
+if [[ $# -ne 5 ]]; then
     echo "Usage: $0 
     [--dry-run] [--incremental-cache-volume <incremental-cache-volume>]
-    <user> <google-cloud-credentials-file-path> <configuration-module> <data-dir>"
+    <user> <google-cloud-credentials-file-path> <configuration-file> <code-schemes-dir> <data-dir>"
     exit
 fi
 
 # Assign the program arguments to bash variables.
 USER=$1
 GOOGLE_CLOUD_CREDENTIALS_PATH=$2
-CONFIGURATION_MODULE=$3
-DATA_DIR=$4
+CONFIGURATION_FILE=$3
+CODE_SCHEMES_DIR=$4
+DATA_DIR=$5
 
 # Build an image for this pipeline stage.
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
 CMD="pipenv run python -u sync_coda_to_engagement_db.py ${DRY_RUN} ${INCREMENTAL_ARG} \
-    ${USER} /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE}"
+    ${USER} /credentials/google-cloud-credentials.json configuration"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
     container="$(docker container create -w /app --mount source="$INCREMENTAL_CACHE_VOLUME_NAME",target=/cache "$IMAGE_NAME" /bin/bash -c "$CMD")"
@@ -55,6 +56,12 @@ container_short_id=${container:0:7}
 # Copy input data into the container
 echo "Copying $GOOGLE_CLOUD_CREDENTIALS_PATH -> $container_short_id:/credentials/google-cloud-credentials.json"
 docker cp "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$container:/credentials/google-cloud-credentials.json"
+
+echo "Copying $CODE_SCHEMES_DIR -> $container_short_id:/app/code_schemes"
+docker cp "$CODE_SCHEMES_DIR" "$container:/app/code_schemes"
+
+echo "Copying $CONFIGURATION_FILE -> $container_short_id:/app/configuration.py"
+docker cp "$CONFIGURATION_FILE" "$container:/app/configuration.py"
 
 # Run the container
 echo "Starting container $container_short_id"
