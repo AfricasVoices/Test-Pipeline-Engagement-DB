@@ -50,7 +50,7 @@ def export_traced_data(traced_data, export_path):
 
 
 def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, engagement_db, membership_group_dir_path,
-                            output_dir, cache_path=None):
+                            output_dir, cache_path=None, dry_run=False):
     analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
     # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
 
