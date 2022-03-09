@@ -1,4 +1,4 @@
-name: Publish Docker image to ghcr
+name: Build and publish Docker image to ghcr
 on: push
 env:
   REGISTRY: ghcr.io
@@ -29,8 +29,11 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=sha,format=long,prefix=git-commit-
+            # For convenience, tag builds with the branch name and/or tag name where applicable.
+            type=ref,priority=3,event=tag
+            type=ref,priority=2,event=branch
+            # For reproducibility, also tag builds with the unique build id.
+            type=raw,priority=1,value=build-id-${{github.run_id}}-number-${{github.run_number}}-attempt-${{github.run_attempt}}
 
       - name: Build and push the image
         uses: docker/build-push-action@v2
