@@ -28,11 +28,11 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # For convenience, tag builds with the branch name and/or tag name where applicable.
+          # For reproducibility, also tag builds with the unique build id.
           tags: |
-            # For convenience, tag builds with the branch name and/or tag name where applicable.
             type=ref,priority=3,event=tag
             type=ref,priority=2,event=branch
-            # For reproducibility, also tag builds with the unique build id.
             type=raw,priority=1,value=build-id-${{github.run_id}}-number-${{github.run_number}}-attempt-${{github.run_attempt}}
 
       - name: Build and push the image
