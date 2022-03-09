@@ -29,11 +29,11 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           # For convenience, tag builds with the branch name and/or tag name where applicable.
-          # For reproducibility, also tag builds with the unique build id.
+          # For reproducibility, also tag builds with a unique build id.
           tags: |
             type=ref,priority=3,event=tag
             type=ref,priority=2,event=branch
-            type=raw,priority=1,value=build-id-${{github.run_id}}-number-${{github.run_number}}-attempt-${{github.run_attempt}}
+            type=raw,priority=1,value=build-${{github.run_id}}-attempt-${{github.run_attempt}}
 
       - name: Build and push the image
         uses: docker/build-push-action@v2
