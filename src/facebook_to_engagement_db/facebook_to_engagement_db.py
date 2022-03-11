@@ -170,6 +170,8 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
                 if "parent" not in comment:
                     comment["parent"] = {}
 
+                #Only try to add the db comments that were created after the last seen comment.created_time
+                #This helps us reduce the number of reads to the db when checking for existing comments.
                 add_comment_to_db = True
                 if latest_comment_timestamp is not None and isoparse(comment['created_time']) <= latest_comment_timestamp:
                     add_comment_to_db = False

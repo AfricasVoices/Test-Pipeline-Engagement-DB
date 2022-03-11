@@ -4,7 +4,7 @@ from src.common.cache import Cache
 class FacebookSyncCache(Cache):
     def get_latest_comment_timestamp(self, post_id):
         """
-        Gets the latest seen run.modified_on cache for the given flow_id and result_field context.
+        Gets the latest seen comment.created_time cache for the given post_id.
 
         :param post_id: Id of post to cache.
         :type post_id: str
@@ -16,7 +16,7 @@ class FacebookSyncCache(Cache):
 
     def set_latest_comment_timestamp(self, post_id, timestamp):
         """
-        Sets the latest seen comment.created_time cache for the given post_id
+        Sets the latest seen comment.created_time cache for the given post_id.
 
         :param post_id: Id of post to cache.
         :type post_id: str
