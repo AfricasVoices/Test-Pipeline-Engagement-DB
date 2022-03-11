@@ -148,10 +148,7 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
     for dataset in facebook_source.datasets:
         # Download and sync all the comments on all the posts in this dataset.
         for post_id in _get_facebook_post_ids(facebook, facebook_source.page_id, search=dataset.search):
-
             latest_comment_timestamp = None if cache is None else cache.get_latest_comment_timestamp(post_id)
-
-            log.info(f"Performing incremental fetch for {post_id} comments...")
             post_comments = facebook.get_all_comments_on_post(post_id,
                                                               fields=["from{id}", "parent", "attachments",
                                                                       "created_time", "message"],
