@@ -182,7 +182,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     flow_stats = dict() # of flow_name -> FlowStats
     dataset_to_sync_stats = defaultdict(lambda: FlowResultToEngagementDBSyncStats())  # of '{flow_name}.{flow_result_field}' -> FlowResultToEngagementDBSyncStats
     for flow_name, flow_configs in zip(unique_keys, groups):
-        stats = FlowStats()
+        flow_stats = FlowStats()
         # Get the latest runs for this flow.
         flow_id = rapid_pro.get_flow_id(flow_name)
         runs = _get_new_runs(rapid_pro, flow_id, cache)
