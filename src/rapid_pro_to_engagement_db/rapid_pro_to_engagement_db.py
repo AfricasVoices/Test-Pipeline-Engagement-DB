@@ -194,7 +194,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
             cache.set_contacts(contacts)
         contacts_lut = {c.uuid: c for c in contacts}
 
-        # Process each run in turn, adding its values to the engagement database if it contains messages relevant to this flow
+        # Process each run in turn, adding its values to the engagement database if it contains messages relevant to these flow
         # configurations and the messages haven't already been added to the engagement database.
         log.info(f"Processing {len(runs)} new runs for flow '{flow_name}'")
         for i, run in enumerate(runs):
