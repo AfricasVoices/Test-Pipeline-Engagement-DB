@@ -39,6 +39,6 @@ ARCHIVE_FILE="$ARCHIVE_LOCATION/data-$RUN_ID.tar.gzip"
 
 ./archive_data_dir.sh "$DATA_DIR" "$ARCHIVE_FILE"
 
-pipenv run python upload_archive_files.py "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE" "$ARCHIVE_LOCATION"
+./docker-run-upload-archive-files.sh "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE" "$ARCHIVE_LOCATION"
 
 ./docker-run-log-pipeline-event.sh  "$CONFIGURATION_MODULE" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$RUN_ID" "PipelineRunEnd"
