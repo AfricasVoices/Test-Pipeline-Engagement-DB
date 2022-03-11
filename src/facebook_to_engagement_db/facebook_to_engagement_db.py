@@ -135,7 +135,7 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
-    :param cache: Cache to check for a timestamp of a previous post comment fetch. If None, downloads all comments.
+    :param cache: Cache to check for a timestamp of the latest seen comment. If None, downloads all comments.
     :type cache: src.facebook_to_engagement_db.FacebookSyncCache | None
     """
     log.info("Fetching data from Facebook...")
