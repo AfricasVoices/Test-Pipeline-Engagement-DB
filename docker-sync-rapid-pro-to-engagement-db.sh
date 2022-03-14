@@ -50,6 +50,9 @@ for LOCAL_ARCHIVE_PATH in "${LOCAL_ARCHIVE_PATHS[@]}"; do
     LOCAL_ARCHIVE_ARGS+=" --local-archive $gs_url=/$local_archive_dir"
 done
 
+# Build an image for this pipeline stage.
+docker build -t "$IMAGE_NAME" .
+
 # Create a container from the image that was just built.
 CMD="pipenv run python -u sync_rapid_pro_to_engagement_db.py ${DRY_RUN} ${INCREMENTAL_ARG} ${LOCAL_ARCHIVE_ARGS} \
     ${USER} /credentials/google-cloud-credentials.json configuration"
