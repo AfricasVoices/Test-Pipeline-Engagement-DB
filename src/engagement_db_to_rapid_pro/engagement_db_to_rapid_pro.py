@@ -197,7 +197,7 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         cache = None
         log.warning(f"No `cache_path` provided. This tool will sync all relevant engagement db messages from all of time")
     else:
-        log.info(f"Initialising Coda sync cache at '{cache_path}/engagement_db_to_rapid_pro'")
+        log.info(f"Initialising engagement db -> rapid pro sync cache at '{cache_path}/engagement_db_to_rapid_pro'")
         cache = Cache(f"{cache_path}/engagement_db_to_rapid_pro")
 
     # Get all the messages from the datasets we're interested in syncing, and group them by participant
