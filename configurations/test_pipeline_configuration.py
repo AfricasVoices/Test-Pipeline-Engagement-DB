@@ -109,7 +109,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 engagement_db_datasets=["gender", "location", "age", "s01e01"],
                 rapid_pro_contact_field=ContactField(key="engagement_db_consent_withdrawn", label="Engagement DB Consent Withdrawn")
             ),
-            write_mode=WriteModes.CONCATENATE_TEXTS
+            write_mode=WriteModes.CONCATENATE_TEXTS,
+            # allow_clearing_fields is set somewhat arbitrarily here because this data isn't being used in flows.
+            # A pipeline that has continuous sync back in production will need to consider the options carefully.
+            allow_clearing_fields=True
         )
     ),
     analysis=AnalysisConfiguration(
