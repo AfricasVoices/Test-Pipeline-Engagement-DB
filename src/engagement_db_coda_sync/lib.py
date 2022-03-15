@@ -297,6 +297,11 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
                 raise e
             correct_dataset = coda_config.default_ws_dataset
 
+        # Ensure the message isn't being WS-corrected to the dataset it's already in.
+        assert correct_dataset != engagement_db_message.dataset, \
+            f"Engagement db message '{engagement_db_message.message_id}' (text '{engagement_db_message.text}') " \
+            f"is being WS-corrected to dataset '{correct_dataset}', but is currently in this dataset already."
+
         # Ensure this message isn't being moved to a dataset which it has previously been assigned to.
         # This is because if the message has already been in this new dataset, there is a chance there is an
         # infinite loop in the WS labels, which could get very expensive if we end up cycling this message through
