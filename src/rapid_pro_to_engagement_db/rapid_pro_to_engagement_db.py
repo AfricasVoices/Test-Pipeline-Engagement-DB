@@ -149,8 +149,6 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     :param dry_run: Whether to perform a dry run.
     :type dry_run: bool
     """
-    # This implementation is WIP. It shows how we can non-incrementally synchronise a workspace to the database.
-    # To enter production, we still need the following:
     # TODO: Handle deleted contacts.
     workspace_name, workspace_uuid = rapid_pro.get_workspace_name(), rapid_pro.get_workspace_uuid()
 
