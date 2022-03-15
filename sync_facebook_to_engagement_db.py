@@ -18,12 +18,12 @@ if __name__ == "__main__":
     parser.add_argument("google_cloud_credentials_file_path", metavar="google-cloud-credentials-file-path",
                         help="Path to a Google Cloud service account credentials file to use to access the "
                              "credentials bucket")
-    parser.add_argument("metrics_dir_path", metavar="metrics-dir-path",
-                        help="Path to a directory to save any fetch-time engagement metrics to, for example "
-                             "facebook post engagement metrics")
     parser.add_argument("configuration_module",
                         help="Configuration module to import e.g. 'configurations.test_config'. "
                              "This module must contain a PIPELINE_CONFIGURATION property"),
+    parser.add_argument("metrics_dir_path", metavar="metrics-dir-path",
+                        help="Path to a directory to save any fetch-time engagement metrics to, for example "
+                             "facebook post engagement metrics")
 
 
     args = parser.parse_args()
