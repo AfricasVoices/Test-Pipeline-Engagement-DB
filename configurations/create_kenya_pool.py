@@ -206,7 +206,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                                         "kenya_pool_disabled", "kenya_pool_rqa"],
                 rapid_pro_contact_field=ContactField(key="engagement_db_consent_withdrawn", label="Engagement DB Consent Withdrawn")
             ),
-            write_mode=WriteModes.CONCATENATE_TEXTS
+            write_mode=WriteModes.CONCATENATE_TEXTS,
+            allow_clearing_fields=True
         )
     )
 )
