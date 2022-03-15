@@ -78,7 +78,7 @@ def _get_normal_contact_fields_for_participant(participant_messages, sync_config
         # Find all the messages from this participant in this dataset
         dataset_messages = []
         for msg in participant_messages:
-            if msg.dataset in dataset_config.engagement_db_datasets:
+            if msg.dataset in dataset_config.engagement_db_datasets and msg.text is not None:
                 dataset_messages.append(msg)
 
         # If there are no messages in this dataset, either clear the contact field if we're allowed to, or simply skip
