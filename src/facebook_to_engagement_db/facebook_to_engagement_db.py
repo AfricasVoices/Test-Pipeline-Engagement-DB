@@ -128,8 +128,8 @@ def _fetch_post_engagement_metrics(facebook_client, page_id, post, post_id, enga
     """
     Fetches engagement metrics for a facebook post.
 
-    :param facebook_client: Instance of the facebook page of interest.
-    :type facebook_client: cls
+    :param facebook_client: Instance of the facebook page to generate the post metrics from.
+    :type facebook_client: social_media_tools.facebook_client.FacebookClient
     :param page_id: Id of the page with the post.
     :type page_id: str
     :param post: Post to generate engagement metrics from.
@@ -223,7 +223,8 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
     facebook_metrics = []
     for dataset in facebook_source.datasets:
         # Download and sync all the comments on all the posts in this dataset.
-        for post_id in _get_facebook_post_ids(facebook_client, facebook_source.page_id, search=dataset.search):
+        dataset_post_ids = _get_facebook_post_ids(facebook_client, facebook_source.page_id, search=dataset.search)
+        for post_id in dataset_post_ids:
             latest_comment_timestamp = None if cache is None else cache.get_latest_comment_timestamp(post_id)
             post_comments = facebook_client.get_all_comments_on_post(post_id,
                                                               fields=["from{id}", "parent", "attachments",
