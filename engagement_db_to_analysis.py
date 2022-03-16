@@ -40,5 +40,11 @@ if __name__ == "__main__":
     uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
 
-    generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, engagement_db, membership_group_dir_path,
-    output_dir, incremental_cache_path)
+    if pipeline_config.analysis is None:
+        log.info(f"No analysis configuration specified; exiting")
+        exit(0)
+
+    generate_analysis_files(
+        user, google_cloud_credentials_file_path, pipeline_config, engagement_db, membership_group_dir_path,
+        output_dir, incremental_cache_path
+    )
