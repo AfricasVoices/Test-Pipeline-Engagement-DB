@@ -170,16 +170,13 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     # (If the cache or a contacts file for this workspace don't exist, `contacts` will be `None` for now)
     contacts = _get_contacts_from_cache(cache)
 
-    groups = []
-    unique_keys = []
-    flow_result_configurations = sorted(rapid_pro_config.flow_result_configurations, key=lambda x: x.flow_name)
-    for flow_name, flow_configs in groupby(flow_result_configurations, lambda x: x.flow_name):
-        groups.append(list(flow_configs))
-        unique_keys.append(flow_name)
+    flow_name_to_flow_configs = defaultdict(list)
+    for flow_result_config in rapid_pro_config.flow_result_configurations:
+        flow_name_to_flow_configs[flow_result_config.flow_name].append(flow_result_config)
 
     flow_name_to_flow_stats = dict() # of flow_name -> FlowStats
     dataset_to_sync_stats = defaultdict(lambda: FlowResultToEngagementDBSyncStats())  # of '{flow_name}.{flow_result_field}' -> FlowResultToEngagementDBSyncStats
-    for flow_name, flow_configs in zip(unique_keys, groups):
+    for flow_name, flow_configs in flow_name_to_flow_configs.items():
         flow_stats = FlowStats()
         # Get the latest runs for this flow.
         flow_id = rapid_pro.get_flow_id(flow_name)
@@ -280,13 +277,13 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
             # than the run we are currently syncing.
             if cache is not None and not dry_run:
                 cache.set_latest_run_timestamp(flow_id, run.modified_on)
-                
+
         flow_name_to_flow_stats[flow_name] = flow_stats
 
     # Log the summaries of actions taken for each flow and each dataset then for all flows and datasets combined.
     all_flow_stats = FlowStats()
     all_sync_stats = FlowResultToEngagementDBSyncStats()
-    for flow_name, flow_configs in zip(unique_keys, groups):
+    for flow_name, flow_configs in flow_name_to_flow_configs.items():
         flow_configs = list(flow_configs)
         log.info(f"Summary of actions for flow '{flow_name}':")
         flow_name_to_flow_stats[flow_name].print_summary()
