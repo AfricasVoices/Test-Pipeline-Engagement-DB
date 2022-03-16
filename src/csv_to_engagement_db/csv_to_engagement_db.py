@@ -233,7 +233,7 @@ def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, 
     if cache_path is None:
         cache = None
     else:
-        cache = Cache(cache_path)
+        cache = Cache(f"{cache_path}/csv_to_engagement_db")
 
     source_to_sync_stats = dict()
     for i, csv_source in enumerate(csv_sources):
