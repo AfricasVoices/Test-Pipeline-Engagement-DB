@@ -7,6 +7,9 @@ from core_data_modules.logging import Logger
 from engagement_database.data_models import (Message, MessageDirections, MessageOrigin, MessageStatuses,
                                              HistoryEntryOrigin)
 
+from src.facebook_to_engagement_db.cache import FacebookSyncCache
+
+
 log = Logger(__name__)
 
 
@@ -118,7 +121,8 @@ def _get_facebook_post_ids(facebook_client, page_id, post_ids=None, search=None,
     return combined_post_ids
 
 
-def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_source, engagement_db, uuid_table):
+def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_source,
+                                              engagement_db, uuid_table, cache=None):
     """
     Fetches facebook comments from target pages and syncs them  to an engagement database.
 
@@ -131,6 +135,8 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :param cache: Cache to check for a timestamp of the latest seen comment. If None, downloads all comments.
+    :type cache: src.facebook_to_engagement_db.FacebookSyncCache | None
     """
     log.info("Fetching data from Facebook...")
     log.info("Downloading Facebook access token...")
@@ -142,9 +148,10 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
     for dataset in facebook_source.datasets:
         # Download and sync all the comments on all the posts in this dataset.
         for post_id in _get_facebook_post_ids(facebook, facebook_source.page_id, search=dataset.search):
-            post_comments = facebook.get_all_comments_on_post(post_id,
-                        fields=["from{id}", "parent", "attachments", "created_time", "message"]
-                    )
+            latest_comment_timestamp = None if cache is None else cache.get_latest_comment_timestamp(post_id)
+            post_comments = facebook.get_all_comments_on_post(
+                post_id, ["from{id}", "parent", "attachments", "created_time", "message"],
+                )
 
             # Download the post and add it as context to all the comments. Adding a reference to the post under
             # which a comment was made enables downstream features such as post-type labelling and comment context
@@ -159,6 +166,16 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
                 if "parent" not in comment:
                     comment["parent"] = {}
 
+                # Only try to add the db comments that were created after the last seen comment.created_time
+                # This helps us reduce the number of reads to the db when checking for existing comments.
+                add_comment_to_db = True
+                if latest_comment_timestamp is not None and isoparse(comment['created_time']) <= latest_comment_timestamp:
+                    add_comment_to_db = False
+
+                if not add_comment_to_db:
+                    log.info(f'Comment synced in previous run skipping ...')
+                    continue
+
                 origin_id = f'facebook_comment_id_{comment["id"]}'
                 message = _facebook_comment_to_engagement_db_message(comment, dataset.engagement_db_dataset,
                                                                      origin_id, uuid_table)
@@ -172,8 +189,13 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
 
                 _ensure_engagement_db_has_comment(engagement_db, message, message_origin_details)
 
+                if cache is not None:
+                    cache.set_latest_comment_timestamp(post_id, isoparse(comment['created_time']))
 
-def sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_sources, engagement_db, uuid_table):
+
+
+def sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_sources, engagement_db, uuid_table,
+                                   cache_path):
     """
     Syncs Facebook comments to an engagement database.
 
@@ -187,5 +209,12 @@ def sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
     """
+    if cache_path is None:
+        cache = None
+    else:
+        log.info(f"Initialising FacebookSyncCache at '{cache_path}/facebook_to_engagement_db'")
+        cache = FacebookSyncCache(f"{cache_path}/facebook_to_engagement_db")
+
     for i, facebook_source in enumerate(facebook_sources):
-        _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_source, engagement_db, uuid_table)
+        _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_source, engagement_db,
+                                                  uuid_table, cache)
