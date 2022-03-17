@@ -149,10 +149,9 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
         # Download and sync all the comments on all the posts in this dataset.
         for post_id in _get_facebook_post_ids(facebook, facebook_source.page_id, search=dataset.search):
             latest_comment_timestamp = None if cache is None else cache.get_latest_comment_timestamp(post_id)
-            post_comments = facebook.get_all_comments_on_post(post_id,
-                                                              fields=["from{id}", "parent", "attachments",
-                                                                      "created_time", "message"],
-                                                              )
+            post_comments = facebook.get_all_comments_on_post(
+                post_id, ["from{id}", "parent", "attachments", "created_time", "message"],
+                )
 
             # Download the post and add it as context to all the comments. Adding a reference to the post under
             # which a comment was made enables downstream features such as post-type labelling and comment context
@@ -167,30 +166,32 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
                 if "parent" not in comment:
                     comment["parent"] = {}
 
-                #Only try to add the db comments that were created after the last seen comment.created_time
-                #This helps us reduce the number of reads to the db when checking for existing comments.
+                # Only try to add the db comments that were created after the last seen comment.created_time
+                # This helps us reduce the number of reads to the db when checking for existing comments.
                 add_comment_to_db = True
                 if latest_comment_timestamp is not None and isoparse(comment['created_time']) <= latest_comment_timestamp:
                     add_comment_to_db = False
 
-                if add_comment_to_db:
-                    origin_id = f'facebook_comment_id_{comment["id"]}'
-                    message = _facebook_comment_to_engagement_db_message(comment, dataset.engagement_db_dataset,
-                                                                         origin_id, uuid_table)
-
-                    message_origin_details = {
-                        "page_id": facebook_source.page_id,
-                        "post_id": post_id,
-                        "user_id": comment["from"]["id"],
-                        "comment_id": comment["id"],
-                    }
-
-                    _ensure_engagement_db_has_comment(engagement_db, message, message_origin_details)
-
-                    if cache is not None:
-                        cache.set_latest_comment_timestamp(post_id, isoparse(comment['created_time']))
-                else:
+                if not add_comment_to_db:
                     log.info(f'Comment synced in previous run skipping ...')
+                    continue
+
+                origin_id = f'facebook_comment_id_{comment["id"]}'
+                message = _facebook_comment_to_engagement_db_message(comment, dataset.engagement_db_dataset,
+                                                                     origin_id, uuid_table)
+
+                message_origin_details = {
+                    "page_id": facebook_source.page_id,
+                    "post_id": post_id,
+                    "user_id": comment["from"]["id"],
+                    "comment_id": comment["id"],
+                }
+
+                _ensure_engagement_db_has_comment(engagement_db, message, message_origin_details)
+
+                if cache is not None:
+                    cache.set_latest_comment_timestamp(post_id, isoparse(comment['created_time']))
+
 
 
 def sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_sources, engagement_db, uuid_table,
