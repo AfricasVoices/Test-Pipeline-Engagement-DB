@@ -288,11 +288,12 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     # WS-correct if there is a valid ws_code
     if ws_code is not None:
         # Establish the correct dataset to move this message to.
-        # To determine the dataset, the following strategies are tried, in order:
-        #  1. Search the other dataset configurations for a match.
-        #  2. If `set_dataset_from_ws_string_value` has been set, move the message to the dataset `ws_code.string_value`
+        # To determine the dataset, the following strategies are tried, in this order:
+        #  1. Search the other dataset configurations for a match. If there is no match:
+        #  2. If `set_dataset_from_ws_string_value` has been set, move the message to the dataset
+        #     `ws_code.string_value`. Otherwise:
         #  3. If the `default_ws_dataset` has been specified, move the message to this default dataset.
-        #  4. Raise a ValueError.
+        # If no correct dataset is found after trying all these strategies, raise a ValueError.
         try:
             correct_dataset = \
                 coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset
