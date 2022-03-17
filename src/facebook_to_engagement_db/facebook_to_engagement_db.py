@@ -142,10 +142,10 @@ def _fetch_post_engagement_metrics(facebook_client, page_id, post, post_id, enga
     :rtype post_metrics: dict
     """
 
-    post_engagement_metrics = facebook_client.get_metrics_for_post(post_id, ["post_impressions", "post_impressions_unique",
-                                                                             "post_engaged_users",
-                                                                             "post_reactions_by_type_total"]
-                                                                   )
+    post_engagement_metrics = facebook_client.get_metrics_for_post(
+                                                              post_id, ["post_impressions", "post_impressions_unique",
+                                                                "post_engaged_users", "post_reactions_by_type_total"]
+                                                            )
     post_metrics = {
         "Page ID": page_id,
         "Dataset": engagement_db_dataset,
@@ -186,7 +186,6 @@ def _export_facebook_metrics_csv(facebook_metrics, facebook_metrics_dir_path):
         return
 
     facebook_metrics.sort(key=lambda m: (m["Page ID"], m["Dataset"], m["Post Created Time"]))
-
     with open(f"{facebook_metrics_dir_path}/facebook_metrics.csv", "w") as f:
         writer = csv.DictWriter(f, fieldnames=headers, lineterminator="\n")
         writer.writeheader()
