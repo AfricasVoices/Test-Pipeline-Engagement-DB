@@ -70,8 +70,14 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
         engagement_db_message = next_message_results[0]
         sync_stats.add_event(CodaSyncEvents.READ_MESSAGE_FROM_ENGAGEMENT_DB)
 
-    log.info(f"Syncing message {engagement_db_message.message_id}...")
+    if engagement_db_message.text is None or engagement_db_message.text == "":
+        # Don't sync messages that don't have text
+        log.info(f"Message {engagement_db_message.message_id} is empty (.text == {engagement_db_message.text}), "
+                 f"not adding to Coda")
+        sync_stats.add_event(CodaSyncEvents.SKIP_EMPTY_MESSAGE)
+        return engagement_db_message, sync_stats
 
+    log.info(f"Syncing message {engagement_db_message.message_id}...")
     # Ensure the message has a valid coda id. If it doesn't have one yet, write one back to the database.
     if engagement_db_message.coda_id is None:
         log.debug("Creating coda id")

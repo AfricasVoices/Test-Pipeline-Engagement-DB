@@ -226,6 +226,42 @@ def _impute_ws_coding_errors(user, messages_traced_data, analysis_dataset_config
     log.info(f"Imputed {imputed_labels} {Codes.CODING_ERROR} labels for WS codes")
 
 
+def _impute_nc_for_empty_messages(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme):
+    """
+    Imputes Codes.NOT_CODED for messages whose text property is either None or "".
+
+    :param user: Identifier of user running the pipeline.
+    :type user: str
+    :param messages_traced_data: Messages TracedData objects to impute age_category.
+    :type messages_traced_data: list of TracedData
+    :param analysis_dataset_configs: Analysis dataset configuration in pipeline configuration module.
+    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
+    :param ws_correct_dataset_code_scheme: WS - Correct Dataset code scheme.
+    :type ws_correct_dataset_code_scheme: core_data_modules.data_models.CodeScheme
+    """
+    messages_with_nc_imputed = 0
+    for message_td in messages_traced_data:
+        message = Message.from_dict(dict(message_td))
+
+        if not (message.text is None or message.text == ""):
+            continue
+
+        message_analysis_config = analysis_dataset_config_for_message(analysis_dataset_configs, message)
+        normal_code_schemes = [c.code_scheme for c in message_analysis_config.coding_configs]
+
+        _clear_latest_labels(user, message_td, normal_code_schemes + [ws_correct_dataset_code_scheme])
+        for code_scheme in normal_code_schemes:
+            nc_label = CleaningUtils.make_label_from_cleaner_code(
+                code_scheme, code_scheme.get_code_with_control_code(Codes.NOT_CODED),
+                Metadata.get_call_location()
+            )
+            _insert_label_to_message_td(user, message_td, nc_label)
+        messages_with_nc_imputed += 1
+
+    log.info(f"Processed {Codes.NOT_CODED} labels for empty messages: Searched {len(messages_traced_data)} messages and "
+             f"imputed {messages_with_nc_imputed} {Codes.NOT_CODED} labels")
+
+
 def _impute_age_category(user, messages_traced_data, analysis_dataset_configs):
     """
     Imputes age category for age dataset messages.
@@ -505,6 +541,8 @@ def impute_codes_by_message(user, messages_traced_data, analysis_dataset_configs
     """
     _impute_not_reviewed_labels(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme)
     _impute_ws_coding_errors(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme)
+    _impute_nc_for_empty_messages(user, messages_traced_data, analysis_dataset_configs, ws_correct_dataset_code_scheme)
+
     _impute_age_category(user, messages_traced_data, analysis_dataset_configs)
 
     _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_configs)
