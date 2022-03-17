@@ -25,7 +25,7 @@ class CodaSyncConfiguration:
     dataset_configurations: [CodaDatasetConfiguration]
     ws_correct_dataset_code_scheme: CodeScheme
     project_users_file_url: Optional[str] = None
-    set_dataset_from_ws_match_value: bool = False
+    set_dataset_from_ws_string_value: bool = False
     default_ws_dataset: Optional[str] = None  # Engagement db dataset to move messages to if there is no dataset
                                               # configuration for a particular ws_code_string_value. If None, crashes if
                                               # a message is found with a WS label with a string value not in
