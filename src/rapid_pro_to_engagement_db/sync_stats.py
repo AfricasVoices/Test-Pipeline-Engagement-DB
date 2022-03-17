@@ -28,7 +28,6 @@ class FlowStats(SyncStats):
 
     def print_summary(self):
         log.info(f"Runs downloaded from Rapid Pro: {self.event_counts[RapidProSyncEvents.READ_RUN_FROM_RAPID_PRO]}")
-        log.info("The runs specified below were not processed:")
         log.info(f"Empty runs: {self.event_counts[RapidProSyncEvents.RUN_EMPTY]}")
         log.info(f"Runs with contact uuids not in contacts export: {self.event_counts[RapidProSyncEvents.RUN_CONTACT_UUID_NOT_IN_CONTACTS]}")
         log.info(f"Runs from contacts not in the uuid table when filtering uuids: {self.event_counts[RapidProSyncEvents.UUID_FILTER_CONTACT_NOT_IN_UUID_TABLE]}")
