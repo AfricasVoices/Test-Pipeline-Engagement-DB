@@ -39,13 +39,9 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
             # run. We do this by searching for all messages that used to be in this dataset, that we haven't
             # already seen.
             latest_ws_message_timestamp = cache.get_date_time(f"{engagement_db_dataset}_ws")
-            if latest_ws_message_timestamp is None:
-                ws_corrected_messages_filter = lambda q: q \
-                    .where("previous_datasets", "array_contains", engagement_db_dataset)
-            else:
-                ws_corrected_messages_filter = lambda q: q \
-                    .where("previous_datasets", "array_contains", engagement_db_dataset) \
-                    .where("last_updated", ">", latest_ws_message_timestamp)
+            ws_corrected_messages_filter = lambda q: q \
+                .where("previous_datasets", "array_contains", engagement_db_dataset) \
+                .where("last_updated", ">", latest_ws_message_timestamp)
 
             ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
 
