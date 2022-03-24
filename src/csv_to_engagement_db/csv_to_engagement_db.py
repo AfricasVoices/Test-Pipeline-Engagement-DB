@@ -193,7 +193,7 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
         message_origin_details = {
             "csv_row_number": i,
             "csv_row_data": csv_msg,
-            "csv_sync_configuration": csv_source.to_dict(),
+            "csv_sync_configuration": csv_source.to_dict(serialize_datetimes_to_str=True),
             "csv_hash": csv_hash
         }
         sync_event = _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details, dry_run)
