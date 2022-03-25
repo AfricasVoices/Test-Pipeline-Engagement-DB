@@ -27,7 +27,8 @@ def _parse_date_string(date_string, timezone):
     :rtype: datetime.datetime
     """
     # Try parsing using a list of all the variants we've seen for expressing timestamps.
-    for date_format in ["%d/%m/%Y %H:%M", "%d/%m/%Y %H:%M:%S", "%Y/%m/%d %H:%M:%S.%f", "%Y/%m/%d %H:%M:%S"]:
+    for date_format in ["%d/%m/%Y %H:%M", "%d/%m/%Y %H:%M:%S", "%d/%m/%Y %H:%M:%S.%f", "%Y/%m/%d %H:%M:%S.%f",
+                        "%Y/%m/%d %H:%M:%S"]:
         try:
             parsed_raw_date = datetime.strptime(date_string, date_format)
             break
