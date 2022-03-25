@@ -43,14 +43,22 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
                 .where("previous_datasets", "array_contains", engagement_db_dataset) \
                 .where("last_updated", ">", latest_ws_message_timestamp)
 
-            ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
+            downloaded_ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
 
-            log.info(f"Downloaded {len(updated_messages)} updated messages in this dataset, and "
+            # Filter ws_corrected_messages whose dataset == the engagement_db_dataset.
+            # This prevents messages that have the current dataset in their previous_datasets from being erroneously
+            # removed.
+            ws_corrected_messages = [msg for msg in downloaded_ws_corrected_messages if msg.dataset != engagement_db_dataset]
+
+            log.info(f"Downloaded {len(updated_messages)} updated messages in this dataset, "
                      f"{len(ws_corrected_messages)} messages that were previously in this dataset but have moved.")
+            log.debug(f"Also downloaded {len(downloaded_ws_corrected_messages) - len(ws_corrected_messages)} messages "
+                      f"that have this dataset in .dataset and .previous_datasets simultaneously. "
+                      f"Not moving these messages")
 
             # Update the latest seen ws message from this dataset
-            if len(ws_corrected_messages) > 0:
-                for msg in ws_corrected_messages:
+            if len(downloaded_ws_corrected_messages) > 0:
+                for msg in downloaded_ws_corrected_messages:
                     if latest_ws_message_timestamp is None or msg.last_updated > latest_ws_message_timestamp:
                         latest_ws_message_timestamp = msg.last_updated
                 cache.set_date_time(f"{engagement_db_dataset}_ws", latest_ws_message_timestamp)
