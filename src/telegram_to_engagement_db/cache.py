@@ -1,26 +1,26 @@
 from src.common.cache import Cache
 
 
-class FacebookSyncCache(Cache):
-    def get_latest_comment_timestamp(self, post_id):
+class TelegramGroupSyncCache(Cache):
+    def get_latest_max_id(self, group_id):
         """
-        Gets the latest seen comment.created_time cache for the given post_id.
+        Gets the latest seen message.date cache for the given engagement_database.
 
-        :param post_id: Id of post to cache.
-        :type post_id: str
-        :return: Cached latest comment.created_time, or None if there is no cached value for this context.
+        :param engagement_database: EngagementDatabase to get cache for.
+        :type engagement_database: engagement_database.EngagementDatabase
+        :return: Cached latest message.date, or None if there is no cached value for this context.
         :rtype: datetime.datetime | None
         """
-        return self.get_date_time(f"{post_id}")
+        return self.get_max_id(f"{group_id}")
 
 
-    def set_latest_comment_timestamp(self, post_id, timestamp):
+    def set_latest_max_id(self, engagement_database, group_id, max_id):
         """
-        Sets the latest seen comment.created_time cache for the given post_id.
+        Sets the latest seen message.date cache for the given post_id.
 
-        :param post_id: Id of post to cache.
-        :type post_id: str
+        :param engagement_database: EngagementDatabase to get cache for.
+        :type engagement_database: engagement_database.EngagementDatabase
         :param timestamp: Latest seen comment.created_time for the given post_id.
         :type timestamp: datetime.datetime
         """
-        self.set_date_time(f"{post_id}", timestamp)
+        self.set_max_id(f"{engagement_database}{group_id}", max_id)
