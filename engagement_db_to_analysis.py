@@ -18,15 +18,15 @@ if __name__ == "__main__":
     parser.add_argument("user", help="Identifier of the user launching this program")
     parser.add_argument("google_cloud_credentials_file_path", metavar="google-cloud-credentials-file-path",
                         help="Path to a Google Cloud service account credentials file to use to access the "
-                        "credentials bucket"),
+                             "credentials bucket"),
     parser.add_argument("configuration_module",
                         help="Configuration module to import e.g. 'configurations.test_config'. "
-                        "This module must contain a PIPELINE_CONFIGURATION property")
+                             "This module must contain a PIPELINE_CONFIGURATION property")
     parser.add_argument("membership_group_dir_path",
                         help="Path to a directory to use to read & write membership group csvs to.")
     parser.add_argument("output_dir", metavar="output-dir",
                         help="Directory to output all analysis results to. This script will create and organise the "
-                        "outputs into sensible sub-directories automatically")
+                             "outputs into sensible sub-directories automatically")
 
     args = parser.parse_args()
 
