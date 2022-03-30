@@ -43,4 +43,4 @@ if __name__ == "__main__":
     uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
 
     sync_facebook_to_engagement_db(google_cloud_credentials_file_path, pipeline_config.facebook_sources, engagement_db,
-                                   uuid_table)
+                                   uuid_table, incremental_cache_path)
