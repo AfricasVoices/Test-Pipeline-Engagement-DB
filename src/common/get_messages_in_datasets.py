@@ -3,7 +3,7 @@ from core_data_modules.logging import Logger
 log = Logger(__name__)
 
 
-def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
+def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, dry_run=False):
     """
     Gets messages in the specified datasets.
 
@@ -15,6 +15,8 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
                   specified, writes all the fetched messages to the cache and only queries for messages changed since
                   the most recently updated message in the cache.
     :type cache: src.common.cache.Cache
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: Dictionary of engagement db dataset -> list of Messages in dataset.
     :rtype: dict of str -> list of engagement_database.data_models.Message
     """
@@ -61,7 +63,8 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
                 for msg in downloaded_ws_corrected_messages:
                     if latest_ws_message_timestamp is None or msg.last_updated > latest_ws_message_timestamp:
                         latest_ws_message_timestamp = msg.last_updated
-                cache.set_date_time(f"{engagement_db_dataset}_ws", latest_ws_message_timestamp)
+                if not dry_run:
+                    cache.set_date_time(f"{engagement_db_dataset}_ws", latest_ws_message_timestamp)
 
             cache_messages = cache.get_messages(engagement_db_dataset)
             for msg in cache_messages:
@@ -97,7 +100,7 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
             if latest_message_timestamp is None or msg_last_updated > latest_message_timestamp:
                 latest_message_timestamp = msg_last_updated
 
-        if cache is not None and latest_message_timestamp is not None:
+        if not dry_run and cache is not None and latest_message_timestamp is not None:
             # Export latest message timestamp to cache.
             if latest_message_timestamp is not None:
                 cache.set_date_time(engagement_db_dataset, latest_message_timestamp)

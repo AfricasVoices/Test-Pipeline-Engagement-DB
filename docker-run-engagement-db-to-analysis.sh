@@ -7,6 +7,9 @@ IMAGE_NAME=$PROJECT_NAME-engagement-db-to-analysis
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --dry-run)
+            DRY_RUN="--dry-run"
+            shift;;
         --incremental-cache-volume)
             INCREMENTAL_ARG="--incremental-cache-path /cache"
             INCREMENTAL_CACHE_VOLUME_NAME="$2"
@@ -22,8 +25,8 @@ done
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 5 ]]; then
     echo "Usage: $0 
-    [--incremental-cache-volume <incremental-cache-volume>] 
-    <user> <google-cloud-credentials-file-path> <configuration-file> <code-schemes-dir> <data-dir>"
+    [--dry-run] [--incremental-cache-volume <incremental-cache-volume>] 
+    <user> <google-cloud-credentials-file-path> <configuration-module> <data-dir>"
     exit
 fi
 
@@ -38,8 +41,8 @@ DATA_DIR=$5
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u engagement_db_to_analysis.py ${INCREMENTAL_ARG} ${USER} \
-    /credentials/google-cloud-credentials.json configuration /data/membership-groups /data/analysis-outputs"
+CMD="pipenv run python -u engagement_db_to_analysis.py ${DRY_RUN} ${INCREMENTAL_ARG} ${USER} \
+    /credentials/google-cloud-credentials.json ${CONFIGURATION_MODULE} /data/membership-groups /data/analysis-outputs"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
     container="$(docker container create -w /app --mount source="$INCREMENTAL_CACHE_VOLUME_NAME",target=/cache "$IMAGE_NAME" /bin/bash -c "$CMD")"
