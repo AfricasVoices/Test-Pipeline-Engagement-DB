@@ -108,19 +108,23 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
 
     run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated-analysis")
 
-    if pipeline_config.analysis.google_drive_upload is None or dry_run:
-        log.debug("Not uploading to Google Drive, because the 'google_drive_upload' configuration was None")
+    dry_run_text = "(dry run)" if dry_run else ""
+    if pipeline_config.analysis.google_drive_upload is None:
+        log.debug(f"Not uploading to Google Drive, because the 'google_drive_upload' configuration was None {dry_run_text}")
     else:
-        log.info("Uploading outputs to Google Drive...")
-        google_drive_upload.init_client(
-            google_cloud_credentials_file_path,
-            pipeline_config.analysis.google_drive_upload.credentials_file_url
-        )
+        if dry_run:
+            log.info(f"Not uploading to Google Drive {dry_run_text}")
+        else:
+            log.info("Uploading outputs to Google Drive...")
+            google_drive_upload.init_client(
+                google_cloud_credentials_file_path,
+                pipeline_config.analysis.google_drive_upload.credentials_file_url
+            )
 
-        drive_dir = pipeline_config.analysis.google_drive_upload.drive_dir
-        google_drive_upload.upload_file(f"{output_dir}/production.csv", drive_dir)
-        google_drive_upload.upload_file(f"{output_dir}/messages.csv", drive_dir)
-        google_drive_upload.upload_file(f"{output_dir}/participants.csv", drive_dir)
-        google_drive_upload.upload_all_files_in_dir(
-            f"{output_dir}/automated-analysis", f"{drive_dir}/automated-analysis", recursive=True
-        )
+            drive_dir = pipeline_config.analysis.google_drive_upload.drive_dir
+            google_drive_upload.upload_file(f"{output_dir}/production.csv", drive_dir)
+            google_drive_upload.upload_file(f"{output_dir}/messages.csv", drive_dir)
+            google_drive_upload.upload_file(f"{output_dir}/participants.csv", drive_dir)
+            google_drive_upload.upload_all_files_in_dir(
+                f"{output_dir}/automated-analysis", f"{drive_dir}/automated-analysis", recursive=True
+            )
