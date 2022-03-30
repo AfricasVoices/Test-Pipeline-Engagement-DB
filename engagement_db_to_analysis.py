@@ -53,5 +53,5 @@ if __name__ == "__main__":
 
     generate_analysis_files(
         user, google_cloud_credentials_file_path, pipeline_config, engagement_db, membership_group_dir_path,
-        output_dir, incremental_cache_path
+        output_dir, incremental_cache_path, dry_run
     )
