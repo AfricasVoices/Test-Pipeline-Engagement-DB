@@ -3,7 +3,7 @@
 set -e
 
 PROJECT_NAME="$(<configurations/docker_image_project_name.txt)"
-IMAGE_NAME=$PROJECT_NAME-sync-coda-to-engagement-db
+IMAGE_NAME=$PROJECT_NAME-sync-csvs-to-engagement-db
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -25,7 +25,7 @@ done
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 5 ]]; then
     echo "Usage: $0 
-    [--dry-run] [--incremental-cache-volume <incremental-cache-volume>]
+    [--dry-run] [--incremental-cache-volume <incremental-cache-volume>] 
     <user> <google-cloud-credentials-file-path> <configuration-file> <code-schemes-dir> <data-dir>"
     exit
 fi
@@ -41,7 +41,7 @@ DATA_DIR=$5
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u sync_coda_to_engagement_db.py ${DRY_RUN} ${INCREMENTAL_ARG} \
+CMD="pipenv run python -u sync_csvs_to_engagement_db.py ${DRY_RUN} ${INCREMENTAL_ARG} \
     ${USER} /credentials/google-cloud-credentials.json configuration"
 
 if [[ "$INCREMENTAL_ARG" ]]; then

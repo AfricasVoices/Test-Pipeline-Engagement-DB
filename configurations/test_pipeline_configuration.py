@@ -42,7 +42,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     csv_sources=[
         CSVSource(
             "gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/test_recovery.csv",
-            engagement_db_dataset="s01e01",
+            engagement_db_datasets=[
+                CSVDatasetConfiguration("s01e01", end_date=isoparse("2021-12-31T24:00:00+03:00")),
+                CSVDatasetConfiguration("age", start_date=isoparse("2022-01-01T00:00:00+03:00"))
+            ],
             timezone="Africa/Mogadishu"
         )
     ],
@@ -106,7 +109,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 engagement_db_datasets=["gender", "location", "age", "s01e01"],
                 rapid_pro_contact_field=ContactField(key="engagement_db_consent_withdrawn", label="Engagement DB Consent Withdrawn")
             ),
-            write_mode=WriteModes.CONCATENATE_TEXTS
+            write_mode=WriteModes.CONCATENATE_TEXTS,
+            # allow_clearing_fields is set somewhat arbitrarily here because this data isn't being used in flows.
+            # A pipeline that has continuous sync back in production will need to consider the options carefully.
+            allow_clearing_fields=True
         )
     ),
     analysis=AnalysisConfiguration(

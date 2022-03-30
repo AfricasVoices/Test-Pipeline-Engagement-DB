@@ -287,15 +287,32 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
 
     # WS-correct if there is a valid ws_code
     if ws_code is not None:
+        # Establish the correct dataset to move this message to.
+        # To determine the dataset, the following strategies are tried, in this order:
+        #  1. Search the other dataset configurations for a match. If there is no match:
+        #  2. If `set_dataset_from_ws_string_value` has been set, move the message to the dataset
+        #     `ws_code.string_value`. Otherwise:
+        #  3. If the `default_ws_dataset` has been specified, move the message to this default dataset.
+        # If no correct dataset is found after trying all these strategies, raise a ValueError.
         try:
             correct_dataset = \
                 coda_config.get_dataset_config_by_ws_code_string_value(ws_code.string_value).engagement_db_dataset
         except ValueError as e:
+            if coda_config.set_dataset_from_ws_string_value and ws_code.string_value in ws_code.match_values:
+                correct_dataset = ws_code.string_value
+
             # No dataset configuration found with an appropriate ws_code_string_value to move the message to.
             # Fallback to the default dataset if available, otherwise crash.
-            if coda_config.default_ws_dataset is None:
+            elif coda_config.default_ws_dataset is not None:
+                correct_dataset = coda_config.default_ws_dataset
+            else:
                 raise e
-            correct_dataset = coda_config.default_ws_dataset
+
+        # Ensure the message isn't being WS-corrected to the dataset it's already in.
+        # TODO: Handle this case without crashing.
+        assert correct_dataset != engagement_db_message.dataset, \
+            f"Engagement db message '{engagement_db_message.message_id}' (text '{engagement_db_message.text}') " \
+            f"is being WS-corrected to dataset '{correct_dataset}', but is currently in this dataset already."
 
         # Ensure this message isn't being moved to a dataset which it has previously been assigned to.
         # This is because if the message has already been in this new dataset, there is a chance there is an

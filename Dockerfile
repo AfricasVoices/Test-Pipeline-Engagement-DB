@@ -22,5 +22,7 @@ ADD Pipfile.lock /app
 RUN pipenv sync
 
 # Copy the rest of the project
-ADD . /app
+ADD .git /app/.git
+ADD src /app/src
+ADD *.py /app
 
