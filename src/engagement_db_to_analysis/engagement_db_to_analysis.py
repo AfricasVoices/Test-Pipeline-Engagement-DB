@@ -64,7 +64,7 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     engagement_db_datasets = []
     for config in analysis_dataset_configurations:
         engagement_db_datasets.extend(config.engagement_db_datasets)
-    messages_map = get_messages_in_datasets(engagement_db, engagement_db_datasets, cache)
+    messages_map = get_messages_in_datasets(engagement_db, engagement_db_datasets, cache, dry_run)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
