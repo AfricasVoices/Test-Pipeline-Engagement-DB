@@ -4,6 +4,8 @@ from typing import Optional, Iterable
 from core_data_modules.analysis.traffic_analysis import TrafficLabel
 from core_data_modules.data_models import CodeScheme
 
+from src.engagement_db_to_rapid_pro.configuration import ContactField
+
 
 @dataclass
 class DatasetTypes:
@@ -44,6 +46,7 @@ class AnalysisDatasetConfiguration:
     dataset_type: DatasetTypes
     raw_dataset: str
     coding_configs: [CodingConfiguration]
+    rapid_pro_non_relevant_field: ContactField = None
 
 
 class OperatorDatasetConfiguration(AnalysisDatasetConfiguration):
