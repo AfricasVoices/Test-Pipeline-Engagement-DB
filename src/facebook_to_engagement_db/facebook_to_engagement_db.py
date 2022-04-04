@@ -225,7 +225,7 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
         dataset_post_ids = _get_facebook_post_ids(facebook_client, facebook_source.page_id, search=dataset.search)
         for post_id in dataset_post_ids:
             latest_comment_timestamp = None if cache is None else cache.get_latest_comment_timestamp(post_id)
-            post_comments = facebook.get_all_comments_on_post(
+            post_comments = facebook_client.get_all_comments_on_post(
                 post_id, ["from{id}", "parent", "attachments", "created_time", "message"],
                 )
 
