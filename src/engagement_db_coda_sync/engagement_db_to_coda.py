@@ -89,6 +89,11 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
                 origin=HistoryEntryOrigin(origin_name="Set coda_id", details={}),
                 transaction=transaction
             )
+        # If we needed to set a coda id, don't make any other changes to this message on this sync.
+        # We'll check the message is in coda and its labels match next time we fetch it.
+        # This is to ensure we don't make two separate writes to history with the same timestamp, which would break
+        # our ability to sort history by timestamp correctly.
+        return engagement_db_message, sync_stats
     assert engagement_db_message.coda_id == SHAUtils.sha_string(engagement_db_message.text)
 
     # Look-up this message in Coda
