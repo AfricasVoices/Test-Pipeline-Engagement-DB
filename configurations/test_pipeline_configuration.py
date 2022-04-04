@@ -49,6 +49,20 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             timezone="Africa/Mogadishu"
         )
     ],
+    google_form_sources=[
+        GoogleFormSource(
+            google_form_client=GoogleFormsClientConfiguration(
+                credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json"
+            ),
+            sync_config=GoogleFormToEngagementDBConfiguration(
+                form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
+                question_configurations=[
+                    QuestionConfiguration(question_title="Test Question 1", engagement_db_dataset="s01e01"),
+                    QuestionConfiguration(question_title="Test Question 2", engagement_db_dataset="s01e02")
+                ]
+            )
+        )
+    ],
     coda_sync=CodaConfiguration(
         coda=CodaClientConfiguration(credentials_file_url="gs://avf-credentials/coda-staging.json"),
         sync_config=CodaSyncConfiguration(

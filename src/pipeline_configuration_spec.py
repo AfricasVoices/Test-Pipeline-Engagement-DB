@@ -15,6 +15,9 @@ from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, Co
                                                        CodeSchemeConfiguration)
 from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidProConfiguration, DatasetConfiguration,
                                                           WriteModes, ContactField)
+from src.google_form_to_engagement_db.configuration import (GoogleFormToEngagementDBConfiguration,
+                                                            GoogleFormsClientConfiguration,
+                                                            QuestionConfiguration, GoogleFormSource)
 from src.rapid_pro_to_engagement_db.configuration import (FlowResultConfiguration, UuidFilter,
                                                           RapidProToEngagementDBConfiguration)
 from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfiguration, OperatorDatasetConfiguration,
@@ -62,6 +65,7 @@ class PipelineConfiguration:
     rapid_pro_sources: [RapidProSource] = None
     facebook_sources: Optional[List[FacebookSource]] = None
     csv_sources: Optional[List[CSVSource]] = None
+    google_form_sources: Optional[List[GoogleFormSource]] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
     analysis: AnalysisConfiguration = None
