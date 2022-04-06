@@ -9,6 +9,7 @@ RapidProTools = {editable = true,git = "https://www.github.com/AfricasVoices/Rap
 CodaV2PythonClient = {editable = true,git = "https://www.github.com/AfricasVoices/CodaV2PythonClient",ref = "v0.1.4"}
 PipelineInfrastructure = {editable = true,git = "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",ref = "v0.1.2"}
 SocialMediaTools = {editable = true,git = "https://www.github.com/AfricasVoices/SocialMediaTools",ref = "v0.1.2"}
+telethon = "*"
 
 [dev-packages]
 
