@@ -27,12 +27,16 @@ class TelegramGroupDataset:
 
 
 class TelegramGroupSearch:
-    def __init__(self, offset_date, max_id=None):
-        self.offset_date = offset_date
-        self.max_id = max_id
+    def __init__(self, group_ids, start_date, end_date, min_id=None):
+        self.group_ids = group_ids
+        self.start_date = start_date
+        self.end_date = end_date
+        self.min_id = min_id
 
     def to_dict(self):
         return {
-            "offset_date": isoparse(self.offset_date),
-            "max_id": isoparse(self.max_id)
+            "group_ids": self.group_ids,
+            "start_date": isoparse(self.start_date),
+            "end_date": isoparse(self.end_date),
+            "min_id": self.min_id
         }

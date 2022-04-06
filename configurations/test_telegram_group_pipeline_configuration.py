@@ -19,18 +19,30 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     ),
     telegram_group_sources=[
         TelegramGroupSource(
-            token_file_url="gs://avf-credentials/dev-telegram-tokens.txt",
+            token_file_url="gs://avf-credentials/dev-telegram-tokens.json",
             datasets=[
                 TelegramGroupDataset(
                     engagement_db_dataset="test_telegram_group_s01e01",
                     search=TelegramGroupSearch(
-                        offset_date="2021-09-22T00:00+03:00",
+                        start_date="2022-03-20T00:00+03:00",
+                        end_date="2022-03-30T00:00+03:00",
+                        group_ids=["1589865544"]
                     )
                 ),
                 TelegramGroupDataset(
                     engagement_db_dataset="test_telegram_group_s01e02",
                     search=TelegramGroupSearch(
-                        offset_date="2021-09-22T00:00+03:00",
+                        start_date="2022-03-30T00:00+03:00",
+                        end_date="2022-04-06T00:00+03:00",
+                        group_ids=["1589865544"]
+                    )
+                ),
+                TelegramGroupDataset(
+                    engagement_db_dataset="test_telegram_group_s01e03",
+                    search=TelegramGroupSearch(
+                        start_date="2022-04-06T00:00+03:00",
+                        end_date="2022-04-08T00:00+03:00",
+                        group_ids=["1589865544"]
                     )
                 ),
             ],
@@ -44,7 +56,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     coda_dataset_id="TEST_Telegram_group_s01e01",
                     engagement_db_dataset="test_telegram_s01e01",
                     code_scheme_configurations=[
-                        CodeSchemeConfiguration(code_scheme=load_code_scheme("test_telegram_s01e01"), auto_coder=None,
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("test_telegram_group_s01e01"), auto_coder=None,
                                                 coda_code_schemes_count=3)
                     ],
                     ws_code_string_value="test_telegram_s01e01"
@@ -53,7 +65,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     coda_dataset_id="TEST_Telegram_group_s01e02",
                     engagement_db_dataset="test_telegram_s01e02",
                     code_scheme_configurations=[
-                        CodeSchemeConfiguration(code_scheme=load_code_scheme("test_telegram_s01e02"), auto_coder=None,
+                        CodeSchemeConfiguration(code_scheme=load_code_scheme("test_telegram_group_s01e02"), auto_coder=None,
                                                 coda_code_schemes_count=3)
                     ],
                     ws_code_string_value="test_telegram_s01e02"
