@@ -1,6 +1,8 @@
 import argparse
 import importlib
 import subprocess
+import asyncio
+
 
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
@@ -37,16 +39,20 @@ if __name__ == "__main__":
 
     HistoryEntryOrigin.set_defaults(user, project, pipeline, commit)
 
-    if pipeline_config.facebook_sources is None:
+    if pipeline_config.telegram_group_sources is None:
         log.info(f"No Telegram group sources specified; exiting")
         exit(0)
 
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
     uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
-    telegram = _initialize_telegram_client(pipeline_config, google_cloud_credentials_file_path,
-                                           pipeline_config.telegram_group_sources)
 
-    with telegram:
-        telegram.loop.run_until_complete(sync_messages_from_groups_to_engagement_db(pipeline_config, engagement_db,
-                                                                                  pipeline_config.telegram_group_sources,
-                                                                                    uuid_table))
+    async def main():
+        for telegram_group_source in pipeline_config.telegram_group_sources:
+
+            telegram = await _initialize_telegram_client(telegram_group_source, pipeline, google_cloud_credentials_file_path)
+
+            await sync_messages_from_groups_to_engagement_db(incremental_cache_path, telegram_group_source, telegram,
+                                                             engagement_db, uuid_table)
+
+    main_coroutine = main()
+    asyncio.run(main_coroutine)
