@@ -1,5 +1,4 @@
 from datetime import datetime
-
 import json
 
 from storage.google_cloud import google_cloud_utils
@@ -19,64 +18,90 @@ log = Logger(__name__)
 
 
 #TODO: move to social media tools?
-async def _initialize_telegram_client(telegram_group_source, pipeline_name, google_cloud_credentials_file_path):
+async def _initialize_telegram_client(telegram_token_file_url, google_cloud_credentials_file_path, pipeline_name):
+    """
+    :param telegram_token_file_url: Path to the Google Cloud file path that contains telegram tokens api_id
+                                                api_hash and telegram app admin phone number.
+    :type telegram_token_file_url: str
+    :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use when
+                                               downloading facebook page token.
+    :type google_cloud_credentials_file_path: str
+    :param pipeline: Name of the pipeline for this telegram session.
+    :type pipeline: str
+    :return telegram_client
+    :rtype: telethon.client.telegramclient.TelegramClient
 
-    log.info('Initializing telegram client...')
+    """
     log.info('Downloading telegram access tokens...')
     telegram_tokens = json.loads(google_cloud_utils.download_blob_to_string(
-        google_cloud_credentials_file_path, telegram_group_source.token_file_url).strip())
+        google_cloud_credentials_file_path, telegram_token_file_url).strip())
 
     api_id = telegram_tokens['api_id']
     api_hash = telegram_tokens['api_hash']
     phone_number = telegram_tokens['phone_number']
 
-    client = TelegramClient(f'{pipeline_name}_telegram_session_name', api_id, api_hash)
-    await client.start()
+    log.info('Initializing telegram client...')
+    telegram = TelegramClient(f'{pipeline_name}_telegram_session_name', api_id, api_hash)
+    await telegram.start()
 
     # Ensure the client is authorized
-    if await client.is_user_authorized() == False:
-        await client.send_code_request(phone_number)
+    if await telegram.is_user_authorized() == False:
+        await telegram.send_code_request(phone_number)
         try:
-            await client.sign_in(phone_number, input(f"Enter the authorization code sent to telegram a/c for {phone_number}: "))
+            await telegram.sign_in(phone_number, input(f"Enter the authorization code sent to "
+                                                              f"telegram a/c for {phone_number}: "))
+        # If the a/c has 2FA enabled sign_in() will raise a SessionPasswordNeededError.
+        # Input your telegram password to proceed.
         except SessionPasswordNeededError:
-            await client.sign_in(password=input('Password: '))
-
+            await telegram.sign_in(password=input('Password: '))
     log.info('Initialized telegram client...')
 
-    return client
+    return telegram
 
 
-async def _fetch_message_from_group(telegram, group_id, dataset_offset_date=None, min_id=None):
-    # Get group entities
+async def _fetch_message_from_group(telegram, group_id, dataset_end_date=None, min_id=None):
+    """
+    :param telegram: Instance of telegram app to use to download the group messages from.
+    :type telegram: telethon.client.telegramclient.TelegramClient
+    :param group_id: Id of the telegram group to fetch messages from
+    :type group_id: str
+    :param dataset_end_date: Offset datetime, messages previous to this date will be retrieved. Exclusive
+    :type dataset_end_date: datetime | None
+    :param min_id: All the messages with a lower (older) ID or equal to this will be excluded.
+    :type min_id: int | None
+    :yields: Instances of telethon.tl.custom.message.Message
+    """
+    # Get group/channel entity
     group_entity = await telegram.get_entity(PeerChannel(int(group_id)))
 
-    #Fetch messages messages based on dataset_offset_date and/or max_id filters
-    if dataset_offset_date is None and min_id is None:
+    #Fetch messages messages based on dataset_offset_date and/or min_id filters if specified.
+    if dataset_end_date is None and min_id is None:
         log.info(f"Fetching all messages from group {group_id}")
         return telegram.iter_messages(group_entity)
 
-    elif dataset_offset_date is not None and min_id is None:
-        log.info(f"Fetching messages from group {group_id} sent before {dataset_offset_date}, exclusive")
-        return telegram.iter_messages(group_entity, offset_date=dataset_offset_date)
+    elif dataset_end_date is not None and min_id is None:
+        log.info(f"Fetching messages from group {group_id} sent before {dataset_end_date}, exclusive")
+        return telegram.iter_messages(group_entity, offset_date=dataset_end_date)
 
-    elif dataset_offset_date is None and min_id is not None:
+    elif dataset_end_date is None and min_id is not None:
         log.info(f"Fetching messages from group {group_id} with message.id greater than {min_id}, exclusive")
-        return telegram.iter_messages(group_entity, max_id=int(min_id))
+        return telegram.iter_messages(group_entity, min_id=int(min_id))
 
-    elif dataset_offset_date is not None and min_id is not None:
-        log.info(f"Fetching messages from group {group_id} sent before {dataset_offset_date} "
+    elif dataset_end_date is not None and min_id is not None:
+        log.info(f"Fetching messages from group {group_id} sent before {dataset_end_date} "
                  f"and with message.id greater than {min_id}, both exclusive")
-        return telegram.iter_messages(group_entity, offset_date=dataset_offset_date, min_id=int(min_id))
+        return telegram.iter_messages(group_entity, offset_date=dataset_end_date, min_id=int(min_id))
 
 
-def _is_avf_messages(message):
+def _is_avf_messages(telegram_message):
     """
-    :param message:
-    :type message:
+    :param telegram_message: A telegram message object to check if it was sent by an admin or is a channel broadcast
+                             Returns True if a message.from_id is None (admin message) or is of the type PeerChannel
+                             (channel broadcast messages)
+    :type telegram_message: telethon.tl.custom.message.Message
     """
-
     # Skip messages sent by AVF group admins / channel broadcasts
-    if (type(message.from_id) == PeerChannel or message.from_id is None):
+    if (type(telegram_message.from_id) == PeerChannel or telegram_message.from_id is None):
         return True
     else:
         return False
@@ -84,20 +109,17 @@ def _is_avf_messages(message):
 
 def _telegram_message_to_engagement_db_message(telegram_message, dataset, uuid_table):
     """
-    Converts a telegram comment to an engagement database message.
+    Converts a telegram message to an engagement database message.
 
     :param telegram_message: A telegram message object.
     :type telegram_message: telethon.tl.custom.message.Message
-    :param dataset: Initial dataset to assign this message to in the engagement database.
+    :param dataset: Name of dataset to assign this message to in the engagement database.
     :type dataset: str
-    :param origin_id: Origin id, for the comment origin field.
-    :type origin_id: str
     :param uuid_table: UUID table to use to de-identify contact urns.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
-    :return: `message` as an engagement db message.
+    :return: `telegram_message` as an engagement db message.
     :rtype: engagement_database.data_models.Message
     """
-
     participant_uuid = uuid_table.data_to_uuid(telegram_message.sender_id)
     channel_operator = 'telegram'  # TODO move to core as a CONSTANT
 
@@ -106,12 +128,12 @@ def _telegram_message_to_engagement_db_message(telegram_message, dataset, uuid_t
         text=telegram_message.message,
         timestamp=telegram_message.date.isoformat(),
         direction=MessageDirections.IN,
-        channel_operator=channel_operator,  #TODO move to core as a CONSTANT in core,
+        channel_operator=channel_operator,
         status=MessageStatuses.LIVE,
         dataset=dataset,
         labels=[],
         origin=MessageOrigin(
-            origin_id=telegram_message.id,
+            origin_id=f"message_id_{telegram_message.id}_timestamp_{telegram_message.date.isoformat()}",
             origin_type="telegram_group"
         )
     )
@@ -159,21 +181,25 @@ def _ensure_engagement_db_has_message(engagement_db, telegram_message, message_o
     )
 
 
-async def sync_messages_from_groups_to_engagement_db(cache_path, telegram_group_source, telegram,
-                                                     engagement_db, uuid_table):
+async def sync_messages_from_groups_to_engagement_db(telegram_group_source, telegram,
+                                                     engagement_db, uuid_table, cache_path):
     """
-    :param
-    :type
-
+    :param telegram_group_source: Telegram sources to sync to the engagement database.
+    :type telegram_group_source: List of src.telegram_to_engagement_db.configuration.TelegramGroupSource
+    :param telegram: Instance of telegram app to use to download the group messages from.
+    :type telegram: telethon.client.telegramclient.TelegramClient
+    :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
+    :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :param cache_path: Path to a directory to use to cache results needed for incremental operation.
+                       If None, runs in non-incremental mode.
+    :type cache_path: str | None
     """
-
     if cache_path is None:
         cache = None
     else:
         log.info(f"Initialising TelegramSyncCache at '{cache_path}/telegram_group_to_engagement_db'")
         cache = TelegramGroupSyncCache(f"{cache_path}/telegram_group_to_engagement_db")
 
-    all_messages = []
     for dataset in telegram_group_source.datasets:
         log.info(f"Fetching messages for {dataset.engagement_db_dataset}...")
         dataset_start_date = datetime.fromisoformat(dataset.search.start_date)
@@ -200,7 +226,6 @@ async def sync_messages_from_groups_to_engagement_db(cache_path, telegram_group_
                                               telegram_message.peer_id.channel_id}
                     message = _telegram_message_to_engagement_db_message(telegram_message, dataset.engagement_db_dataset,
                                                                          uuid_table)
-                    all_messages.append(message.to_dict())
                     _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
 
                     # The api returns messages from newest to oldest, cache the id of the newest seen message for this search
@@ -209,6 +234,3 @@ async def sync_messages_from_groups_to_engagement_db(cache_path, telegram_group_
                         cache_synced = True
 
             log.info(f"Skipped {broad_cast_admin_messages} channel broadcast and admin reply messages ...")
-
-        with open(f'all_messages.json', 'w') as outfile:
-            json.dump(all_messages, outfile)
