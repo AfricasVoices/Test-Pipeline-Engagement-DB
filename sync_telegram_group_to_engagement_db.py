@@ -3,7 +3,6 @@ import importlib
 import subprocess
 import asyncio
 
-
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
@@ -11,7 +10,6 @@ from src.telegram_to_engagement_db.telegram_group_to_engagement_db import (sync_
                                                                            _initialize_telegram_client)
 
 log = Logger(__name__)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Syncs data from telegram groups to an engagement database")

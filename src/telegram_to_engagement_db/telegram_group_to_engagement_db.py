@@ -1,21 +1,19 @@
 from datetime import datetime
 import json
 
-from storage.google_cloud import google_cloud_utils
-from core_data_modules.logging import Logger
-
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
 from telethon.tl.types import (PeerChannel)
+
+from storage.google_cloud import google_cloud_utils
+from core_data_modules.logging import Logger
 
 from engagement_database.data_models import (Message, MessageDirections, MessageOrigin, MessageStatuses,
                                              HistoryEntryOrigin)
 
 from src.telegram_to_engagement_db.cache import TelegramGroupSyncCache
 
-
 log = Logger(__name__)
-
 
 #TODO: move to social media tools?
 async def _initialize_telegram_client(telegram_token_file_url, google_cloud_credentials_file_path, pipeline_name):
