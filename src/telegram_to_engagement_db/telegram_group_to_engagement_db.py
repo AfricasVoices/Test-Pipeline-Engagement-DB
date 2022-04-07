@@ -207,7 +207,7 @@ async def sync_messages_from_groups_to_engagement_db(telegram_group_source, tele
 
         for group_id in dataset.search.group_ids:
             group_cache_file_name = f"{dataset.engagement_db_dataset}_{group_id}"
-            group_min_id = None if cache is None else cache.get_latest_group_min_id(group_cache_file_name)
+            group_min_id = None if cache is None else cache.get_latest_group_message_id(group_cache_file_name)
 
             # Fetch group messages sent before the dataset_end_date and/or contain message.id greater than min_id in
             # cache if available.
@@ -230,7 +230,7 @@ async def sync_messages_from_groups_to_engagement_db(telegram_group_source, tele
 
                     # The api returns messages from newest to oldest, cache the id of the newest seen message for this search
                     if cache is not None and cache_synced is False:
-                        cache.set_latest_group_min_id(group_cache_file_name, telegram_message.id)
+                        cache.set_latest_group_message_id(group_cache_file_name, telegram_message.id)
                         cache_synced = True
 
             log.info(f"Skipped {broad_cast_admin_messages} channel broadcast and admin reply messages ...")
