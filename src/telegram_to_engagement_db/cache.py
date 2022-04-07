@@ -20,7 +20,7 @@ class TelegramGroupSyncCache(Cache):
 
         :param group_cache_file_name: Name of file to fetch cached min_id from.
         :type group_cache_file_name: str
-        :param max_id: Latest seen message.id for the given group_id.
-        :type max_id: int
+        :param min_id: Latest seen message.id for the given group_id.
+        :type min_id: int
         """
         self.set_string(group_cache_file_name, str(min_id))
