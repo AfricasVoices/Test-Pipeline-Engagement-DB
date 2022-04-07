@@ -49,10 +49,11 @@ if __name__ == "__main__":
     async def main():
         for telegram_group_source in pipeline_config.telegram_group_sources:
 
-            telegram = await _initialize_telegram_client(telegram_group_source, pipeline, google_cloud_credentials_file_path)
+            telegram = await _initialize_telegram_client(telegram_group_source.token_file_url,
+                                                         google_cloud_credentials_file_path, pipeline)
 
-            await sync_messages_from_groups_to_engagement_db(incremental_cache_path, telegram_group_source, telegram,
-                                                             engagement_db, uuid_table)
+            await sync_messages_from_groups_to_engagement_db(telegram_group_source, telegram,
+                                                             engagement_db, uuid_table, incremental_cache_path)
 
     main_coroutine = main()
     asyncio.run(main_coroutine)
