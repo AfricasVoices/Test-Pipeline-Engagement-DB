@@ -15,7 +15,7 @@ from src.engagement_db_to_analysis.column_view_conversion import (convert_to_mes
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
 from src.engagement_db_to_analysis.membership_group import (tag_membership_groups_participants)
 
-from src.engagement_db_to_analysis.rapid_pro_advert_functions import sync_advert_contacts_to_rapidpro
+from src.engagement_db_to_analysis.rapid_pro_advert_functions import sync_advert_contacts_to_rapid_pro
 
 
 log = Logger(__name__)
@@ -131,5 +131,5 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
             )
 
     if pipeline_config.rapid_pro_target.sync_config.sync_advert_contacts:
-        sync_advert_contacts_to_rapidpro(participants_by_column, uuid_table, pipeline_config, rapid_pro,
+        sync_advert_contacts_to_rapid_pro(participants_by_column, uuid_table, pipeline_config, rapid_pro,
                              google_cloud_credentials_file_path, membership_group_dir_path, cache_path)

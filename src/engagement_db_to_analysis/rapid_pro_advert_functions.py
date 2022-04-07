@@ -187,7 +187,7 @@ def _sync_advert_contacts_fields_to_rapid_pro(cache, target_uuids, advert_contac
         log.info("Found 0 uuids to sync in this run skipping...")
 
 
-def sync_advert_contacts_to_rapidpro(participants_by_column, uuid_table, pipeline_config, rapid_pro,
+def sync_advert_contacts_to_rapid_pro(participants_by_column, uuid_table, pipeline_config, rapid_pro,
                                      google_cloud_credentials_file_path, membership_group_dir_path, cache_path):
     '''
     Syncs advert contacts to rapid_pro by:
