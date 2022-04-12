@@ -15,7 +15,7 @@ from src.telegram_to_engagement_db.cache import TelegramGroupSyncCache
 
 log = Logger(__name__)
 
-#TODO: move to social media tools?
+# TODO: move to social media tools
 async def _initialize_telegram_client(telegram_token_file_url, google_cloud_credentials_file_path, pipeline_name):
     """
     :param telegram_token_file_url: Path to the Google Cloud file path that contains telegram tokens api_id
@@ -43,7 +43,10 @@ async def _initialize_telegram_client(telegram_token_file_url, google_cloud_cred
     await telegram.start()
 
     # Ensure the client is authorized
-    if await telegram.is_user_authorized() == False:
+    # While authenticating the first time the client will send an auth code to the application phone number.
+    # The authentication details are stored in a session file to enable you authenticate automatically the next time the script runs.
+    # To re-authenticate delete the session file.
+    if not await telegram.is_user_authorized():
         await telegram.send_code_request(phone_number)
         try:
             await telegram.sign_in(phone_number, input(f"Enter the authorization code sent to "
@@ -57,52 +60,52 @@ async def _initialize_telegram_client(telegram_token_file_url, google_cloud_cred
     return telegram
 
 
-async def _fetch_message_from_group(telegram, group_id, dataset_end_date=None, min_id=None):
+async def _fetch_message_from_group(telegram, group_id, dataset_end_date=None, dataset_group_latest_seen_message_id=None):
     """
     :param telegram: Instance of telegram app to use to download the group messages from.
     :type telegram: telethon.client.telegramclient.TelegramClient
     :param group_id: Id of the telegram group to fetch messages from
     :type group_id: str
     :param dataset_end_date: Offset datetime, messages previous to this date will be retrieved. Exclusive
-    :type dataset_end_date: datetime | None
-    :param min_id: All the messages with a lower (older) ID or equal to this will be excluded.
-    :type min_id: int | None
+    :type dataset_group_latest_seen_message_id: datetime | None
+    :param dataset_group_latest_seen_message_id: All the messages with a lower (older) ID or equal to this will be excluded.
+    :type group_latest_seen_message_id: int | None
     :yields: Instances of telethon.tl.custom.message.Message
     """
     # Get group/channel entity
     group_entity = await telegram.get_entity(PeerChannel(int(group_id)))
 
     #Fetch messages messages based on dataset_offset_date and/or min_id filters if specified.
-    if dataset_end_date is None and min_id is None:
+    if dataset_end_date is None and dataset_group_latest_seen_message_id is None:
         log.info(f"Fetching all messages from group {group_id}")
         return telegram.iter_messages(group_entity)
 
-    elif dataset_end_date is not None and min_id is None:
+    elif dataset_end_date is not None and dataset_group_latest_seen_message_id is None:
         log.info(f"Fetching messages from group {group_id} sent before {dataset_end_date}, exclusive")
         return telegram.iter_messages(group_entity, offset_date=dataset_end_date)
 
-    elif dataset_end_date is None and min_id is not None:
-        log.info(f"Fetching messages from group {group_id} with message.id greater than {min_id}, exclusive")
-        return telegram.iter_messages(group_entity, min_id=int(min_id))
+    elif dataset_end_date is None and dataset_group_latest_seen_message_id is not None:
+        log.info(f"Fetching messages from group {group_id} with message.id greater than "
+                 f"{dataset_group_latest_seen_message_id}, exclusive")
+        return telegram.iter_messages(group_entity, min_id=int(dataset_group_latest_seen_message_id))
 
-    elif dataset_end_date is not None and min_id is not None:
+    elif dataset_end_date is not None and dataset_group_latest_seen_message_id is not None:
         log.info(f"Fetching messages from group {group_id} sent before {dataset_end_date} "
-                 f"and with message.id greater than {min_id}, both exclusive")
-        return telegram.iter_messages(group_entity, offset_date=dataset_end_date, min_id=int(min_id))
+                 f"and with message.id greater than {dataset_group_latest_seen_message_id}, both exclusive")
+        return telegram.iter_messages(group_entity, offset_date=dataset_end_date,
+                                      min_id=int(dataset_group_latest_seen_message_id))
 
 
-def _is_avf_messages(telegram_message):
+def _is_avf_message(telegram_message):
     """
     :param telegram_message: A telegram message object to check if it was sent by an admin or is a channel broadcast
-                             Returns True if a message.from_id is None (admin message) or is of the type PeerChannel
-                             (channel broadcast messages)
+                             Returns True if a message.from_id is None because admins send messages anonymously in the group
+                             and/or is of the type PeerChannel i.e channel broadcast messages.
     :type telegram_message: telethon.tl.custom.message.Message
     """
     # Skip messages sent by AVF group admins / channel broadcasts
     if (type(telegram_message.from_id) == PeerChannel or telegram_message.from_id is None):
         return True
-    else:
-        return False
 
 
 def _telegram_message_to_engagement_db_message(telegram_message, dataset, uuid_table):
@@ -124,7 +127,7 @@ def _telegram_message_to_engagement_db_message(telegram_message, dataset, uuid_t
     return Message(
         participant_uuid=participant_uuid,
         text=telegram_message.message,
-        timestamp=telegram_message.date.isoformat(),
+        timestamp=telegram_message.date,
         direction=MessageDirections.IN,
         channel_operator=channel_operator,
         status=MessageStatuses.LIVE,
@@ -204,18 +207,18 @@ async def sync_messages_from_groups_to_engagement_db(telegram_group_source, tele
         dataset_end_date = datetime.fromisoformat(dataset.search.end_date)
 
         for group_id in dataset.search.group_ids:
-            group_cache_file_name = f"{dataset.engagement_db_dataset}_{group_id}"
-            group_min_id = None if cache is None else cache.get_latest_group_message_id(group_cache_file_name)
+            group_cache_entry_name = f"{dataset.engagement_db_dataset}_{group_id}"
+            group_min_id = None if cache is None else cache.get_latest_group_message_id(group_cache_entry_name)
 
             # Fetch group messages sent before the dataset_end_date and/or contain message.id greater than min_id in
             # cache if available.
             group_messages = await _fetch_message_from_group(telegram, group_id, dataset_end_date, group_min_id)
 
             broad_cast_admin_messages = 0
-            cache_synced = False
+            dataset_group_latest_seen_message_id = None
             async for telegram_message in group_messages:
-                if _is_avf_messages(telegram_message):
-                    broad_cast_admin_messages +=1
+                if _is_avf_message(telegram_message):
+                    broad_cast_admin_messages += 1
                     continue
 
                 # Filter messages sent between this dataset start and end_time.
@@ -226,9 +229,12 @@ async def sync_messages_from_groups_to_engagement_db(telegram_group_source, tele
                                                                          uuid_table)
                     _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
 
-                    # The api returns messages from newest to oldest, cache the id of the newest seen message for this search
-                    if cache is not None and cache_synced is False:
-                        cache.set_latest_group_message_id(group_cache_file_name, telegram_message.id)
-                        cache_synced = True
+                # The api returns messages from newest to oldest, cache the id of the newest seen message for this search
+                    if dataset_group_latest_seen_message_id is None:
+                        dataset_group_latest_seen_message_id = telegram_message.id
+
+            # Cache only if the available group messages have been added to engagement db
+            if cache is not None:
+                cache.set_latest_group_message_id(group_cache_entry_name, dataset_group_latest_seen_message_id)
 
             log.info(f"Skipped {broad_cast_admin_messages} channel broadcast and admin reply messages ...")
