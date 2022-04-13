@@ -170,6 +170,21 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     # (If the cache or a contacts file for this workspace don't exist, `contacts` will be `None` for now)
     contacts = _get_contacts_from_cache(cache)
 
+    flow_result_configs = _get_flow_result_configs_from_cache(cache)
+    if flow_result_configs is not None:
+        updated_flow_result_configs = set(rapid_pro_config.flow_result_configurations)-set(flow_result_configs)
+        if updated_flow_result_configs:
+            for config in updated_flow_result_configs:
+                cache.reset_latest_run_timestamp(rapid_pro.get_flow_id(config.flow_name)) # or del..
+            cache.set_flow_result_configs(updated_flow_result_configs)
+
+    # get the flows configs that have changed and remove the cache for those flows
+    # Save current flow result config to cache
+    # json_string = json.dumps(rapid_pro_config.flow_result_configurations, default=lambda x: x.to_dict())
+    # print(json_string)
+    # exit(0)
+
+    # grouping flow results like this means if we change which result fields we're interested in for a particular flow, then we need to reprocess all the runs. At the moment, you have to manually remember to check whether the flow configs have changed and then manually reset the cache, which I think is too risky. Maybe have something which checks the configs are the same before proceeding with cached data
     flow_name_to_flow_configs = defaultdict(list)
     for flow_result_config in rapid_pro_config.flow_result_configurations:
         flow_name_to_flow_configs[flow_result_config.flow_name].append(flow_result_config)
@@ -180,6 +195,10 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
         flow_stats = FlowStats()
         # Get the latest runs for this flow.
         flow_id = rapid_pro.get_flow_id(flow_name)
+        # Add result config here at first and update if they have changed.
+        # If at first don't proceed with cached data. (Ensure cache is none first / pass a variable with none)
+        # If changed don't update eng db for other fields for the given timestamp in cache. deep (cache=None) - To fetch all runs again
+        # In this case don't update cache 
         runs = _get_new_runs(rapid_pro, flow_id, cache)
 
         # Get any contacts that have been updated since we last asked, in case any of the downloaded runs are for very
@@ -239,6 +258,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
             participant_uuid = uuid_table.data_to_uuid(contact_urn)
 
             for config in flow_configs:
+                # flow_last_updated = cache.get_latest_run_timestamp(flow_id)
+                # if run modified on < flow_last_updated: don't update if flow result not in new flow result
                 sync_stats = FlowResultToEngagementDBSyncStats()
                 # Get the relevant result from this run, if it exists.
                 rapid_pro_result = run.values.get(config.flow_result_field)
@@ -246,6 +267,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                     log.debug(f"Field `{config.flow_result_field}` has no relevant run result.")
                     sync_stats.add_event(RapidProSyncEvents.RUN_VALUE_EMPTY)
                 else:
+                    # {(deep, latest_timestamp)}
+                    # deep.modified_on is equal or greater than latest timestamp delete that file
                     # Create a message and origin objects for this result and ensure it's in the engagement database.
                     msg = Message(
                         participant_uuid=participant_uuid,
