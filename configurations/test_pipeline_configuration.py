@@ -49,6 +49,20 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             timezone="Africa/Mogadishu"
         )
     ],
+    google_form_sources=[
+        GoogleFormSource(
+            google_form_client=GoogleFormsClientConfiguration(
+                credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json"
+            ),
+            sync_config=GoogleFormToEngagementDBConfiguration(
+                form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
+                question_configurations=[
+                    QuestionConfiguration(question_title="Test Question 1", engagement_db_dataset="s01e01"),
+                    QuestionConfiguration(question_title="Test Question 2", engagement_db_dataset="s01e02")
+                ]
+            )
+        )
+    ],
     coda_sync=CodaConfiguration(
         coda=CodaClientConfiguration(credentials_file_url="gs://avf-credentials/coda-staging.json"),
         sync_config=CodaSyncConfiguration(
@@ -102,7 +116,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     rapid_pro_target=RapidProTarget(
         rapid_pro=RapidProClientConfiguration(
             domain="textit.com",
-            token_file_url="gs://avf-credentials/experimental-sync-test-textit-token.txt"
+            token_file_url="gs://avf-credentials/wusc-leap-kalobeyei-textit-token.txt"  #For testing as other workspaces are suspended
         ),
         sync_config=EngagementDBToRapidProConfiguration(
             consent_withdrawn_dataset=DatasetConfiguration(
@@ -112,7 +126,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             write_mode=WriteModes.CONCATENATE_TEXTS,
             # allow_clearing_fields is set somewhat arbitrarily here because this data isn't being used in flows.
             # A pipeline that has continuous sync back in production will need to consider the options carefully.
-            allow_clearing_fields=True
+            allow_clearing_fields=True,
+            weekly_advert_contact_field=ContactField(key="test_pipeline_weekly_advert_contacts",
+                                                     label="test pipeline weekly advert contacts"),
+            sync_advert_contacts = True,
         )
     ),
     analysis=AnalysisConfiguration(
@@ -136,7 +153,9 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                         code_scheme=load_code_scheme("s01e01"),
                         analysis_dataset="s01e01"
                     )
-                ]
+                ],
+            rapid_pro_non_relevant_field=ContactField(key="test_s01e01_non_relevant_contacts",
+                                          label = "test s01e01 non relevant contacts"),
             ),
             OperatorDatasetConfiguration(
                 raw_dataset="operator_raw",
