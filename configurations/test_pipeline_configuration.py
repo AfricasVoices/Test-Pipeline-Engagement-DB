@@ -57,8 +57,17 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             sync_config=GoogleFormToEngagementDBConfiguration(
                 form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
                 question_configurations=[
+                    # Multiple choice question with other
+                    QuestionConfiguration(question_title="What is your gender?", engagement_db_dataset="gender"),
+
+                    # Short answer
+                    QuestionConfiguration(question_title="What is your age?", engagement_db_dataset="age"),
+
+                    # Long answer
                     QuestionConfiguration(question_title="Test Question 1", engagement_db_dataset="s01e01"),
-                    QuestionConfiguration(question_title="Test Question 2", engagement_db_dataset="s01e02")
+
+                    # Short answer
+                    QuestionConfiguration(question_title="Test Question 2", engagement_db_dataset="s01e02"),
                 ]
             )
         )
