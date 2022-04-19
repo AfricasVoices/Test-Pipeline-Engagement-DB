@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9b5b02215c1dd694717951292da3f21df1896e5ce6eee84cb906f8ec7071c205"
+            "sha256": "387e2e8606082ce04a4e9e4042f52a52d8dac4201d5d86ccc1fa4dae921e7dbd"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -140,6 +140,9 @@
             "version": "==0.10.2"
         },
         "google-api-core": {
+            "extras": [
+                "grpc"
+            ],
             "hashes": [
                 "sha256:65480309a7437f739e4476da037af02a3ec8263f1d1f89f72bbdc8f54fe402d2",
                 "sha256:8fcbe52dc129fd83dca4e638a76f22b3a11579c493e643134e50e9870b233302"
@@ -634,6 +637,12 @@
             "markers": "python_version >= '3.7'",
             "version": "==3.20.0"
         },
+        "pyaes": {
+            "hashes": [
+                "sha256:02c1b1405c38d3c370b085fb952dd8bea3fadcee6411ad99f312cc129c536d8f"
+            ],
+            "version": "==1.6.1"
+        },
         "pyasn1": {
             "hashes": [
                 "sha256:014c0e9976956a08139dc0712ae195324a75e142284d5f87f1a87ee1b068a359",
@@ -867,6 +876,14 @@
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/SocialMediaTools",
             "ref": "187ad9cdca46858c90fd89ff37fcb67a34b0c40a"
+        },
+        "telethon": {
+            "hashes": [
+                "sha256:04fdc5fa4ed3e886e6ecf4bad79205ab8880c6aefbd42c29c89c689a502aa816",
+                "sha256:818cb61281ed3f75ba4da9b68cb69486bed9474d2db4e0aa16e482053117452c"
+            ],
+            "index": "pypi",
+            "version": "==1.24.0"
         },
         "threadpoolctl": {
             "hashes": [

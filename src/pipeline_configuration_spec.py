@@ -25,6 +25,7 @@ from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfigur
                                                          CodingConfiguration, GoogleDriveUploadConfiguration,
                                                          MembershipGroupConfiguration, AnalysisConfiguration)
 from src.facebook_to_engagement_db.configuration import (FacebookSource, FacebookDataset, FacebookSearch)
+from src.telegram_to_engagement_db.configuration import (TelegramGroupSource, TelegramGroupDataset, TelegramGroupSearch)
 
 
 def load_code_scheme(fname):
@@ -64,6 +65,7 @@ class PipelineConfiguration:
     description: str = None
     rapid_pro_sources: [RapidProSource] = None
     facebook_sources: Optional[List[FacebookSource]] = None
+    telegram_group_sources: Optional[List[TelegramGroupSource]] = None
     csv_sources: Optional[List[CSVSource]] = None
     google_form_sources: Optional[List[GoogleFormSource]] = None
     coda_sync: CodaConfiguration = None
