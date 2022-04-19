@@ -72,7 +72,7 @@ async def _fetch_message_from_group(telegram, group_id, end_date=None, start_mes
     :yields: Instances of telethon.tl.custom.message.Message
     """
     # Get group/channel entity
-    group_entity = await telegram.get_entity(PeerChannel(int(group_id)))
+    group_entity = await telegram.get_entity(PeerChannel(group_id))
 
     # Fetch messages messages based on dataset_offset_date and/or min_id filters if specified.
     if end_date is None and start_message_id is None:

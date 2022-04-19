@@ -26,7 +26,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     search=TelegramGroupSearch(
                         start_date="2022-03-20T00:00+03:00",
                         end_date="2022-03-30T00:00+03:00",
-                        group_ids=["1589865544"]
+                        group_ids=[1589865544]
                     )
                 ),
                 TelegramGroupDataset(
@@ -34,7 +34,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     search=TelegramGroupSearch(
                         start_date="2022-03-30T00:00+03:00",
                         end_date="2022-04-06T00:00+03:00",
-                        group_ids=["1589865544"]
+                        group_ids=[1589865544]
                     )
                 ),
                 TelegramGroupDataset(
@@ -42,7 +42,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     search=TelegramGroupSearch(
                         start_date="2022-04-06T00:00+03:00",
                         end_date="2022-04-08T00:00+03:00",
-                        group_ids=["1589865544"]
+                        group_ids=[1589865544]
                     )
                 ),
             ],
