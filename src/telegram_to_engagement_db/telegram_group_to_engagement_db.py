@@ -28,7 +28,6 @@ async def _initialize_telegram_client(telegram_token_file_url, google_cloud_cred
     :type pipeline: str
     :return telegram_client
     :rtype: telethon.client.telegramclient.TelegramClient
-
     """
     log.info('Downloading telegram access tokens...')
     telegram_tokens = json.loads(google_cloud_utils.download_blob_to_string(
@@ -105,6 +104,7 @@ def _is_avf_message(telegram_message):
     """
     # Skip messages sent by AVF group admins / channel broadcasts
     return (type(telegram_message.from_id) == PeerChannel or telegram_message.from_id is None)
+
 
 def _telegram_message_to_engagement_db_message(telegram_message, dataset, uuid_table):
     """
