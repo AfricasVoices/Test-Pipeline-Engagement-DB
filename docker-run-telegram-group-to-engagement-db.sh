@@ -39,7 +39,7 @@ docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
 CMD="pipenv run python -u sync_telegram_group_to_engagement_db.py ${INCREMENTAL_ARG} ${USER} \
-    /credentials/google-cloud-credentials.json configuration_file /data/metrics-dir"
+    /credentials/google-cloud-credentials.json configuration_file"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
     container="$(docker container create -w /app --mount source="$INCREMENTAL_CACHE_VOLUME_NAME",target=/cache "$IMAGE_NAME" /bin/bash -c "$CMD")"
@@ -59,13 +59,10 @@ docker cp "$CODE_SCHEMES_DIR" "$container:/app/code_schemes"
 
 echo "Copying $CONFIGURATION_FILE -> $container_short_id:/app/configuration.py"
 docker cp "$CONFIGURATION_FILE" "$container:/app/configuration.py"
+
 # Run the container
 echo "Starting container $container_short_id"
 docker start -a -i "$container"
-
-# Copy the output data back out of the container
-echo "Copying $container_short_id:/data/. -> $DATA_DIR"
-docker cp "$container:/data/." "$DATA_DIR/"
 
 # Copy cache data out of the container for backup
 if [[ "$INCREMENTAL_ARG" ]]; then
