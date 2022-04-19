@@ -19,7 +19,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     ),
     telegram_group_sources=[
         TelegramGroupSource(
-            token_file_url="gs://avf-credentials/dev-telegram-tokens.json",
+            token_file_url="gs://avf-credentials/dev-telegram-credentials.json",
             datasets=[
                 TelegramGroupDataset(
                     engagement_db_dataset="test_telegram_group_s01e01",
