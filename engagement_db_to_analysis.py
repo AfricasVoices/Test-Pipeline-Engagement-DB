@@ -46,7 +46,11 @@ if __name__ == "__main__":
 
     uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
-    rapid_pro = pipeline_config.rapid_pro_target.rapid_pro.init_rapid_pro_client(google_cloud_credentials_file_path)
+
+    if pipeline_config.rapid_pro_target is None:
+        rapid_pro = None
+    else:
+        rapid_pro = pipeline_config.rapid_pro_target.rapid_pro.init_rapid_pro_client(google_cloud_credentials_file_path)
 
     if pipeline_config.analysis is None:
         log.info(f"No analysis configuration specified; exiting")
