@@ -60,40 +60,40 @@ async def _initialize_telegram_client(telegram_token_file_url, google_cloud_cred
     return telegram
 
 
-async def _fetch_message_from_group(telegram, group_id, dataset_end_date=None, dataset_group_latest_seen_message_id=None):
+async def _fetch_message_from_group(telegram, group_id, end_date=None, start_message_id=None):
     """
     :param telegram: Instance of telegram app to use to download the group messages from.
     :type telegram: telethon.client.telegramclient.TelegramClient
     :param group_id: Id of the telegram group to fetch messages from
     :type group_id: str
-    :param dataset_end_date: Offset datetime, messages previous to this date will be retrieved. Exclusive
-    :type dataset_group_latest_seen_message_id: datetime | None
-    :param dataset_group_latest_seen_message_id: All the messages with a lower (older) ID or equal to this will be excluded.
-    :type group_latest_seen_message_id: int | None
+    :param end_date: Offset datetime, messages previous to this date will be retrieved. Exclusive
+    :type end_date: datetime | None
+    :param start_message_id: All the messages with a lower (older) ID or equal to this will be excluded.
+    :type start_message_id: int | None
     :yields: Instances of telethon.tl.custom.message.Message
     """
     # Get group/channel entity
     group_entity = await telegram.get_entity(PeerChannel(int(group_id)))
 
     # Fetch messages messages based on dataset_offset_date and/or min_id filters if specified.
-    if dataset_end_date is None and dataset_group_latest_seen_message_id is None:
+    if end_date is None and start_message_id is None:
         log.info(f"Fetching all messages from group {group_id}")
         return telegram.iter_messages(group_entity)
 
-    elif dataset_end_date is not None and dataset_group_latest_seen_message_id is None:
-        log.info(f"Fetching messages from group {group_id} sent before {dataset_end_date}, exclusive")
-        return telegram.iter_messages(group_entity, offset_date=dataset_end_date)
+    elif end_date is not None and start_message_id is None:
+        log.info(f"Fetching messages from group {group_id} sent before {end_date}, exclusive")
+        return telegram.iter_messages(group_entity, offset_date=end_date)
 
-    elif dataset_end_date is None and dataset_group_latest_seen_message_id is not None:
+    elif end_date is None and start_message_id is not None:
         log.info(f"Fetching messages from group {group_id} with message.id greater than "
-                 f"{dataset_group_latest_seen_message_id}, exclusive")
-        return telegram.iter_messages(group_entity, min_id=int(dataset_group_latest_seen_message_id))
+                 f"{start_message_id}, exclusive")
+        return telegram.iter_messages(group_entity, min_id=int(start_message_id))
 
-    elif dataset_end_date is not None and dataset_group_latest_seen_message_id is not None:
-        log.info(f"Fetching messages from group {group_id} sent before {dataset_end_date} "
-                 f"and with message.id greater than {dataset_group_latest_seen_message_id}, both exclusive")
-        return telegram.iter_messages(group_entity, offset_date=dataset_end_date,
-                                      min_id=int(dataset_group_latest_seen_message_id))
+    elif end_date is not None and start_message_id is not None:
+        log.info(f"Fetching messages from group {group_id} sent before {end_date} "
+                 f"and with message.id greater than {start_message_id}, both exclusive")
+        return telegram.iter_messages(group_entity, offset_date=end_date,
+                                      min_id=int(start_message_id))
 
 
 def _is_avf_message(telegram_message):
