@@ -304,10 +304,19 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         # Write the contact fields to rapid pro or if urn is not available e.g lg/telegram participants
         # create the contact and set the contact fields
         if not dry_run:
+            log.info(f"Syncing contact fields for {participant_uuid} to rapid pro...")
             try:
                 rapid_pro.update_contact(urn, contact_fields=contact_fields)
+
             except TembaNoSuchObjectError:
-                log.info(f'Creating new contact in rapid pro for uuid {participant_uuid}')
+                log.info(f"Contact not found in rapid pro!")
+
+                if not sync_config.sync_channel_operator_dataset.create_new_contacts:
+                    log.warning(f"Skipping creating this contact because create_new_contacts is set to"
+                             f" {sync_config.sync_channel_operator_dataset.create_new_contacts} in sync_config")
+                    continue
+
+                log.info(f"Creating contact and syncing its' contact fields in rapid pro..")
                 rapid_pro.create_contact(urns=[urn],  contact_fields=contact_fields)
 
         participants_synced_this_cycle.add(participant_uuid)
