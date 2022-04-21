@@ -6,6 +6,8 @@ from core_data_modules.cleaners import Codes
 from core_data_modules.data_models import CodeScheme
 from core_data_modules.logging import Logger
 
+from temba_client.exceptions import TembaNoSuchObjectError
+
 from src.common.cache import Cache
 from src.common.get_messages_in_datasets import get_messages_in_datasets
 from src.engagement_db_to_rapid_pro.configuration import WriteModes
@@ -31,6 +33,9 @@ def _engagement_db_datasets_in_sync_config(sync_config):
 
     if sync_config.consent_withdrawn_dataset is not None:
         engagement_db_datasets.update(sync_config.consent_withdrawn_dataset.engagement_db_datasets)
+
+    if sync_config.sync_channel_operator_dataset is not None:
+        engagement_db_datasets.update(sync_config.sync_channel_operator_dataset.engagement_db_datasets)
 
     return engagement_db_datasets
 
@@ -173,6 +178,34 @@ def _labels_contain_consent_withdrawn(labels, code_schemes):
 
     return False
 
+def _get_channel_operator_contact_field_for_participant(participant_messages, sync_config):
+    """
+    Gets the channel/operator contact field for a given participant and sync configuration.
+
+    :param participant_messages: All messages from the participant to process.
+    :type participant_messages: list of engagement_database.data_models.Message
+    :param sync_config: Sync config defining which messages to get.
+    :type sync_config: src.engagement_db_to_rapid_pro.configuration.EngagementDBToRapidProConfiguration
+    :return: Dictionary of Rapid Pro contact field id -> value.
+    :rtype: dict of str -> str
+    """
+    channel_operator_contact_field = dict()
+    channel_operator_contact_field_key = sync_config.sync_channel_operator_dataset.rapid_pro_contact_field.key
+    for message in participant_messages:
+        if message.dataset not in sync_config.sync_channel_operator_dataset.engagement_db_datasets:
+            continue
+
+        message_channel_operator = message.channel_operator
+        if len(channel_operator_contact_field) > 0:
+            assert channel_operator_contact_field[channel_operator_contact_field_key] == message_channel_operator, f'Found conflicting' \
+                f' operator names {channel_operator_contact_field[channel_operator_contact_field_key]} and {message_channel_operator}' \
+                f' for participant {message.participant_uuid}'
+            continue
+
+        channel_operator_contact_field[channel_operator_contact_field_key] = message_channel_operator
+
+    return channel_operator_contact_field
+
 
 def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_config, cache_path=None, dry_run=False):
     """
@@ -228,6 +261,9 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         for dataset_config in sync_config.normal_datasets] if sync_config.normal_datasets is not None else []
     if sync_config.consent_withdrawn_dataset is not None:
         contact_fields_to_sync.append(sync_config.consent_withdrawn_dataset.rapid_pro_contact_field)
+    if sync_config.sync_channel_operator_dataset is not None:
+        contact_fields_to_sync.append(sync_config.sync_channel_operator_dataset.rapid_pro_contact_field)
+
     _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields_to_sync)
 
     # Load all the project code schemes so we can easily scan for STOP messages later.
@@ -257,14 +293,22 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
             _get_consent_withdrawn_field_for_participant(messages_by_participant[participant_uuid], sync_config, code_schemes)
         )
 
+        contact_fields.update(
+            _get_channel_operator_contact_field_for_participant(messages_by_participant[participant_uuid], sync_config)
+        )
         # TODO: Update special group membership status e.g listening groups
 
         # Re-identify the participant.
         urn = uuid_table.uuid_to_data(participant_uuid)
 
-        # Write the contact fields to rapid pro
+        # Write the contact fields to rapid pro or if urn is not available e.g lg/telegram participants
+        # create the contact and set the contact fields
         if not dry_run:
-            rapid_pro.update_contact(urn, contact_fields=contact_fields)
+            try:
+                rapid_pro.update_contact(urn, contact_fields=contact_fields)
+            except TembaNoSuchObjectError:
+                log.info(f'Creating new contact in rapid pro for uuid {participant_uuid}')
+                rapid_pro.create_contact(urns=[urn],  contact_fields=contact_fields)
 
         participants_synced_this_cycle.add(participant_uuid)
         if cache is not None and not dry_run:
