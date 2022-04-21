@@ -57,6 +57,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             sync_channel_operator_dataset=DatasetConfiguration(
                 engagement_db_datasets=["test_telegram_group_s01e01", "test_telegram_group_s01e02", "test_telegram_group_s01e03"],
                 rapid_pro_contact_field=ContactField(key="channel_operator", label="channel operator"),
+                create_new_contacts = True # Whether to create a new rapidpro contact e.g lg/fgd/telegram group contacts
             ),
             write_mode=WriteModes.CONCATENATE_TEXTS,
             # allow_clearing_fields is set somewhat arbitrarily here because this data isn't being used in flows.

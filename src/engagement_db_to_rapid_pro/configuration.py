@@ -19,6 +19,7 @@ class ContactField:
 class DatasetConfiguration:
     engagement_db_datasets: [str]
     rapid_pro_contact_field: ContactField
+    create_new_contacts: bool = False
 
 
 @dataclass
