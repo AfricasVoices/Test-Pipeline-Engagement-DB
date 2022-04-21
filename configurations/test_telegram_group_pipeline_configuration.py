@@ -7,7 +7,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     pipeline_name="engagement-db-telegram-group-test",
     engagement_database=EngagementDatabaseClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
-        database_path="engagement_db_experiments/experimental_test"
+        database_path="engagement_db_experiments/telegram_group_test"
     ),
     uuid_table=UUIDTableClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
@@ -48,6 +48,25 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             ],
         )
     ],
+    rapid_pro_target=RapidProTarget(
+        rapid_pro=RapidProClientConfiguration(
+            domain="textit.com",
+            token_file_url="gs://avf-credentials/wusc-leap-kalobeyei-textit-token.txt"  #For testing as other workspaces are suspended
+        ),
+        sync_config=EngagementDBToRapidProConfiguration(
+            sync_channel_operator_dataset=DatasetConfiguration(
+                engagement_db_datasets=["test_telegram_group_s01e01", "test_telegram_group_s01e02", "test_telegram_group_s01e03"],
+                rapid_pro_contact_field=ContactField(key="channel_operator", label="channel operator"),
+            ),
+            write_mode=WriteModes.CONCATENATE_TEXTS,
+            # allow_clearing_fields is set somewhat arbitrarily here because this data isn't being used in flows.
+            # A pipeline that has continuous sync back in production will need to consider the options carefully.
+            allow_clearing_fields=True,
+            weekly_advert_contact_field=ContactField(key="test_pipeline_weekly_advert_contacts",
+                                                     label="test pipeline weekly advert contacts"),
+            sync_advert_contacts = True,
+        )
+    ),
     coda_sync=CodaConfiguration(
         coda=CodaClientConfiguration(credentials_file_url="gs://avf-credentials/coda-staging.json"),
         sync_config=CodaSyncConfiguration(

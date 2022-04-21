@@ -29,6 +29,6 @@ class EngagementDBToRapidProConfiguration:
     allow_clearing_fields: bool
     normal_datasets: Optional[List[DatasetConfiguration]] = None
     consent_withdrawn_dataset: Optional[DatasetConfiguration] = None
+    sync_channel_operator_dataset: Optional[DatasetConfiguration] = None
     write_mode: str = WriteModes.SHOW_PRESENCE
     sync_advert_contacts: bool = False   # Whether to sync advert contacts to rapid pro.
-
