@@ -1,7 +1,6 @@
 import json
 from collections import defaultdict
 from datetime import timedelta
-from itertools import groupby
 
 from core_data_modules.cleaners import URNCleaner
 from core_data_modules.logging import Logger
@@ -13,6 +12,17 @@ from src.rapid_pro_to_engagement_db.cache import RapidProSyncCache
 from src.rapid_pro_to_engagement_db.sync_stats import FlowStats, FlowResultToEngagementDBSyncStats, RapidProSyncEvents
 
 log = Logger(__name__)
+
+
+def _get_flow_result_configs_from_cache(cache=None):
+    """
+    :param cache: Cache to check for flow result configurations. If None, returns None.
+    :type cache: src.rapid_pro_to_engagement_db.cache.RapidProSyncCache | None
+    """
+    if cache is None:
+        return None
+    else:
+        return cache.get_flow_result_configs()
 
 
 def _get_contacts_from_cache(cache=None):
