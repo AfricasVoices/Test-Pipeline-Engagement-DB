@@ -170,6 +170,23 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     # (If the cache or a contacts file for this workspace don't exist, `contacts` will be `None` for now)
     contacts = _get_contacts_from_cache(cache)
 
+    # Check the configs are the same before proceeding with cached data
+    cached_flow_result_configs = _get_flow_result_configs_from_cache(cache)
+    if cached_flow_result_configs is None and cache is not None and not dry_run:
+        cache.set_flow_result_configs(rapid_pro_config.flow_result_configurations)
+    else:
+        cached_flow_result_configs = [d.to_dict() for d in cached_flow_result_configs]
+        updated_flow_result_configs = [config for config in rapid_pro_config.flow_result_configurations \
+                                        if config.to_dict() not in cached_flow_result_configs]            
+        if len(updated_flow_result_configs) > 0:
+            seen = set()
+            for config in updated_flow_result_configs:
+                if config.flow_name not in seen:
+                    cache.reset_latest_run_timestamp(rapid_pro.get_flow_id(config.flow_name))
+                    seen.add(config.flow_name)
+            if not dry_run:
+                cache.set_flow_result_configs(rapid_pro_config.flow_result_configurations)
+    
     flow_name_to_flow_configs = defaultdict(list)
     for flow_result_config in rapid_pro_config.flow_result_configurations:
         flow_name_to_flow_configs[flow_result_config.flow_name].append(flow_result_config)
