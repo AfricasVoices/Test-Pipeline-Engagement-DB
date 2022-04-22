@@ -13,8 +13,10 @@ from src.engagement_db_to_analysis.code_imputation_functions import (impute_code
 from src.engagement_db_to_analysis.column_view_conversion import (convert_to_messages_column_format,
                                                                   convert_to_participants_column_format)
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
-from src.engagement_db_to_analysis.membership_group import (get_membership_groups_csvs,
-                                                            tag_membership_groups_participants)
+from src.engagement_db_to_analysis.membership_group import (tag_membership_groups_participants)
+
+from src.engagement_db_to_analysis.rapid_pro_advert_functions import sync_advert_contacts_to_rapid_pro
+
 
 log = Logger(__name__)
 
@@ -49,8 +51,9 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
-def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, engagement_db, membership_group_dir_path,
-                            output_dir, cache_path=None, dry_run=False):
+def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, uuid_table, engagement_db, rapid_pro,
+                            membership_group_dir_path,output_dir, cache_path=None, dry_run=False):
+
     analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
     # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
 
@@ -90,15 +93,13 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     if pipeline_config.analysis.membership_group_configuration is not None:
 
         membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
-
-        log.info("Downloading membership groups CSVs from g-cloud...")
-        get_membership_groups_csvs(google_cloud_credentials_file_path, membership_group_csv_urls, membership_group_dir_path)
-
         log.info("Tagging membership group participants to messages_by_column traced data...")
-        tag_membership_groups_participants(user, messages_by_column, membership_group_csv_urls, membership_group_dir_path)
+        tag_membership_groups_participants(user, google_cloud_credentials_file_path, messages_by_column,
+                                           membership_group_csv_urls, membership_group_dir_path)
 
         log.info("Tagging membership group participants to participants_by_column traced data...")
-        tag_membership_groups_participants(user, participants_by_column, membership_group_csv_urls, membership_group_dir_path)
+        tag_membership_groups_participants(user, google_cloud_credentials_file_path, participants_by_column,
+                                           membership_group_csv_urls, membership_group_dir_path)
 
     export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/messages.csv", export_timestamps=True)
     export_analysis_file(participants_by_column, pipeline_config, f"{output_dir}/participants.csv")
@@ -128,3 +129,9 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
             google_drive_upload.upload_all_files_in_dir(
                 f"{output_dir}/automated-analysis", f"{drive_dir}/automated-analysis", recursive=True
             )
+
+    if pipeline_config.rapid_pro_target is not None and pipeline_config.rapid_pro_target.sync_config.sync_advert_contacts:
+        sync_advert_contacts_to_rapid_pro(
+            participants_by_column, uuid_table, pipeline_config, rapid_pro,
+            google_cloud_credentials_file_path, membership_group_dir_path, cache_path
+        )
