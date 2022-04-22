@@ -1,4 +1,7 @@
+import json
+from core_data_modules.util import IOUtils
 from src.common.cache import Cache
+from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 
 
 class RapidProSyncCache(Cache):
@@ -41,3 +44,25 @@ class RapidProSyncCache(Cache):
         :type timestamp: datetime.datetime
         """
         self.set_date_time(flow_id, timestamp)
+
+    def reset_latest_run_timestamp(self, flow_id):
+        """_summary_
+
+        :param flow_id: _description_
+        :type flow_id: _type_
+        """
+        self.delete_file(flow_id)
+
+    def set_flow_result_configs(self, configs):
+        export_path = f"{self.cache_dir}/flow_result_configurations.json"
+        IOUtils.ensure_dirs_exist_for_file(export_path)
+        with open(export_path, "w") as f:
+            json.dump([c.to_dict() for c in configs], f)
+
+    def get_flow_result_configs(self):
+        try:
+            print(f"{self.cache_dir}/flow_result_configurations.json")
+            with open(f"{self.cache_dir}/flow_result_configurations.json") as f:
+                return [FlowResultConfiguration.from_dict(d) for d in json.load(f)]
+        except FileNotFoundError:
+            return None

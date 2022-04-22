@@ -15,6 +15,18 @@ from src.rapid_pro_to_engagement_db.sync_stats import FlowStats, FlowResultToEng
 log = Logger(__name__)
 
 
+def _get_flow_result_configs_from_cache(cache=None):
+    """_summary_
+
+    :param cache: _description_, defaults to None
+    :type cache: _type_, optional
+    """
+    if cache is None:
+        return None
+    else:
+        return cache.get_flow_result_configs()
+
+
 def _get_contacts_from_cache(cache=None):
     """
     :param cache: Cache to check for contacts. If None, returns None.
