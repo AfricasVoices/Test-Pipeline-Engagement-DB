@@ -170,19 +170,21 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     # (If the cache or a contacts file for this workspace don't exist, `contacts` will be `None` for now)
     contacts = _get_contacts_from_cache(cache)
 
-    flow_result_configs = _get_flow_result_configs_from_cache(cache)
-    if flow_result_configs is not None:
-        updated_flow_result_configs = set(rapid_pro_config.flow_result_configurations)-set(flow_result_configs)
-        if updated_flow_result_configs:
+    cached_flow_result_configs = _get_flow_result_configs_from_cache(cache)
+    if cached_flow_result_configs is None and cache is not None and not dry_run:
+        cache.set_flow_result_configs(rapid_pro_config.flow_result_configurations)
+    else:
+        cached_flow_result_configs = [d.to_dict() for d in cached_flow_result_configs]
+        updated_flow_result_configs = [config for config in rapid_pro_config.flow_result_configurations \
+                                        if config.to_dict() not in cached_flow_result_configs]
+        if len(updated_flow_result_configs) > 0:
+            flows_updated = set()
             for config in updated_flow_result_configs:
-                cache.reset_latest_run_timestamp(rapid_pro.get_flow_id(config.flow_name)) # or del..
-            cache.set_flow_result_configs(updated_flow_result_configs)
-
-    # get the flows configs that have changed and remove the cache for those flows
-    # Save current flow result config to cache
-    # json_string = json.dumps(rapid_pro_config.flow_result_configurations, default=lambda x: x.to_dict())
-    # print(json_string)
-    # exit(0)
+                flows_updated.add(config.flow_name)
+            for flow_name in flows_updated:
+                cache.reset_latest_run_timestamp(rapid_pro.get_flow_id(flow_name))
+            if not dry_run:
+                cache.set_flow_result_configs(rapid_pro_config.flow_result_configurations)
 
     # grouping flow results like this means if we change which result fields we're interested in for a particular flow, then we need to reprocess all the runs. At the moment, you have to manually remember to check whether the flow configs have changed and then manually reset the cache, which I think is too risky. Maybe have something which checks the configs are the same before proceeding with cached data
     flow_name_to_flow_configs = defaultdict(list)
