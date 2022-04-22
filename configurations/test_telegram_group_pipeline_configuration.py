@@ -62,7 +62,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             write_mode=WriteModes.CONCATENATE_TEXTS,
             # allow_clearing_fields is set somewhat arbitrarily here because this data isn't being used in flows.
             # A pipeline that has continuous sync back in production will need to consider the options carefully.
-            allow_clearing_fields=True,
+            allow_clearing_fields = False,
             weekly_advert_contact_field=ContactField(key="test_pipeline_weekly_advert_contacts",
                                                      label="test pipeline weekly advert contacts"),
             sync_advert_contacts = True,
