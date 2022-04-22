@@ -298,11 +298,13 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                     sync_event = _ensure_engagement_db_has_message(engagement_db, msg, message_origin_details, dry_run)
                     sync_stats.add_event(sync_event)
                 dataset_to_sync_stats[f"{flow_name}.{config.flow_result_field}"].add_stats(sync_stats)
-            
-            # Update the cache so we know not to check this run again in this flow + result field context.
-            # TODO: Update the cache if we've read the last run, or the next run's last modified timestamp is greater
-            # than the run we are currently syncing.
-            if cache is not None and not dry_run:
+
+            have_read_last_run = (i == len(runs) - 1)
+            # Note that this ensures we don't update the time-based cache when we are processing runs with the same timestamp.
+            if not have_read_last_run:
+                has_timestamp_changed = runs[i + 1].modified_on > run.modified_on
+            # Update the cache so we know not to check this run again in this flow.
+            if not dry_run and cache is not None and (has_timestamp_changed or have_read_last_run):
                 cache.set_latest_run_timestamp(flow_id, run.modified_on)
 
         flow_name_to_flow_stats[flow_name] = flow_stats
