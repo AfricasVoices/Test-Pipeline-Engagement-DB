@@ -1,7 +1,12 @@
+import csv
+from io import StringIO
+
 from core_data_modules.logging import Logger
 from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO
 from core_data_modules.util import TimeUtils
+from dateutil.parser import isoparse
+from storage.google_cloud import google_cloud_utils
 
 from src.common.get_messages_in_datasets import get_messages_in_datasets
 from src.engagement_db_to_analysis import google_drive_upload
@@ -46,6 +51,64 @@ def _convert_messages_to_traced_data(user, messages_map):
     return messages_traced_data
 
 
+def exclude_messages_in_csv_url(google_cloud_credentials_file_path, messages_traced_data, exclude_messages_csv_url):
+    """
+    Filters out messages listed in a csv in Google Cloud Storage.
+
+    For each message in this csv, the closest message in time in `messages_traced_data` with the same participant uuid
+    and text will be excluded.
+
+    :param google_cloud_credentials_file_path: Path to credentials to use to access the csv.
+    :type google_cloud_credentials_file_path: str
+    :param messages_traced_data: Messages to filter.
+    :type messages_traced_data: list of core_data_modules.traced_data.TracedData
+    :param exclude_messages_csv_url: GS URL to a CSV containing messages to exclude.
+                                     The CSV must contain the headings 'avf-participant-uuid', 'text', and 'timestamp'.
+    :type exclude_messages_csv_url: str
+    :return: `messages_traced_data`, with the best matching messages to those in the exclusion csv removed.s
+    :rtype: list of core_data_modules.traced_data.TracedData
+    """
+    log.info(f"Downloading messages to exclude from {exclude_messages_csv_url}...")
+    messages_to_exclude_csv = \
+        google_cloud_utils.download_blob_to_string(google_cloud_credentials_file_path, exclude_messages_csv_url)
+    messages_to_exclude = list(csv.DictReader(StringIO(messages_to_exclude_csv)))
+    log.info(f"Downloaded {len(messages_to_exclude)} messages to exclude")
+
+    log.info(f"Searching for matching messages in the messages_traced_data...")
+    matching_message_ids = set()
+    for i, exclude_msg in enumerate(messages_to_exclude):
+        # Search the messages traced data for all the possible matches to this message to exclude.
+        # Possible matches are those message with the same text and participant_uuid which haven't already matched
+        # a message to be excluded.
+        possible_matching_messages = []
+        for msg_td in messages_traced_data:
+            if msg_td["message_id"] not in matching_message_ids and \
+                    msg_td["participant_uuid"] == exclude_msg["avf-participant-uuid"] and (
+                    msg_td["text"] == exclude_msg["text"] or msg_td["text"] is None and exclude_msg["text"] == ""):
+                possible_matching_messages.append(msg_td)
+
+        log.debug(f"Found {len(possible_matching_messages)} possible matches for message {i + 1}")
+
+        # Find the nearest message in time to this duplicate
+        timestamp_of_duplicate = isoparse(exclude_msg["timestamp"])
+        possible_matching_messages.sort(
+            key=lambda msg_td: abs((isoparse(msg_td["timestamp"]) - timestamp_of_duplicate).total_seconds())
+        )
+        nearest_match = possible_matching_messages[0]
+        nearest_timestamp = isoparse(nearest_match["timestamp"])
+        log.debug(f"Found best match: message_id '{nearest_match['message_id']}', time difference "
+                  f"{(nearest_timestamp - timestamp_of_duplicate).total_seconds()} seconds")
+
+        # Record that this nearest matching message should be excluded from the returned result set
+        matching_message_ids.add(nearest_match["message_id"])
+
+    # Return all messages except those that matched messages we were to exclude.
+    filtered_messages = [msg for msg in messages_traced_data if msg["message_id"] not in matching_message_ids]
+    log.info(f"Returning {len(filtered_messages)}/{len(messages_traced_data)} messages after excluding "
+             f"{len(messages_to_exclude)} requested messages")
+    return filtered_messages
+
+
 def export_traced_data(traced_data, export_path):
     with open(export_path, "w") as f:
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
@@ -70,6 +133,11 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     messages_map = get_messages_in_datasets(engagement_db, engagement_db_datasets, cache, dry_run)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
+
+    if pipeline_config.analysis.messages_to_exclude_csv_url is not None:
+        messages_traced_data = exclude_messages_in_csv_url(
+            google_cloud_credentials_file_path, messages_traced_data, pipeline_config.analysis.messages_to_exclude_csv_url
+        )
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 

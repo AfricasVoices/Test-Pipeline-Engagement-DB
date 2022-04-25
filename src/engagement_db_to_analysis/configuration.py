@@ -72,3 +72,4 @@ class AnalysisConfiguration:
     traffic_labels: Optional[Iterable[TrafficLabel]] = None
     google_drive_upload: Optional[GoogleDriveUploadConfiguration] = None
     membership_group_configuration: Optional[MembershipGroupConfiguration] = None
+    messages_to_exclude_csv_url: Optional[str] = None  # GS URL to a CSV containing messages to exclude from analysis.
