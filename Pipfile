@@ -4,10 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-CoreDataModules = {editable = true,git = "https://www.github.com/AfricasVoices/CoreDataModules",ref = "v0.16.1",extras=["mapping"]}
+CoreDataModules = {editable = true,git = "https://www.github.com/AfricasVoices/CoreDataModules",ref = "create_SocialMediaCodes",extras=["mapping"]}
 RapidProTools = {editable = true,git = "https://www.github.com/AfricasVoices/RapidProTools",ref = "create_contact"}
-CodaV2PythonClient = {editable = true,git = "https://www.github.com/AfricasVoices/CodaV2PythonClient",ref = "v0.1.4"}
-PipelineInfrastructure = {editable = true,git = "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",ref = "v0.1.3"}
 SocialMediaTools = {editable = true,git = "https://www.github.com/AfricasVoices/SocialMediaTools",ref = "v0.1.2"}
 telethon = "*"
 
