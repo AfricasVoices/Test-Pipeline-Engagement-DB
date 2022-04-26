@@ -121,7 +121,6 @@ def _telegram_message_to_engagement_db_message(telegram_message, dataset, uuid_t
     :rtype: engagement_database.data_models.Message
     """
 
-    # Format the telegram id to match rapid pro format "telegram:123456" and
     # Sometimes a telegram urn ends with an optional #<username> e.g. telegram:123456#testuser
     # To ensure we always get the same urn for the same telegram user, normalise telegram urns to exclude this
     # #<username>
