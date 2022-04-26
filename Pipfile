@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 CoreDataModules = {editable = true,git = "https://www.github.com/AfricasVoices/CoreDataModules",ref = "create_SocialMediaCodes",extras=["mapping"]}
 RapidProTools = {editable = true,git = "https://www.github.com/AfricasVoices/RapidProTools",ref = "create_contact"}
+PipelineInfrastructure = {editable = true,git = "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",ref = "v0.1.2"}
 SocialMediaTools = {editable = true,git = "https://www.github.com/AfricasVoices/SocialMediaTools",ref = "v0.1.2"}
 telethon = "*"
 
