@@ -226,7 +226,7 @@ async def sync_messages_from_groups_to_engagement_db(telegram_group_source, tele
 
                 message_origin_details = {"message_id": telegram_message.id,
                                           "group_id": telegram_message.peer_id.channel_id,
-                                          "timestamp": telegram_message.date,
+                                          "timestamp": telegram_message.date.isoformat(),
                                           "text": telegram_message.message,}
 
                 message = _telegram_message_to_engagement_db_message(telegram_message, dataset.engagement_db_dataset,
