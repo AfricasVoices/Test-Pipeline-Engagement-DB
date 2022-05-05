@@ -166,7 +166,7 @@ def sync_google_form_to_engagement_db(google_form_client, engagement_db, form_co
         question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
 
     log.info(f"Downloading responses to form '{form_config.form_id}'...")
-    responses = google_form_client.get_form_responses(form_config.form_id)["responses"]
+    responses = google_form_client.get_form_responses(form_config.form_id)
     log.info(f"Downloaded {len(responses)} response(s)")
 
     for i, response in enumerate(responses):

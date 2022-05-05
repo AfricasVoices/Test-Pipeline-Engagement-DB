@@ -1,5 +1,8 @@
 import google.oauth2.service_account
+from core_data_modules.logging import Logger
 from googleapiclient import discovery
+
+log = Logger(__name__)
 
 SCOPES = [
     "https://www.googleapis.com/auth/forms.body.readonly",
@@ -31,4 +34,19 @@ class GoogleFormsClient:
         return self.client.forms().get(formId=form_id).execute()
 
     def get_form_responses(self, form_id):
-        return self.client.forms().responses().list(formId=form_id).execute()
+        # Download the first page of responses
+        page_responses = self.client.forms().responses().list(formId=form_id).execute()
+        all_responses = page_responses.get("responses", [])
+        page_count = 1
+        log.info(f"Downloaded 1 page, {len(all_responses)} total responses")
+
+        # Download all the remaining pages of responses
+        while "nextPageToken" in page_responses:
+            page_responses = self.client.forms().responses().list(
+                formId=form_id, pageToken=page_responses["nextPageToken"]
+            ).execute()
+            page_count += 1
+            all_responses.extend(page_responses.get("responses", []))
+            log.info(f"Downloaded {page_count} pages, {len(all_responses)} total responses")
+
+        return all_responses
