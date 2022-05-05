@@ -194,7 +194,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 if config.flow_name not in seen:
                     cache.reset_latest_run_timestamp(rapid_pro.get_flow_id(config.flow_name))
                     seen.add(config.flow_name)
-            if not dry_run:
+            if not dry_run and cache is not None:
                 cache.set_flow_result_configs(rapid_pro_config.flow_result_configurations)
     
     flow_name_to_flow_configs = defaultdict(list)
@@ -212,7 +212,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
         # Get any contacts that have been updated since we last asked, in case any of the downloaded runs are for very
         # new contacts.
         contacts = rapid_pro.update_raw_contacts_with_latest_modified(contacts)
-        if cache is not None and not dry_run:
+        if not dry_run and cache is not None:
             cache.set_contacts(contacts)
         contacts_lut = {c.uuid: c for c in contacts}
 
@@ -227,7 +227,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 log.debug("No relevant run result; skipping")
                 flow_stats.add_event(RapidProSyncEvents.RUN_EMPTY)
                 # Update the cache so we know not to check this run again in this flow.
-                if cache is not None:
+                if not dry_run and cache is not None:
                     cache.set_latest_run_timestamp(flow_id, run.modified_on)
                 continue
 
@@ -237,7 +237,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                             f"This is most likely because the contact was deleted, but could suggest a more serious "
                             f"problem.")
                 flow_stats.add_event(RapidProSyncEvents.RUN_CONTACT_UUID_NOT_IN_CONTACTS)
-                if cache is not None and not dry_run:
+                if not dry_run and cache is not None:
                     cache.set_latest_run_timestamp(flow_id, run.modified_on)
                 continue
             contact = contacts_lut[run.contact.uuid]
@@ -252,14 +252,14 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                     log.info("A uuid filter was specified but the message is not from a participant in the "
                             "uuid_table; skipping")
                     flow_stats.add_event(RapidProSyncEvents.UUID_FILTER_CONTACT_NOT_IN_UUID_TABLE)
-                    if cache is not None and not dry_run:
+                    if not dry_run and cache is not None:
                         cache.set_latest_run_timestamp(flow_id, run.modified_on)
                     continue
                 if uuid_table.data_to_uuid(contact_urn) not in valid_participant_uuids:
                     log.info("A uuid filter was specified and the message is from a participant in the "
                             "uuid_table but is not in the uuid filter; skipping")
                     flow_stats.add_event(RapidProSyncEvents.CONTACT_NOT_IN_UUID_FILTER)
-                    if cache is not None and not dry_run:
+                    if not dry_run and cache is not None:
                         cache.set_latest_run_timestamp(flow_id, run.modified_on)
                     continue
 
