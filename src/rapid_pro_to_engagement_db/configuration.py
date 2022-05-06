@@ -4,6 +4,8 @@ from typing import Dict, Optional
 
 
 class FlowResultConfiguration:
+    """TODO:_summary_
+    """
 
     def __init__(self, flow_name: str, flow_result_field: str, engagement_db_dataset: str):
         self.flow_name = flow_name
@@ -27,12 +29,16 @@ class FlowResultConfiguration:
 
 
 class UuidFilter:
+    """TODO:_summary_
+    """
 
     def __init__(self, uuid_file_url: str):
         self.uuid_file_url = uuid_file_url
 
 
 class RapidProToEngagementDBConfiguration:
+    """TODO:_summary_
+    """
 
     def __init__(self, flow_result_configurations: [FlowResultConfiguration], uuid_filter: Optional[UuidFilter] = None):
         self.flow_result_configurations = flow_result_configurations
