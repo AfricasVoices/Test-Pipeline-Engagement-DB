@@ -45,10 +45,11 @@ class CodaSyncConfiguration:
                     return config
 
         except  ValueError:
-            print(f"Coda configuration does not contain a dateset_configuration with ws_code_string_value "
-                  f"'{string_value}'")
+            new_string_value = "kakuma_old_rqa_datasets"
 
-            new_string_value = "old_datasets"
+            print(f"Coda configuration does not contain a dateset_configuration with ws_code_string_value "
+                  f"'{string_value} moving message to {new_string_value}'")
+            
             for config in self.dataset_configurations:
                 if config.ws_code_string_value == new_string_value:
                     return config
