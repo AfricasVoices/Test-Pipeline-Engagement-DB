@@ -38,6 +38,31 @@ def _get_contacts_from_cache(cache=None):
         return cache.get_contacts()
 
 
+def _update_cache_with_changes_in_flow_result_configs(cache, flow_result_configurations, dry_run=False):
+    # TODO: Add docstring
+    if cache is None:
+        return
+
+    cached_flow_result_configs_configs = _get_flow_result_configs_from_cache(cache)
+    if cached_flow_result_configs_configs is None:
+        if not dry_run:
+            cache.set_flow_result_configs(flow_result_configurations)
+        return
+
+    cached_flow_result_configs_configs = [d.to_dict() for d in cached_flow_result_configs_configs]
+    updated_configs = [config for config in flow_result_configurations
+                       if config.to_dict() not in cached_flow_result_configs_configs]
+
+    if len(updated_configs) > 0:
+        seen = set()
+        for config in updated_configs:
+            if config.flow_name not in seen:
+                cache.reset_latest_run_timestamp(rapid_pro.get_flow_id(config.flow_name))
+                seen.add(config.flow_name)
+        if not dry_run:
+            cache.set_flow_result_configs(flow_result_configurations)
+
+
 def _get_new_runs(rapid_pro, flow_id, cache=None):
     """
     Gets new runs from Rapid Pro for the given flow.
@@ -181,24 +206,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     contacts = _get_contacts_from_cache(cache)
 
     # Check the configs are the same before proceeding with cached data
-    if cache is not None:
-        cached_flow_result_configs = _get_flow_result_configs_from_cache(cache)
-        if cached_flow_result_configs is None:
-            if not dry_run:
-                cache.set_flow_result_configs(rapid_pro_config.flow_result_configurations)
-        else:
-            cached_flow_result_configs = [d.to_dict() for d in cached_flow_result_configs]
-            updated_flow_result_configs = [config for config in rapid_pro_config.flow_result_configurations \
-                                            if config.to_dict() not in cached_flow_result_configs]            
-            if len(updated_flow_result_configs) > 0:
-                seen = set()
-                for config in updated_flow_result_configs:
-                    if config.flow_name not in seen:
-                        cache.reset_latest_run_timestamp(rapid_pro.get_flow_id(config.flow_name))
-                        seen.add(config.flow_name)
-                if not dry_run:
-                    cache.set_flow_result_configs(rapid_pro_config.flow_result_configurations)
-    
+    _update_cache_with_changes_in_flow_result_configs(cache, rapid_pro_config.flow_result_configurations, dry_run=dry_run)
+
     flow_name_to_flow_configs = defaultdict(list)
     for flow_result_config in rapid_pro_config.flow_result_configurations:
         flow_name_to_flow_configs[flow_result_config.flow_name].append(flow_result_config)
@@ -252,14 +261,14 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 # table entry for people who didn't consent for us to continue to keep their data.
                 if not uuid_table.has_data(contact_urn):
                     log.info("A uuid filter was specified but the message is not from a participant in the "
-                            "uuid_table; skipping")
+                             "uuid_table; skipping")
                     flow_stats.add_event(RapidProSyncEvents.UUID_FILTER_CONTACT_NOT_IN_UUID_TABLE)
                     if not dry_run and cache is not None:
                         cache.set_latest_run_timestamp(flow_id, run.modified_on)
                     continue
                 if uuid_table.data_to_uuid(contact_urn) not in valid_participant_uuids:
                     log.info("A uuid filter was specified and the message is from a participant in the "
-                            "uuid_table but is not in the uuid filter; skipping")
+                             "uuid_table but is not in the uuid filter; skipping")
                     flow_stats.add_event(RapidProSyncEvents.CONTACT_NOT_IN_UUID_FILTER)
                     if not dry_run and cache is not None:
                         cache.set_latest_run_timestamp(flow_id, run.modified_on)
