@@ -53,7 +53,7 @@ class RapidProSyncCache(Cache):
         :param flow_id: Flow id.
         :type flow_id: str
         """
-        self.delete_file(flow_id)
+        self.clear_timestamp(flow_id)
 
     def set_flow_result_configs(self, configs):
         export_path = f"{self.cache_dir}/flow_result_configurations.json"

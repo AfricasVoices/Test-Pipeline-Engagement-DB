@@ -91,7 +91,10 @@ class Cache:
             for msg in messages:
                 f.write(f"{json.dumps(msg.to_dict(serialize_datetimes_to_str=True))}\n")
 
-    def delete_file(self, entry_name):
-        file_path = f"{self.cache_dir}/{entry_name}.txt"
-        IOUtils.ensure_dirs_exist_for_file(file_path)
+    def _delete_file(self, filename):
+        filepath = f"{self.cache_dir}/{filename}"
+        IOUtils.ensure_dirs_exist_for_file(filepath)
         remove(file_path)
+
+    def clear_timestamp(self, entry_name):
+        self._delete_file(f"{entry_name}.txt")
