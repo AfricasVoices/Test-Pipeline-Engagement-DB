@@ -63,7 +63,6 @@ class RapidProSyncCache(Cache):
 
     def get_flow_result_configs(self):
         try:
-            print(f"{self.cache_dir}/flow_result_configurations.json")
             with open(f"{self.cache_dir}/flow_result_configurations.json") as f:
                 return [FlowResultConfiguration.from_dict(d) for d in json.load(f)]
         except FileNotFoundError:
