@@ -173,7 +173,7 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
         coda_messages.sort(key=lambda msg: msg.last_updated)
     except TypeError:
         messages_without_last_updated_timestamp = [msg for msg in coda_messages if msg.last_updated is None]
-        _update_coda_messages_last_updated_timesamp(coda, dataset_config, messages_without_last_updated_timestamp)
+        _update_coda_messages_last_updated_timestamp(coda, dataset_config, messages_without_last_updated_timestamp)
         return sync_stats
 
     for i, coda_message in enumerate(coda_messages):
