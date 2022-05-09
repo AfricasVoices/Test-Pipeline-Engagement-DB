@@ -1,3 +1,6 @@
+from datetime import datetime
+
+import pytz
 from core_data_modules.logging import Logger
 from engagement_database.data_models import MessageStatuses
 from google.cloud import firestore
@@ -117,6 +120,26 @@ def _sync_coda_message_to_engagement_db(coda_message, engagement_db, engagement_
     return sync_stats
 
 
+def _update_coda_messages_last_updated_timestamp(coda, dataset_config, coda_messages, dry_run=False):
+    """
+    :param coda: Coda instance to update the message to.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
+    :param dataset_config: Configuration for the dataset to update.
+    :type dataset_config: src.engagement_db_coda_sync.configuration.CodaDatasetConfiguration
+    :param coda_messages: Coda messages to update.
+    :type coda_messages: list of core_data_modules.data_models.Message
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
+    """
+    for msg in coda_messages:
+        if msg.last_updated is not None:
+            continue
+        
+        msg.last_updated = datetime.now(pytz.timezone("utc"))
+        # Add the message to the Coda dataset.
+        if not dry_run:
+            coda.add_message_to_dataset(dataset_config.coda_dataset_id, coda_message)
+
 def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, dataset_config, cache=None, dry_run=False):
     """
     Syncs messages from one Coda dataset to an engagement database.
@@ -127,6 +150,8 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
     :type engagement_db: engagement_database.EngagementDatabase
     :param coda_config: Coda sync configuration.
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    :param dataset_config: Configuration for the dataset to sync.
+    :type dataset_config: src.engagement_db_coda_sync.configuration.CodaDatasetConfiguration
     :param cache: Coda sync cache.
     :type cache: src.engagement_db_coda_sync.cache.CodaSyncCache | None
     :param dry_run: Whether to perform a dry run.
@@ -145,7 +170,12 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
     for _ in coda_messages:
         sync_stats.add_event(CodaSyncEvents.READ_MESSAGE_FROM_CODA)
 
-    coda_messages.sort(key=lambda msg: msg.last_updated)
+    try:
+        coda_messages.sort(key=lambda msg: msg.last_updated)
+    except TypeError:
+        messages_without_last_updated_timestamp = [msg for msg in coda_messages if msg.last_updated is None]
+        _update_coda_messages_last_updated_timesamp(coda, dataset_config, messages_without_last_updated_timestamp)
+        return sync_stats
 
     for i, coda_message in enumerate(coda_messages):
         log.info(f"Processing Coda message {i + 1}/{len(coda_messages)}: {coda_message.message_id}...")
