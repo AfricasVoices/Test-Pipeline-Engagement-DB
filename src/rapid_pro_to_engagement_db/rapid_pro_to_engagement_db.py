@@ -43,15 +43,15 @@ def _update_cache_with_changes_in_flow_result_configs(cache, flow_result_configu
     if cache is None:
         return
 
-    cached_flow_result_configs_configs = _get_flow_result_configs_from_cache(cache)
-    if cached_flow_result_configs_configs is None:
+    cached_flow_result_configs = _get_flow_result_configs_from_cache(cache)
+    if cached_flow_result_configs is None:
         if not dry_run:
             cache.set_flow_result_configs(flow_result_configurations)
         return
 
-    cached_flow_result_configs_configs = [d.to_dict() for d in cached_flow_result_configs_configs]
+    cached_flow_result_configs = [d.to_dict() for d in cached_flow_result_configs]
     updated_configs = [config for config in flow_result_configurations
-                       if config.to_dict() not in cached_flow_result_configs_configs]
+                       if config.to_dict() not in cached_flow_result_configs]
 
     if len(updated_configs) > 0:
         seen = set()
