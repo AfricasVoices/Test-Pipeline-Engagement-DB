@@ -136,7 +136,6 @@ def _update_coda_messages_last_updated_timestamp(coda, dataset_config, coda_mess
             continue
         
         msg.last_updated = datetime.now(pytz.timezone("utc"))
-        # Add the message to the Coda dataset.
         if not dry_run:
             coda.add_message_to_dataset(dataset_config.coda_dataset_id, coda_message)
 
