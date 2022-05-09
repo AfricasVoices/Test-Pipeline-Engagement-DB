@@ -137,7 +137,7 @@ def _update_coda_messages_last_updated_timestamp(coda, dataset_config, coda_mess
         
         msg.last_updated = datetime.now(pytz.timezone("utc"))
         if not dry_run:
-            coda.add_message_to_dataset(dataset_config.coda_dataset_id, coda_message)
+            coda.add_message_to_dataset(dataset_config.coda_dataset_id, msg)
 
 def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, dataset_config, cache=None, dry_run=False):
     """
