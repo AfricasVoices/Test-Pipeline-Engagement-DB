@@ -274,18 +274,10 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
     coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(engagement_db_message.dataset)
     sync_events = []
 
-    # Check if the labels in the engagement database message already match those from the coda message, and that
-    # we don't need to WS-correct (in other words, that the dataset is correct).
-    # If they do, return without updating anything.
     ws_code = _get_ws_code(coda_message, coda_dataset_config, coda_config.ws_correct_dataset_code_scheme)
-    if engagement_db_message.labels == coda_message.labels and ws_code is None:
-        log.debug("Labels match")
-        sync_events.append(CodaSyncEvents.LABELS_MATCH)
-        return sync_events
 
-    log.debug("Updating database message labels to match those in Coda")
-
-    # WS-correct if there is a valid ws_code
+    correct_dataset = None
+    # If there is a valid ws_code, find the correct_dataset.
     if ws_code is not None:
         # Establish the correct dataset to move this message to.
         # To determine the dataset, the following strategies are tried, in this order:
@@ -308,12 +300,21 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
             else:
                 raise e
 
-        # Ensure the message isn't being WS-corrected to the dataset it's already in.
-        # TODO: Handle this case without crashing.
-        assert correct_dataset != engagement_db_message.dataset, \
-            f"Engagement db message '{engagement_db_message.message_id}' (text '{engagement_db_message.text}') " \
-            f"is being WS-corrected to dataset '{correct_dataset}', but is currently in this dataset already."
+    # Check if the labels in the engagement database message already match those from the coda message, and that
+    # we don't need to WS-correct (in other words, that the dataset is correct, or the message is being corrected
+    # to the dataset it is currently in).
+    # If they do, return without updating anything.
+    if engagement_db_message.labels == coda_message.labels and (
+            ws_code is None or correct_dataset == engagement_db_message.dataset):
+        log.debug("Labels match")
+        sync_events.append(CodaSyncEvents.LABELS_MATCH)
+        return sync_events
 
+    log.debug("Updating database message labels to match those in Coda")
+
+    # If a correct dataset has been specified, and this correct dataset is not the dataset which this message is
+    # currently in, redirect this message.
+    if correct_dataset is not None and correct_dataset != engagement_db_message.dataset:
         # Ensure this message isn't being moved to a dataset which it has previously been assigned to.
         # This is because if the message has already been in this new dataset, there is a chance there is an
         # infinite loop in the WS labels, which could get very expensive if we end up cycling this message through
@@ -346,8 +347,11 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
 
         sync_events.append(CodaSyncEvents.WS_CORRECTION)
         return sync_events
+    elif correct_dataset == engagement_db_message.dataset:
+        log.warning("Message is being WS-corrected to the dataset is currently in. Not moving the message.")
 
-    # We didn't find a WS label, so simply update the engagement database message to have the same labels as the
+    # We didn't WS correct (either because there was no WS message or because a message was being WS-corrected to
+    # its current dataset), so simply update the engagement database message to have the same labels as the
     # message in Coda.
     engagement_db_message.labels = coda_message.labels
     origin_details = {"coda_dataset": coda_dataset_config.coda_dataset_id,
