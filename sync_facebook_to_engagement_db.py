@@ -31,7 +31,7 @@ if __name__ == "__main__":
     incremental_cache_path = args.incremental_cache_path
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
-    metrics_dir_path = args.metrics_dir_path
+    metrics_dir_path = args.metrics_dir_path #TODO write to dashboard firebase db for graphing
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
 
     pipeline = pipeline_config.pipeline_name
