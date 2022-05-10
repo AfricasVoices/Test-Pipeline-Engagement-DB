@@ -20,13 +20,18 @@ if __name__ == "__main__":
                              "credentials bucket")
     parser.add_argument("configuration_module",
                         help="Configuration module to import e.g. 'configurations.test_config'. "
-                             "This module must contain a PIPELINE_CONFIGURATION property")
+                             "This module must contain a PIPELINE_CONFIGURATION property"),
+    parser.add_argument("metrics_dir_path", metavar="metrics-dir-path",
+                        help="Path to a directory to save any fetch-time engagement metrics to, for example "
+                             "facebook post engagement metrics")
+
 
     args = parser.parse_args()
 
     incremental_cache_path = args.incremental_cache_path
     user = args.user
     google_cloud_credentials_file_path = args.google_cloud_credentials_file_path
+    metrics_dir_path = args.metrics_dir_path #TODO write to dashboard firebase db for graphing
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
 
     pipeline = pipeline_config.pipeline_name
@@ -43,4 +48,4 @@ if __name__ == "__main__":
     uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
 
     sync_facebook_to_engagement_db(google_cloud_credentials_file_path, pipeline_config.facebook_sources, engagement_db,
-                                   uuid_table, incremental_cache_path)
+                                   uuid_table, metrics_dir_path, incremental_cache_path)

@@ -1,8 +1,11 @@
 from dateutil.parser import isoparse
+import csv
+
 
 from storage.google_cloud import google_cloud_utils
-from social_media_tools.facebook import FacebookClient, facebook_utils
+from social_media_tools.facebook import (FacebookClient, facebook_utils)
 from core_data_modules.logging import Logger
+from core_data_modules.util import IOUtils
 
 from engagement_database.data_models import (Message, MessageDirections, MessageOrigin, MessageStatuses,
                                              HistoryEntryOrigin)
@@ -121,10 +124,79 @@ def _get_facebook_post_ids(facebook_client, page_id, post_ids=None, search=None,
     return combined_post_ids
 
 
-def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_source,
-                                              engagement_db, uuid_table, cache=None):
+def _fetch_post_engagement_metrics(facebook_client, page_id, post, post_id, engagement_db_dataset):
     """
-    Fetches facebook comments from target pages and syncs them  to an engagement database.
+    Fetches engagement metrics for a facebook post.
+
+    :param facebook_client: Instance of the facebook page to generate the post metrics from.
+    :type facebook_client: social_media_tools.facebook_client.FacebookClient
+    :param page_id: Id of the page with the post.
+    :type page_id: str
+    :param post: Post to generate engagement metrics from.
+    :type post: dict.
+    :param post_id: Id of post to download the comments from.
+    :type post_id: str
+    :param engagement_db_dataset: Engagement db dataset name for this post.
+    :type engagement_db_dataset: str
+    :return post_metrics: dict of post engagement metrics
+    :rtype post_metrics: dict
+    """
+
+    post_engagement_metrics = facebook_client.get_metrics_for_post(
+        post_id, ["post_impressions", "post_impressions_unique",
+                  "post_engaged_users", "post_reactions_by_type_total"]
+    )
+    post_metrics = {
+        "Page ID": page_id,
+        "Dataset": engagement_db_dataset,
+        "Post URL": f"facebook.com/{post_id}",
+        "Post Created Time": post["created_time"],
+        "Post Text": post["message"],
+        "Post Type": facebook_utils.clean_post_type(post),
+        "Post Impressions": post_engagement_metrics["post_impressions"],
+        "Unique Post Impressions": post_engagement_metrics["post_impressions_unique"],
+        "Post Engaged Users": post_engagement_metrics["post_engaged_users"],
+        "Total Comments": post["comments"]["summary"]["total_count"],
+        "Visible (analysed) Comments": len(post_engagement_metrics),
+        # post_reactions_by_type_total is a dict of reaction_type -> total, but we're only interested in
+        # the total across all types, so sum all the values.
+        "Reactions": sum(
+            [type_total for type_total in post_engagement_metrics["post_reactions_by_type_total"].values()])
+    }
+
+    return post_metrics
+
+def _export_facebook_metrics_csv(facebook_metrics, facebook_metrics_dir_path):
+    """
+    Exports a csv file with facebook metrics.
+
+    :param facebook_metrics: List of dicts of post_ids ->  engagement metrics.
+    :type facebook_metrics: list
+    :param facebook_metrics_dir_path: Path to a directory to save facebook metrics CSV file.
+    :type facebook_metrics_dir_path: str
+    """
+
+    IOUtils.ensure_dirs_exist(facebook_metrics_dir_path)
+    headers = ["Page ID", "Dataset", "Post URL", "Post Created Time", "Post Text", "Post Type", "Post Impressions",
+               "Unique Post Impressions", "Post Engaged Users", "Total Comments", "Visible (analysed) Comments",
+               "Reactions"]
+
+    if len(facebook_metrics) == 0:
+        log.info("No Facebook posts detected, so don't write a metrics file.")
+        return
+
+    facebook_metrics.sort(key=lambda m: (m["Page ID"], m["Dataset"], m["Post Created Time"]))
+    with open(f"{facebook_metrics_dir_path}/facebook_metrics.csv", "w") as f:
+        writer = csv.DictWriter(f, fieldnames=headers, lineterminator="\n")
+        writer.writeheader()
+        for metric in facebook_metrics:
+            writer.writerow(metric)
+
+
+def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_source,
+                                              engagement_db, uuid_table, metrics_dir_path, cache=None):
+    """
+    Fetches facebook comments from target pages and syncs them to an engagement database.
 
     :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use when
                                                downloading facebook page token.
@@ -135,6 +207,8 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :param metrics_dir_path: Path to a directory to save facebook metrics CSV file.
+    :type metrics_dir_path: str
     :param cache: Cache to check for a timestamp of the latest seen comment. If None, downloads all comments.
     :type cache: src.facebook_to_engagement_db.FacebookSyncCache | None
     """
@@ -143,24 +217,31 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
     facebook_token = google_cloud_utils.download_blob_to_string(
         google_cloud_credentials_file_path, facebook_source.token_file_url).strip()
 
-    facebook = FacebookClient(facebook_token)
+    facebook_client = FacebookClient(facebook_token)
 
+    facebook_metrics = []
     for dataset in facebook_source.datasets:
         # Download and sync all the comments on all the posts in this dataset.
-        for post_id in _get_facebook_post_ids(facebook, facebook_source.page_id, search=dataset.search):
+        dataset_post_ids = _get_facebook_post_ids(facebook_client, facebook_source.page_id, search=dataset.search)
+        for post_id in dataset_post_ids:
             latest_comment_timestamp = None if cache is None else cache.get_latest_comment_timestamp(post_id)
-            post_comments = facebook.get_all_comments_on_post(
+            post_comments = facebook_client.get_all_comments_on_post(
                 post_id, ["from{id}", "parent", "attachments", "created_time", "message"],
                 )
 
             # Download the post and add it as context to all the comments. Adding a reference to the post under
             # which a comment was made enables downstream features such as post-type labelling and comment context
             # in Coda, as well as allowing us to track how many comments were made on each post.
-            post = facebook.get_post(post_id, fields=["attachments"])
+            post = facebook_client.get_post(post_id, fields=["attachments", "message", "created_time",
+                                                          "comments.filter(stream).limit(0).summary(true)"])
+
+            post_metrics = _fetch_post_engagement_metrics(facebook_client, facebook_source.page_id, post, post_id,
+                                                dataset.engagement_db_dataset)
+
+            facebook_metrics.append(post_metrics)
+
             for comment_count, comment in enumerate(post_comments):
                 log.info(f'Processing comment {comment_count}/{len(post_comments)} ')
-                comment["post"] = post
-
                 # Facebook only returns a parent if the comment is a reply to another comment.
                 # If there is no parent, set one to the empty-dict.
                 if "parent" not in comment:
@@ -193,9 +274,11 @@ def _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path
                     cache.set_latest_comment_timestamp(post_id, isoparse(comment['created_time']))
 
 
+    _export_facebook_metrics_csv(facebook_metrics, metrics_dir_path)
+
 
 def sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_sources, engagement_db, uuid_table,
-                                   cache_path):
+                                   metrics_dir_path, cache_path):
     """
     Syncs Facebook comments to an engagement database.
 
@@ -208,6 +291,8 @@ def sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :param metrics_dir_path: Path to a directory to save facebook metrics CSV file.
+    :type metrics_dir_path: str
     """
     if cache_path is None:
         cache = None
@@ -217,4 +302,4 @@ def sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_
 
     for i, facebook_source in enumerate(facebook_sources):
         _fetch_and_sync_facebook_to_engagement_db(google_cloud_credentials_file_path, facebook_source, engagement_db,
-                                                  uuid_table, cache)
+                                                  uuid_table, metrics_dir_path, cache)
