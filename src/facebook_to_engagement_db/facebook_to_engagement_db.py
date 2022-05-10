@@ -143,9 +143,9 @@ def _fetch_post_engagement_metrics(facebook_client, page_id, post, post_id, enga
     """
 
     post_engagement_metrics = facebook_client.get_metrics_for_post(
-                                                              post_id, ["post_impressions", "post_impressions_unique",
-                                                                "post_engaged_users", "post_reactions_by_type_total"]
-                                                            )
+        post_id, ["post_impressions", "post_impressions_unique",
+                  "post_engaged_users", "post_reactions_by_type_total"]
+    )
     post_metrics = {
         "Page ID": page_id,
         "Dataset": engagement_db_dataset,
