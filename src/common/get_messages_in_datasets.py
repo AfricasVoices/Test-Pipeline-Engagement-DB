@@ -3,7 +3,7 @@ from core_data_modules.logging import Logger
 log = Logger(__name__)
 
 
-def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
+def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, dry_run=False):
     """
     Gets messages in the specified datasets.
 
@@ -15,6 +15,8 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
                   specified, writes all the fetched messages to the cache and only queries for messages changed since
                   the most recently updated message in the cache.
     :type cache: src.common.cache.Cache
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: Dictionary of engagement db dataset -> list of Messages in dataset.
     :rtype: dict of str -> list of engagement_database.data_models.Message
     """
@@ -39,25 +41,30 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
             # run. We do this by searching for all messages that used to be in this dataset, that we haven't
             # already seen.
             latest_ws_message_timestamp = cache.get_date_time(f"{engagement_db_dataset}_ws")
-            if latest_ws_message_timestamp is None:
-                ws_corrected_messages_filter = lambda q: q \
-                    .where("previous_datasets", "array_contains", engagement_db_dataset)
-            else:
-                ws_corrected_messages_filter = lambda q: q \
-                    .where("previous_datasets", "array_contains", engagement_db_dataset) \
-                    .where("last_updated", ">", latest_ws_message_timestamp)
+            ws_corrected_messages_filter = lambda q: q \
+                .where("previous_datasets", "array_contains", engagement_db_dataset) \
+                .where("last_updated", ">", latest_ws_message_timestamp)
 
-            ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
+            downloaded_ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
 
-            log.info(f"Downloaded {len(updated_messages)} updated messages in this dataset, and "
+            # Filter ws_corrected_messages whose dataset == the engagement_db_dataset.
+            # This prevents messages that have the current dataset in their previous_datasets from being erroneously
+            # removed.
+            ws_corrected_messages = [msg for msg in downloaded_ws_corrected_messages if msg.dataset != engagement_db_dataset]
+
+            log.info(f"Downloaded {len(updated_messages)} updated messages in this dataset, "
                      f"{len(ws_corrected_messages)} messages that were previously in this dataset but have moved.")
+            log.debug(f"Also downloaded {len(downloaded_ws_corrected_messages) - len(ws_corrected_messages)} messages "
+                      f"that have this dataset in .dataset and .previous_datasets simultaneously. "
+                      f"Not moving these messages")
 
             # Update the latest seen ws message from this dataset
-            if len(ws_corrected_messages) > 0:
-                for msg in ws_corrected_messages:
+            if len(downloaded_ws_corrected_messages) > 0:
+                for msg in downloaded_ws_corrected_messages:
                     if latest_ws_message_timestamp is None or msg.last_updated > latest_ws_message_timestamp:
                         latest_ws_message_timestamp = msg.last_updated
-                cache.set_date_time(f"{engagement_db_dataset}_ws", latest_ws_message_timestamp)
+                if not dry_run:
+                    cache.set_date_time(f"{engagement_db_dataset}_ws", latest_ws_message_timestamp)
 
             cache_messages = cache.get_messages(engagement_db_dataset)
             for msg in cache_messages:
@@ -93,7 +100,7 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None):
             if latest_message_timestamp is None or msg_last_updated > latest_message_timestamp:
                 latest_message_timestamp = msg_last_updated
 
-        if cache is not None and latest_message_timestamp is not None:
+        if not dry_run and cache is not None and latest_message_timestamp is not None:
             # Export latest message timestamp to cache.
             if latest_message_timestamp is not None:
                 cache.set_date_time(engagement_db_dataset, latest_message_timestamp)

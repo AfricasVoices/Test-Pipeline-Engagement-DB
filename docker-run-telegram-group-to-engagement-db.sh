@@ -3,13 +3,10 @@
 set -e
 
 PROJECT_NAME="$(<configurations/docker_image_project_name.txt)"
-IMAGE_NAME=$PROJECT_NAME-engagement-db-to-analysis
+IMAGE_NAME=$PROJECT_NAME-telegram-group-to-engagement-db
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --dry-run)
-            DRY_RUN="--dry-run"
-            shift;;
         --incremental-cache-volume)
             INCREMENTAL_ARG="--incremental-cache-path /cache"
             INCREMENTAL_CACHE_VOLUME_NAME="$2"
@@ -24,9 +21,9 @@ done
 
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 5 ]]; then
-    echo "Usage: $0 
-    [--dry-run] [--incremental-cache-volume <incremental-cache-volume>] 
-    <user> <google-cloud-credentials-file-path> <configuration-module> <data-dir>"
+    echo "Usage: $0
+    [--incremental-cache-volume <incremental-cache-volume>]
+    <user> <google-cloud-credentials-file-path> <configuration-file> <code-schemes-dir> <data-dir>"
     exit
 fi
 
@@ -41,13 +38,13 @@ DATA_DIR=$5
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u engagement_db_to_analysis.py ${DRY_RUN} ${INCREMENTAL_ARG} ${USER} \
-    /credentials/google-cloud-credentials.json configuration /data/membership-groups /data/analysis-outputs"
+CMD="pipenv run python -u sync_telegram_group_to_engagement_db.py ${INCREMENTAL_ARG} ${USER} \
+    /credentials/google-cloud-credentials.json configuration"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
-    container="$(docker container create -w /app --mount source="$INCREMENTAL_CACHE_VOLUME_NAME",target=/cache "$IMAGE_NAME" /bin/bash -c "$CMD")"
+    container="$(docker container create -t -w /app --mount source="$INCREMENTAL_CACHE_VOLUME_NAME",target=/cache "$IMAGE_NAME" /bin/bash -c "$CMD")"
 else
-    container="$(docker container create -w /app "$IMAGE_NAME" /bin/bash -c "$CMD")"
+    container="$(docker container create -t -w /app "$IMAGE_NAME" /bin/bash -c "$CMD")"
 fi
 
 echo "Created container $container"
@@ -65,11 +62,7 @@ docker cp "$CONFIGURATION_FILE" "$container:/app/configuration.py"
 
 # Run the container
 echo "Starting container $container_short_id"
-docker start -a -i "$container"
-
-# Copy the output data back out of the container
-echo "Copying $container_short_id:/data/. -> $DATA_DIR"
-docker cp "$container:/data/." "$DATA_DIR"
+docker start -a "$container"
 
 # Copy cache data out of the container for backup
 if [[ "$INCREMENTAL_ARG" ]]; then

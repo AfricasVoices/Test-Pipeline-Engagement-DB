@@ -27,7 +27,8 @@ def _parse_date_string(date_string, timezone):
     :rtype: datetime.datetime
     """
     # Try parsing using a list of all the variants we've seen for expressing timestamps.
-    for date_format in ["%d/%m/%Y %H:%M", "%d/%m/%Y %H:%M:%S", "%Y/%m/%d %H:%M:%S.%f", "%Y/%m/%d %H:%M:%S"]:
+    for date_format in ["%d/%m/%Y %H:%M", "%d/%m/%Y %H:%M:%S", "%d/%m/%Y %H:%M:%S.%f", "%Y/%m/%d %H:%M:%S.%f",
+                        "%Y/%m/%d %H:%M:%S"]:
         try:
             parsed_raw_date = datetime.strptime(date_string, date_format)
             break
@@ -193,7 +194,7 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
         message_origin_details = {
             "csv_row_number": i,
             "csv_row_data": csv_msg,
-            "csv_sync_configuration": csv_source.to_dict(),
+            "csv_sync_configuration": csv_source.to_dict(serialize_datetimes_to_str=True),
             "csv_hash": csv_hash
         }
         sync_event = _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details, dry_run)
@@ -233,7 +234,7 @@ def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, 
     if cache_path is None:
         cache = None
     else:
-        cache = Cache(cache_path)
+        cache = Cache(f"{cache_path}/csv_to_engagement_db")
 
     source_to_sync_stats = dict()
     for i, csv_source in enumerate(csv_sources):
