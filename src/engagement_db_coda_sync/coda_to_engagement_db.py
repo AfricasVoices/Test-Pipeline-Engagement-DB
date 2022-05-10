@@ -1,6 +1,8 @@
 from core_data_modules.logging import Logger
 from engagement_database.data_models import MessageStatuses
 from google.cloud import firestore
+from datetime import datetime
+
 
 from src.engagement_db_coda_sync.cache import CodaSyncCache
 from src.engagement_db_coda_sync.lib import _update_engagement_db_message_from_coda_message
@@ -145,9 +147,13 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
     for _ in coda_messages:
         sync_stats.add_event(CodaSyncEvents.READ_MESSAGE_FROM_CODA)
 
-    coda_messages.sort(key=lambda msg: msg.last_updated)
+    #coda_messages.sort(key=lambda msg: msg.last_updated)
 
     for i, coda_message in enumerate(coda_messages):
+
+        if coda_message.last_updated is None:
+            coda_message.last_updated = datetime.now()
+
         log.info(f"Processing Coda message {i + 1}/{len(coda_messages)}: {coda_message.message_id}...")
         message_sync_stats = _sync_coda_message_to_engagement_db(
             coda_message, engagement_db, dataset_config.engagement_db_dataset, coda_config, dry_run
