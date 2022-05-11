@@ -1,14 +1,32 @@
 from core_data_modules.analysis import (engagement_counts, repeat_participations, theme_distributions, sample_messages,
-                                        AnalysisConfiguration, traffic_analysis)
+                                        AnalysisConfiguration, traffic_analysis, cross_tabs)
 from core_data_modules.analysis.mapping import participation_maps, kenya_mapper, somalia_mapper
 from core_data_modules.logging import Logger
 from core_data_modules.util import IOUtils
 
 from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_rqa_column_configs,
-                                                                  analysis_dataset_configs_to_demog_column_configs)
+                                                                  analysis_dataset_configs_to_demog_column_configs,
+                                                                  analysis_dataset_configs_to_column_configs)
 from src.engagement_db_to_analysis.configuration import AnalysisLocations
 
 log = Logger(__name__)
+
+
+def _get_column_config_with_dataset_name(dataset_name, column_configs):
+    """
+    Gets the column configuration with the given dataset_name.
+
+    :param dataset_name: Dataset to look-up.
+    :type dataset_name: str
+    :param column_configs: Configurations to search.
+    :type column_configs: list of core_data_modules.analysis.analysis_utils.AnalysisConfiguration
+    :return: Configuration with dataset_name property `dataset_name`.
+    :rtype: core_data_modules.analysis.analysis_utils.AnalysisConfiguration
+    """
+    for column_config in column_configs:
+        if column_config.dataset_name == dataset_name:
+            return column_config
+    raise LookupError(dataset_name)
 
 
 def run_automated_analysis(messages_by_column, participants_by_column, analysis_config, export_dir_path):
@@ -25,6 +43,7 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
     :type export_dir_path: str
     """
     log.info(f"Running automated analysis...")
+    all_column_configs = analysis_dataset_configs_to_column_configs(analysis_config.dataset_configurations)
     rqa_column_configs = analysis_dataset_configs_to_rqa_column_configs(analysis_config.dataset_configurations)
     demog_column_configs = analysis_dataset_configs_to_demog_column_configs(analysis_config.dataset_configurations)
     IOUtils.ensure_dirs_exist(export_dir_path)
@@ -52,6 +71,21 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
         theme_distributions.export_theme_distributions_csv(
             participants_by_column, "consent_withdrawn", demog_column_configs, [], f
         )
+
+    if analysis_config.cross_tabs is not None:
+        for cross_tabs_config in analysis_config.cross_tabs:
+            cross_tab_dataset_1 = cross_tabs_config[0]
+            cross_tab_dataset_2 = cross_tabs_config[1]
+
+            log.info(f"Exporting cross-tabs for {cross_tab_dataset_1} and {cross_tab_dataset_2}...")
+            cross_tab_column_config_1 = _get_column_config_with_dataset_name(cross_tab_dataset_1, all_column_configs)
+            cross_tab_column_config_2 = _get_column_config_with_dataset_name(cross_tab_dataset_2, all_column_configs)
+            with open(f"{export_dir_path}/cross_tabs_{cross_tab_dataset_1}_vs_{cross_tab_dataset_2}.csv", "w") as f:
+                cross_tabs.export_cross_tabs_csv(
+                    participants_by_column, "consent_withdrawn", cross_tab_column_config_1, cross_tab_column_config_2, f
+                )
+    else:
+        log.debug(f"Not exporting any cross-tabs because `analysis_config.cross_tabs` was None")
 
     log.info("Exporting up to 100 sample messages for each RQA code...")
     with open(f"{export_dir_path}/sample_messages.csv", "w") as f:

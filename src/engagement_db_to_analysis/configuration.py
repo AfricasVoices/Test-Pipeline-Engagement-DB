@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Tuple
 
 from core_data_modules.analysis.traffic_analysis import TrafficLabel
 from core_data_modules.data_models import CodeScheme
@@ -69,6 +69,7 @@ class MembershipGroupConfiguration:
 class AnalysisConfiguration:
     dataset_configurations: [AnalysisDatasetConfiguration]
     ws_correct_dataset_code_scheme: CodeScheme
+    cross_tabs: Optional[Iterable[Tuple[str, str]]] = None  # List of Pairs of CodingConfiguration dataset_names to compute cross-tabs between
     traffic_labels: Optional[Iterable[TrafficLabel]] = None
     google_drive_upload: Optional[GoogleDriveUploadConfiguration] = None
     membership_group_configuration: Optional[MembershipGroupConfiguration] = None
