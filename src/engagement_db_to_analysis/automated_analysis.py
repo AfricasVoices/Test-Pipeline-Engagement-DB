@@ -74,9 +74,7 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
 
     if analysis_config.cross_tabs is not None:
         for cross_tabs_config in analysis_config.cross_tabs:
-            cross_tab_dataset_1 = cross_tabs_config[0]
-            cross_tab_dataset_2 = cross_tabs_config[1]
-
+            (cross_tab_dataset_1, cross_tab_dataset_2) = cross_tabs_config
             log.info(f"Exporting cross-tabs for {cross_tab_dataset_1} and {cross_tab_dataset_2}...")
             cross_tab_column_config_1 = _get_column_config_with_dataset_name(cross_tab_dataset_1, all_column_configs)
             cross_tab_column_config_2 = _get_column_config_with_dataset_name(cross_tab_dataset_2, all_column_configs)
