@@ -1,9 +1,12 @@
+from collections import OrderedDict
+
 from core_data_modules.logging import Logger
 from dateutil.parser import isoparse
 from engagement_database.data_models import (Message, MessageDirections, MessageStatuses, MessageOrigin,
                                              HistoryEntryOrigin)
 
 from src.common.cache import Cache
+from src.google_form_to_engagement_db.sync_stats import GoogleFormToEngagementDBSyncStats, GoogleFormSyncEvents
 
 log = Logger(__name__)
 
@@ -121,16 +124,19 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     :type message: engagement_database.data_models.Message
     :param message_origin_details: Message origin details, to be logged in the HistoryEntryOrigin.details.
     :type message_origin_details: dict
+    :return: Sync event.
+    :rtype: str
     """
     if _engagement_db_has_message(engagement_db, message):
         log.debug(f"Message already in engagement database")
-        return
+        return GoogleFormSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
 
     log.debug(f"Adding message to engagement database dataset {message.dataset}...")
     engagement_db.set_message(
         message,
         HistoryEntryOrigin(origin_name="Google Form -> Database Sync", details=message_origin_details)
     )
+    return GoogleFormSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 
 def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_config, cache=None):
@@ -148,6 +154,8 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     :param cache: Cache to use, or None. If None, downloads all form responses. If a cache is specified, only fetches
                   responses last submitted after this function was last run.
     :type cache: src.common.cache.Cache
+    :return: sync_stats
+    :rtype: src.google_form_to_engagement_db.sync_stats.GoogleFormToEngagementDBSyncStats
     """
     log.info(f"Downloading structure of form {form_config.form_id}...")
     form = google_form_client.get_form(form_config.form_id)
@@ -179,11 +187,14 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
 
     # Process each response and ensure its answers are all in the engagement database.
     responses.sort(key=lambda resp: resp["lastSubmittedTime"])
+    sync_stats = GoogleFormToEngagementDBSyncStats()
     for i, response in enumerate(responses):
         log.info(f"Processing response {i + 1}/{len(responses)}...")
+        sync_stats.add_event(GoogleFormSyncEvents.READ_RESPONSE_FROM_GOOGLE_FORM)
         answers = response["answers"].values()
         for j, answer in enumerate(answers):
             log.info(f"Processing answer {j + 1}/{len(answers)} for response {i + 1}/{len(responses)}...")
+            sync_stats.add_event(GoogleFormSyncEvents.READ_ANSWER_FROM_RESPONSE)
             if answer["questionId"] not in question_id_to_engagement_db_dataset:
                 log.info(f"This answer is to question {answer['questionId']}, which isn't configured in this sync")
                 continue
@@ -195,12 +206,15 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                 "formId": form_config.form_id,
                 "answer": answer,
             }
-            _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
+            sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
+            sync_stats.add_event(sync_event)
 
         if cache is not None:
             if i == len(responses) - 1 or \
                     isoparse(responses[i + 1]["lastSubmittedTime"]) > isoparse(response["lastSubmittedTime"]):
                 cache.set_date_time(form_config.form_id, isoparse(response["lastSubmittedTime"]))
+
+    return sync_stats
 
 
 def _sync_google_form_source_to_engagement_db(google_cloud_credentials_file_path, form_source, engagement_db,
@@ -218,9 +232,11 @@ def _sync_google_form_source_to_engagement_db(google_cloud_credentials_file_path
     :param cache: Cache to use, or None. If None, downloads all form responses. If a cache is specified, only fetches
                   responses last submitted after this function was last run.
     :type cache: src.common.cache.Cache
+    :return: sync_stats
+    :rtype: src.google_form_to_engagement_db.sync_stats.GoogleFormToEngagementDBSyncStats
     """
     google_form_client = form_source.google_form_client.init_google_forms_client(google_cloud_credentials_file_path)
-    _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_source.sync_config, cache)
+    return _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_source.sync_config, cache)
 
 
 def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path, form_sources, engagement_db,
@@ -243,6 +259,20 @@ def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path
     if cache_path is not None:
         cache = Cache(cache_path)
 
+    form_id_to_sync_stats = OrderedDict()
+    all_sync_stats = GoogleFormToEngagementDBSyncStats()
     for i, form_source in enumerate(form_sources):
         log.info(f"Processing form configuration {i + 1}/{len(form_sources)}...")
-        _sync_google_form_source_to_engagement_db(google_cloud_credentials_file_path, form_source, engagement_db, cache)
+        form_id = form_source.sync_config.form_id
+        sync_stats = _sync_google_form_source_to_engagement_db(
+            google_cloud_credentials_file_path, form_source, engagement_db, cache
+        )
+        form_id_to_sync_stats[form_id] = sync_stats
+        all_sync_stats.add_stats(sync_stats)
+
+    for form_id, sync_stats in form_id_to_sync_stats.items():
+        log.info(f"Summary of actions for Google Form '{form_id}':")
+        sync_stats.print_summary()
+
+    log.info(f"Summary of actions for all Google Forms:")
+    all_sync_stats.print_summary()
