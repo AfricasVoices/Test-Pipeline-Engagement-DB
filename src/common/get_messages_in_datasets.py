@@ -129,29 +129,24 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
 
     # Filter out messages that don't meet the status conditions
     for engagement_db_dataset, messages in engagement_db_messages_map.items():
-        # Filter out messages that do not have status "live" or "stale"
-        active_messages = [msg for msg in messages if msg.status in {MessageStatuses.LIVE, MessageStatuses.STALE}]
-        log.info(f"Filtered {engagement_db_dataset} for live/stale message snapshots: "
-                 f"{len(active_messages)}/{len(messages)} messages remain")
+        # Find the messages that have status "live" or "stale"
+        live_messages = [msg for msg in messages if msg.status == MessageStatuses.LIVE]
+        stale_messages = [msg for msg in messages if msg.status == MessageStatuses.STALE]
+        log.info(f"Filtered {engagement_db_dataset} for live/stale messages: "
+                 f"{len(live_messages) + len(stale_messages)}/{len(messages)} messages remain "
+                 f"({len(live_messages)} live and {len(stale_messages)} stale)")
 
-        # Filter out stale messages for participants who sent a live message in that same dataset.
-        live_participants = {msg.participant_uuid for msg in messages if msg.status == MessageStatuses.LIVE}
-        live_messages = []
-        stale_messages_count = 0
-        for msg in active_messages:
-            if msg.status == MessageStatuses.LIVE:
-                live_messages.append(msg)
-                continue
-
-            assert msg.status == MessageStatuses.STALE
-            stale_messages_count += 1
+        # Find the active messages - that is, those that are live, and those that are stale where there is no
+        # live message from this participant in this dataset
+        live_participants = {msg.participant_uuid for msg in live_messages}
+        active_messages = list(live_messages)
+        for msg in stale_messages:
             if msg.participant_uuid not in live_participants:
-                live_messages.append(msg)
+                active_messages.append(msg)
 
         log.info(f"Filtered {engagement_db_dataset} to exclude stale messages from participants who have live "
-                 f"messages: {len(live_messages)}/{len(active_messages)} messages remain "
-                 f"(observed {stale_messages_count} total stale messages)")
+                 f"messages: {len(active_messages)}/{len(live_messages + stale_messages)} messages remain")
 
-        engagement_db_messages_map[engagement_db_dataset] = live_messages
+        engagement_db_messages_map[engagement_db_dataset] = active_messages
 
     return engagement_db_messages_map
