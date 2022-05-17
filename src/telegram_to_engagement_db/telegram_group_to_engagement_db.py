@@ -7,6 +7,7 @@ from telethon.tl.types import (PeerChannel)
 
 from storage.google_cloud import google_cloud_utils
 from core_data_modules.logging import Logger
+from core_data_modules.cleaners import SocialMediaCodes
 
 from engagement_database.data_models import (Message, MessageDirections, MessageOrigin, MessageStatuses,
                                              HistoryEntryOrigin)
@@ -119,8 +120,13 @@ def _telegram_message_to_engagement_db_message(telegram_message, dataset, uuid_t
     :return: `telegram_message` as an engagement db message.
     :rtype: engagement_database.data_models.Message
     """
-    participant_uuid = uuid_table.data_to_uuid(telegram_message.sender_id)
-    channel_operator = 'telegram'  # TODO move to core as a CONSTANT
+
+    # Sometimes a telegram urn ends with an optional #<username> e.g. telegram:123456#testuser
+    # To ensure we always get the same urn for the same telegram user, normalise telegram urns to exclude this
+    # #<username>
+    channel_operator = SocialMediaCodes.TELEGRAM
+    telegram_id =  f'{channel_operator}:{telegram_message.sender_id}'
+    participant_uuid = uuid_table.data_to_uuid(telegram_id.split("#")[0])
 
     return Message(
         participant_uuid=participant_uuid,
@@ -226,7 +232,7 @@ async def sync_messages_from_groups_to_engagement_db(telegram_group_source, tele
 
                 message_origin_details = {"message_id": telegram_message.id,
                                           "group_id": telegram_message.peer_id.channel_id,
-                                          "timestamp": telegram_message.date,
+                                          "timestamp": telegram_message.date.isoformat(),
                                           "text": telegram_message.message,}
 
                 message = _telegram_message_to_engagement_db_message(telegram_message, dataset.engagement_db_dataset,

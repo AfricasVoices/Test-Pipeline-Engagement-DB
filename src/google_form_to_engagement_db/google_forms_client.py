@@ -1,5 +1,9 @@
 import google.oauth2.service_account
+from core_data_modules.logging import Logger
+from dateutil.parser import isoparse
 from googleapiclient import discovery
+
+log = Logger(__name__)
 
 SCOPES = [
     "https://www.googleapis.com/auth/forms.body.readonly",
@@ -30,5 +34,39 @@ class GoogleFormsClient:
     def get_form(self, form_id):
         return self.client.forms().get(formId=form_id).execute()
 
-    def get_form_responses(self, form_id):
-        return self.client.forms().responses().list(formId=form_id).execute()
+    def get_form_responses(self, form_id, submitted_after_exclusive=None):
+        """
+        Gets responses to the requested form.
+
+        :param form_id: Form to download responses to.
+        :type form_id: str
+        :param submitted_after_exclusive: Datetime to filter responses for. If set, only downloads responses last
+                                          submitted after this datetime. If None, downloads responses from all of time.
+        :type submitted_after_exclusive: datetime.datetime | None
+        :return: List of dictionaries representing form responses.
+        :rtype: list of dict
+        """
+        timestamp_filter = None
+        timestamp_log = ""
+        if submitted_after_exclusive is not None:
+            timestamp_filter = f"timestamp > {submitted_after_exclusive.isoformat()}"
+            timestamp_log = f", last submitted after {submitted_after_exclusive}"
+
+        log.info(f"Downloading responses to form '{form_id}'{timestamp_log}")
+
+        # Download the first page of responses
+        page_responses = self.client.forms().responses().list(formId=form_id, filter=timestamp_filter).execute()
+        all_responses = page_responses.get("responses", [])
+        page_count = 1
+        log.info(f"Downloaded 1 page, {len(all_responses)} total responses")
+
+        # Download all the remaining pages of responses
+        while "nextPageToken" in page_responses:
+            page_responses = self.client.forms().responses().list(
+                formId=form_id, filter=timestamp_filter, pageToken=page_responses["nextPageToken"]
+            ).execute()
+            page_count += 1
+            all_responses.extend(page_responses.get("responses", []))
+            log.info(f"Downloaded {page_count} pages, {len(all_responses)} total responses")
+
+        return all_responses

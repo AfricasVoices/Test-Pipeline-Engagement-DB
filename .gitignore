@@ -109,7 +109,4 @@ venv.bak/
 # Vscode
 .vscode
 
-# Telegram
-*.session
-
-.DS_Store
+data/

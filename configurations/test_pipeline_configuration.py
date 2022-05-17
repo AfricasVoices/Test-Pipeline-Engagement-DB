@@ -230,6 +230,9 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             )
         ],
         ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset"),
+        cross_tabs=[
+            ("age_category", "gender"),
+        ],
         traffic_labels=[
             TrafficLabel(isoparse("2021-04-01T00:00+03:00"), isoparse("2021-05-01T00:00+03:00"), "April"),
             TrafficLabel(isoparse("2021-05-01T00:00+03:00"), isoparse("2021-06-01T00:00+03:00"), "May")

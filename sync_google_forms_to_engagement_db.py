@@ -48,7 +48,7 @@ if __name__ == "__main__":
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
     # uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
 
-    # TODO: Use uuid_table, --incremental-cache-path, and --dry-run flags as needed.
+    # TODO: Use uuid_table and --dry-run flags as needed.
     sync_google_form_sources_to_engagement_db(
-        google_cloud_credentials_file_path, pipeline_config.google_form_sources, engagement_db
+        google_cloud_credentials_file_path, pipeline_config.google_form_sources, engagement_db, incremental_cache_path
     )
