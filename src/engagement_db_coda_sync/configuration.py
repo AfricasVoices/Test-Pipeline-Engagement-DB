@@ -18,6 +18,7 @@ class CodaDatasetConfiguration:
     code_scheme_configurations: [CodeSchemeConfiguration]
     ws_code_string_value: str
     dataset_users_file_url: Optional[str] = None
+    update_users_and_code_schemes: bool = True
 
 
 @dataclass

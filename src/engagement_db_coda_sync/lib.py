@@ -45,6 +45,11 @@ def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_
 
     ws_correct_dataset_code_scheme = coda_config.ws_correct_dataset_code_scheme
     for dataset_config in coda_config.dataset_configurations:
+        if not dataset_config.update_users_and_code_schemes:
+            log.debug(f"Not updating the user ids or code schemes in coda dataset {dataset_config.coda_dataset_id} "
+                      f"because `update_users_and_code_schemes` is {dataset_config.update_users_and_code_schemes}")
+            continue
+        
         log.info(f"Updating user ids and code schemes in coda dataset '{dataset_config.coda_dataset_id}'")
         config_user_ids = []
         if dataset_config.dataset_users_file_url:
