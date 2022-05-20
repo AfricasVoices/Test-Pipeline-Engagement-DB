@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from core_data_modules.cleaners import PhoneCleaner
 from core_data_modules.logging import Logger
 from dateutil.parser import isoparse
 from engagement_database.data_models import (Message, MessageDirections, MessageStatuses, MessageOrigin,
@@ -36,6 +37,8 @@ def _validate_configuration_against_form_structure(form, form_config):
         assert question_config.question_title not in config_questions, \
             f"Question '{question_config.question_title} specified in configuration for form {form_config.form_id} twice"
         config_questions.add(question_config.question_title)
+    if form_config.participant_uuid_configuration is not None:
+        config_questions.add(form_config.participant_uuid_configuration.question_title)
 
     # Ensure that all questions requested in the configuration exist in the form.
     config_questions_not_in_form = config_questions - form_questions
@@ -51,7 +54,21 @@ def _validate_configuration_against_form_structure(form, form_config):
                     f"{form_questions_not_in_config}")
 
 
-def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, question_id_to_engagement_db_dataset):
+def get_participant_uuid_for_response(response, participant_uuid_question_id):
+    participant_id_answer = response["answers"].get(participant_uuid_question_id, None)
+    if participant_id_answer is None:
+        participant_uuid = response["responseId"]
+    else:
+        assert len(participant_id_answer["textAnswers"]["answers"]) == 1
+        participant_id = participant_id_answer["textAnswers"]["answers"][0]["value"]
+        participant_urn = validate_phone_number_and_format_as_urn(participant_id, "254", 12, {"10", "11", "7"})
+        participant_uuid = participant_urn
+
+    return participant_uuid
+
+
+def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, participant_uuid,
+                                          question_id_to_engagement_db_dataset):
     """
     Converts a Form answer to an engagement database message.
 
@@ -75,10 +92,7 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, q
     free_text_answer = free_text_answers[0]["value"]
 
     return Message(
-        # TODO: participant_uuid here is set simply to the response id for now.
-        #       If we want to connect responses to a means of communicating back to someone, then this would need
-        #       to be updated to use the uuid table.
-        participant_uuid=form_response["responseId"],
+        participant_uuid=participant_uuid,
         text=free_text_answer,
         timestamp=isoparse(form_response["createTime"]),
         direction=MessageDirections.IN,
@@ -139,6 +153,22 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     return GoogleFormSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 
+def validate_phone_number_and_format_as_urn(phone_number, country_code, valid_length, valid_prefixes=None):
+    # Normalise the phone number (removes spaces, non-numeric, and leading 0s).
+    phone_number = PhoneCleaner.normalise_phone(phone_number)
+
+    if phone_number.startswith(country_code):
+        assert len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) == 1
+    else:
+        assert len([p for p in valid_prefixes if phone_number.startswith(p)]) == 1
+        phone_number = f"{country_code}{phone_number}"
+
+    assert len(phone_number) == valid_length
+
+    urn = f"tel:{phone_number}"
+    return urn
+
+
 def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_config, cache=None):
     """
     Syncs a Google Form to an engagement database.
@@ -169,14 +199,16 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
         question_title_to_engagement_db_dataset[question_config.question_title] = question_config.engagement_db_dataset
 
     question_id_to_engagement_db_dataset = dict()
+    participant_uuid_question_id = None
     for item in form["items"]:
         question_id = item["questionItem"]["question"]["questionId"]
         question_title = item["title"]
-        if question_title not in question_title_to_engagement_db_dataset:
-            continue
-        engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
-
-        question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
+        if question_title in question_title_to_engagement_db_dataset:
+            engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
+            question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
+        if form_config.participant_uuid_configuration is not None and \
+                question_title == form_config.participant_uuid_configuration.question_title:
+            participant_uuid_question_id = question_id
 
     # Download responses
     last_seen_response_time = None if cache is None else cache.get_date_time(form_config.form_id)
@@ -191,16 +223,23 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     for i, response in enumerate(responses):
         log.info(f"Processing response {i + 1}/{len(responses)}...")
         sync_stats.add_event(GoogleFormSyncEvents.READ_RESPONSE_FROM_GOOGLE_FORM)
+
+        participant_uuid = get_participant_uuid_for_response(response, participant_uuid_question_id)
+
         answers = response["answers"].values()
         for j, answer in enumerate(answers):
             log.info(f"Processing answer {j + 1}/{len(answers)} for response {i + 1}/{len(responses)}...")
+            if answer["questionId"] == participant_uuid_question_id:
+                log.info(f"This answer is to the participant uuid question, skipping")
+                continue
+
             sync_stats.add_event(GoogleFormSyncEvents.READ_ANSWER_FROM_RESPONSE)
             if answer["questionId"] not in question_id_to_engagement_db_dataset:
                 log.info(f"This answer is to question {answer['questionId']}, which isn't configured in this sync")
                 continue
 
             message = _form_answer_to_engagement_db_message(
-                answer, form_config.form_id, response, question_id_to_engagement_db_dataset
+                answer, form_config.form_id, response, participant_uuid, question_id_to_engagement_db_dataset
             )
             message_origin_details = {
                 "formId": form_config.form_id,

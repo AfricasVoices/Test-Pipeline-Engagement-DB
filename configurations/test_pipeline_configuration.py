@@ -13,7 +13,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     ],
     engagement_database=EngagementDatabaseClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
-        database_path="engagement_db_experiments/experimental_test"
+        database_path="engagement_db_experiments/experimental_test_google_forms"
     ),
     uuid_table=UUIDTableClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
@@ -55,7 +55,12 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json"
             ),
             sync_config=GoogleFormToEngagementDBConfiguration(
-                form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
+                form_id="1Prz2IaQUe4Fy5tHwWPcUqEAO9JcmHs_4NnLIlAH2e_I",
+                # form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
+                participant_uuid_configuration=ParticipantUuidConfiguration(
+                    question_title="Mobile Number",
+                    uuid_type="kenya_telephone"  # TODO: Does this live in core?
+                ),
                 question_configurations=[
                     # Multiple choice question with other
                     QuestionConfiguration(question_title="What is your gender?", engagement_db_dataset="gender"),

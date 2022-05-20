@@ -23,6 +23,12 @@ class GoogleFormsClientConfiguration:
         return rapid_pro_client
 
 
+class ParticipantUuidConfiguration:
+    def __init__(self, question_title, uuid_type):
+        self.question_title = question_title
+        self.uuid_type = uuid_type
+
+
 class QuestionConfiguration:
     def __init__(self, question_title, engagement_db_dataset):
         """
@@ -37,7 +43,7 @@ class QuestionConfiguration:
 
 
 class GoogleFormToEngagementDBConfiguration:
-    def __init__(self, form_id, question_configurations):
+    def __init__(self, form_id, question_configurations, participant_uuid_configuration=None):
         """
         :param form_id: Id of Google Form to sync.
         :type form_id: str
@@ -46,6 +52,7 @@ class GoogleFormToEngagementDBConfiguration:
         """
         self.form_id = form_id
         self.question_configurations = question_configurations
+        self.participant_uuid_configuration = participant_uuid_configuration
 
 
 class GoogleFormSource:
