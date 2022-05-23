@@ -49,6 +49,8 @@ def _update_cache_with_changes_in_flow_result_configs(cache, flow_result_configu
             cache.set_flow_result_configs(flow_result_configurations)
         return
 
+    # TODO: Update the cache appropriately in the case a flow configuration has be removed.
+    #      - Enable the ability to reintergrate flow_result_config back after i.e swithching branches.
     cached_flow_result_configs = [d.to_dict() for d in cached_flow_result_configs]
     updated_flow_result_configs = [config for config in flow_result_configurations
                        if config.to_dict() not in cached_flow_result_configs]
