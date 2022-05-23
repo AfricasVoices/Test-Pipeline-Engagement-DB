@@ -50,12 +50,12 @@ def _update_cache_with_changes_in_flow_result_configs(cache, flow_result_configu
         return
 
     cached_flow_result_configs = [d.to_dict() for d in cached_flow_result_configs]
-    updated_configs = [config for config in flow_result_configurations
+    updated_flow_result_configs = [config for config in flow_result_configurations
                        if config.to_dict() not in cached_flow_result_configs]
 
-    if len(updated_configs) > 0:
+    if len(updated_flow_result_configs) > 0:
         seen = set()
-        for config in updated_configs:
+        for config in updated_flow_result_configs:
             if config.flow_name not in seen:
                 cache.reset_latest_run_timestamp(rapid_pro.get_flow_id(config.flow_name))
                 seen.add(config.flow_name)
