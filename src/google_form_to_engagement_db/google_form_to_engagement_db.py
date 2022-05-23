@@ -54,7 +54,7 @@ def _validate_configuration_against_form_structure(form, form_config):
                     f"{form_questions_not_in_config}")
 
 
-def get_participant_uuid_for_response(response, participant_uuid_question_id):
+def get_participant_uuid_for_response(response, participant_uuid_question_id, uuid_table):
     participant_id_answer = response["answers"].get(participant_uuid_question_id, None)
     if participant_id_answer is None:
         participant_uuid = response["responseId"]
@@ -62,7 +62,7 @@ def get_participant_uuid_for_response(response, participant_uuid_question_id):
         assert len(participant_id_answer["textAnswers"]["answers"]) == 1
         participant_id = participant_id_answer["textAnswers"]["answers"][0]["value"]
         participant_urn = validate_phone_number_and_format_as_urn(participant_id, "254", 12, {"10", "11", "7"})
-        participant_uuid = participant_urn
+        participant_uuid = uuid_table.data_to_uuid(participant_urn)
 
     return participant_uuid
 
@@ -169,7 +169,7 @@ def validate_phone_number_and_format_as_urn(phone_number, country_code, valid_le
     return urn
 
 
-def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_config, cache=None):
+def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_config, uuid_table, cache=None):
     """
     Syncs a Google Form to an engagement database.
 
@@ -181,6 +181,8 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     :type engagement_db: engagement_database.EngagementDatabase
     :param form_config: Configuration for the form to sync.
     :type form_config: src.google_form_to_engagement_db.configuration.GoogleFormToEngagementDBConfiguration
+    :param uuid_table: UUID table to use to de-identify contact urns.
+    :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
     :param cache: Cache to use, or None. If None, downloads all form responses. If a cache is specified, only fetches
                   responses last submitted after this function was last run.
     :type cache: src.common.cache.Cache
@@ -224,7 +226,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
         log.info(f"Processing response {i + 1}/{len(responses)}...")
         sync_stats.add_event(GoogleFormSyncEvents.READ_RESPONSE_FROM_GOOGLE_FORM)
 
-        participant_uuid = get_participant_uuid_for_response(response, participant_uuid_question_id)
+        participant_uuid = get_participant_uuid_for_response(response, participant_uuid_question_id, uuid_table)
 
         answers = response["answers"].values()
         for j, answer in enumerate(answers):
@@ -257,7 +259,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
 
 
 def _sync_google_form_source_to_engagement_db(google_cloud_credentials_file_path, form_source, engagement_db,
-                                              cache=None):
+                                              uuid_table, cache=None):
     """
     Syncs a Google Form source to an engagement database.
 
@@ -268,6 +270,8 @@ def _sync_google_form_source_to_engagement_db(google_cloud_credentials_file_path
     :type form_source: src.google_form_to_engagement_db.configuration.GoogleFormSource
     :param engagement_db: Engagement database to sync
     :type engagement_db: engagement_database.EngagementDatabase
+    :param uuid_table: UUID table to use to de-identify contact urns.
+    :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
     :param cache: Cache to use, or None. If None, downloads all form responses. If a cache is specified, only fetches
                   responses last submitted after this function was last run.
     :type cache: src.common.cache.Cache
@@ -275,11 +279,11 @@ def _sync_google_form_source_to_engagement_db(google_cloud_credentials_file_path
     :rtype: src.google_form_to_engagement_db.sync_stats.GoogleFormToEngagementDBSyncStats
     """
     google_form_client = form_source.google_form_client.init_google_forms_client(google_cloud_credentials_file_path)
-    return _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_source.sync_config, cache)
+    return _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_source.sync_config, uuid_table, cache)
 
 
 def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path, form_sources, engagement_db,
-                                              cache_path=None):
+                                              uuid_table, cache_path=None):
     """
     Syncs Google Forms to an engagement database.
 
@@ -290,6 +294,8 @@ def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path
     :type form_sources: list of src.google_form_to_engagement_db.configuration.GoogleFormSource
     :param engagement_db: Engagement database to sync
     :type engagement_db: engagement_database.EngagementDatabase
+    :param uuid_table: UUID table to use to de-identify contact urns.
+    :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
                        If None, runs in non-incremental mode.
     :type cache_path: str | None
@@ -304,7 +310,7 @@ def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path
         log.info(f"Processing form configuration {i + 1}/{len(form_sources)}...")
         form_id = form_source.sync_config.form_id
         sync_stats = _sync_google_form_source_to_engagement_db(
-            google_cloud_credentials_file_path, form_source, engagement_db, cache
+            google_cloud_credentials_file_path, form_source, engagement_db, uuid_table, cache
         )
         form_id_to_sync_stats[form_id] = sync_stats
         all_sync_stats.add_stats(sync_stats)
