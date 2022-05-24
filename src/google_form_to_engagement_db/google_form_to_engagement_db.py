@@ -55,6 +55,42 @@ def _validate_configuration_against_form_structure(form, form_config):
                     f"{form_questions_not_in_config}")
 
 
+def validate_phone_number_and_format_as_urn(phone_number, country_code, valid_length, valid_prefixes=None):
+    """
+    :param phone_number: Phone number to validate and format. This may be just the phone number or the phone number
+                         and country code, and may contain punctuation or alpha characters e.g. tel:+ or (0123) 70-40
+    :type phone_number: str
+    :param country_code: Expected country code. This method ensures the phone number begins with this country code,
+                         or adds it if not.
+    :type country_code: str
+    :param valid_length: Valid length of the phone number, including the country code.
+                         This function will fail with an assertion error if it sees a phone number that doesn't have
+                         this length.
+    :type valid_length: int
+    :param valid_prefixes: Optional list of prefixes to check. If provided, this function will ensure every phone
+                           number starts with one of these prefixes. For example, this could be used to ensure
+                           this is a mobile number, or to ensure it belongs to a valid network.
+    :type valid_prefixes: set of str | None
+    :return: Phone number as urn e.g. 'tel:+254700123123'
+    :rtype: str
+    """
+    # Normalise the phone number (removes spaces, non-numeric, and leading 0s).
+    phone_number = PhoneCleaner.normalise_phone(phone_number)
+
+    if phone_number.startswith(country_code):
+        if valid_prefixes is not None:
+            assert len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) == 1
+    else:
+        if valid_prefixes is not None:
+            assert len([p for p in valid_prefixes if phone_number.startswith(p)]) == 1
+        phone_number = f"{country_code}{phone_number}"
+
+    assert len(phone_number) == valid_length
+
+    urn = f"tel:{phone_number}"
+    return urn
+
+
 def get_participant_uuid_for_response(response, uuid_type, participant_uuid_question_id, uuid_table):
     """
     Gets the participant_uuid for the given response.
@@ -179,42 +215,6 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
         HistoryEntryOrigin(origin_name="Google Form -> Database Sync", details=message_origin_details)
     )
     return GoogleFormSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
-
-
-def validate_phone_number_and_format_as_urn(phone_number, country_code, valid_length, valid_prefixes=None):
-    """
-    :param phone_number: Phone number to validate and format. This may be just the phone number or the phone number
-                         and country code, and may contain punctuation or alpha characters e.g. tel:+ or (0123) 70-40
-    :type phone_number: str
-    :param country_code: Expected country code. This method ensures the phone number begins with this country code,
-                         or adds it if not.
-    :type country_code: str
-    :param valid_length: Valid length of the phone number, including the country code.
-                         This function will fail with an assertion error if it sees a phone number that doesn't have
-                         this length.
-    :type valid_length: int
-    :param valid_prefixes: Optional list of prefixes to check. If provided, this function will ensure every phone
-                           number starts with one of these prefixes. For example, this could be used to ensure
-                           this is a mobile number, or to ensure it belongs to a valid network.
-    :type valid_prefixes: set of str | None
-    :return: Phone number as urn e.g. 'tel:+254700123123'
-    :rtype: str
-    """
-    # Normalise the phone number (removes spaces, non-numeric, and leading 0s).
-    phone_number = PhoneCleaner.normalise_phone(phone_number)
-
-    if phone_number.startswith(country_code):
-        if valid_prefixes is not None:
-            assert len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) == 1
-    else:
-        if valid_prefixes is not None:
-            assert len([p for p in valid_prefixes if phone_number.startswith(p)]) == 1
-        phone_number = f"{country_code}{phone_number}"
-
-    assert len(phone_number) == valid_length
-
-    urn = f"tel:{phone_number}"
-    return urn
 
 
 def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_config, uuid_table, cache=None):
