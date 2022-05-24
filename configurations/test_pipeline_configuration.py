@@ -55,10 +55,9 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json"
             ),
             sync_config=GoogleFormToEngagementDBConfiguration(
-                form_id="1Prz2IaQUe4Fy5tHwWPcUqEAO9JcmHs_4NnLIlAH2e_I",
-                # form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
+                form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
                 participant_uuid_configuration=ParticipantUuidConfiguration(
-                    question_title="Mobile Number",
+                    question_title="Kenyan Mobile Number",
                     uuid_type=GoogleFormUuidTypes.KENYA_MOBILE_NUMBER
                 ),
                 question_configurations=[
