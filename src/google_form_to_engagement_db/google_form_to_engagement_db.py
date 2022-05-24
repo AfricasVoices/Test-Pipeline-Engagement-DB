@@ -274,8 +274,11 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
         log.info(f"Processing response {i + 1}/{len(responses)}...")
         sync_stats.add_event(GoogleFormSyncEvents.READ_RESPONSE_FROM_GOOGLE_FORM)
 
+        uuid_type = None
+        if form_config.participant_uuid_configuration is not None:
+            uuid_type = form_config.participant_uuid_configuration.uuid_type
         participant_uuid = _get_participant_uuid_for_response(
-            response, form_config.participant_uuid_configuration.uuid_type, participant_uuid_question_id, uuid_table
+            response, uuid_type, participant_uuid_question_id, uuid_table
         )
 
         answers = response["answers"].values()
