@@ -55,7 +55,7 @@ def _validate_configuration_against_form_structure(form, form_config):
                     f"{form_questions_not_in_config}")
 
 
-def validate_phone_number_and_format_as_urn(phone_number, country_code, valid_length, valid_prefixes=None):
+def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_length, valid_prefixes=None):
     """
     :param phone_number: Phone number to validate and format. This may be just the phone number or the phone number
                          and country code, and may contain punctuation or alpha characters e.g. tel:+ or (0123) 70-40
@@ -91,7 +91,7 @@ def validate_phone_number_and_format_as_urn(phone_number, country_code, valid_le
     return urn
 
 
-def get_participant_uuid_for_response(response, uuid_type, participant_uuid_question_id, uuid_table):
+def _get_participant_uuid_for_response(response, uuid_type, participant_uuid_question_id, uuid_table):
     """
     Gets the participant_uuid for the given response.
 
@@ -122,7 +122,7 @@ def get_participant_uuid_for_response(response, uuid_type, participant_uuid_ques
         # Get the
         assert uuid_type == GoogleFormUuidTypes.KENYA_MOBILE_NUMBER, \
             f"Participant id type {uuid_type} not recognised."
-        participant_urn = validate_phone_number_and_format_as_urn(
+        participant_urn = _validate_phone_number_and_format_as_urn(
             phone_number=participant_id, country_code="254", valid_length=12, valid_prefixes={"10", "11", "7"}
         )
 
@@ -274,7 +274,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
         log.info(f"Processing response {i + 1}/{len(responses)}...")
         sync_stats.add_event(GoogleFormSyncEvents.READ_RESPONSE_FROM_GOOGLE_FORM)
 
-        participant_uuid = get_participant_uuid_for_response(
+        participant_uuid = _get_participant_uuid_for_response(
             response, form_config.participant_uuid_configuration.uuid_type, participant_uuid_question_id, uuid_table
         )
 
