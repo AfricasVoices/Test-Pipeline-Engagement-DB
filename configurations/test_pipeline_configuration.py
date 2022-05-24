@@ -59,7 +59,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 # form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
                 participant_uuid_configuration=ParticipantUuidConfiguration(
                     question_title="Mobile Number",
-                    uuid_type="kenya_telephone"  # TODO: Does this live in core?
+                    uuid_type=GoogleFormUuidTypes.KENYA_MOBILE_NUMBER
                 ),
                 question_configurations=[
                     # Multiple choice question with other

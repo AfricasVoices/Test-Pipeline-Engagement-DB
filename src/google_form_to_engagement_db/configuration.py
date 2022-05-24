@@ -23,6 +23,10 @@ class GoogleFormsClientConfiguration:
         return rapid_pro_client
 
 
+class GoogleFormUuidTypes:
+    KENYA_MOBILE_NUMBER = "kenya_mobile_number"
+
+
 class ParticipantUuidConfiguration:
     def __init__(self, question_title, uuid_type):
         self.question_title = question_title

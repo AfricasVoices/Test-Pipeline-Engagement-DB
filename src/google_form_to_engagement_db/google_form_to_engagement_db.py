@@ -7,6 +7,7 @@ from engagement_database.data_models import (Message, MessageDirections, Message
                                              HistoryEntryOrigin)
 
 from src.common.cache import Cache
+from src.google_form_to_engagement_db.configuration import GoogleFormUuidTypes
 from src.google_form_to_engagement_db.sync_stats import GoogleFormToEngagementDBSyncStats, GoogleFormSyncEvents
 
 log = Logger(__name__)
@@ -54,14 +55,41 @@ def _validate_configuration_against_form_structure(form, form_config):
                     f"{form_questions_not_in_config}")
 
 
-def get_participant_uuid_for_response(response, participant_uuid_question_id, uuid_table):
+def get_participant_uuid_for_response(response, uuid_type, participant_uuid_question_id, uuid_table):
+    """
+    Gets the participant_uuid for the given response.
+
+    If the response contains an answer to a question with id `participant_uuid_question_id`, validates the contact
+    info given on the form and formats it as a URN.
+
+    If no answer or question_id is provided, uses the response id as the participant_uuid instead. In this case, the
+    response id is not de-identified via the uuid table.
+
+    :param response: Response to get the participant uuid for.
+    :type response: dict
+    :param uuid_type: A GoogleFormUuidType
+    :type uuid_type: str
+    :param participant_uuid_question_id: Id of the participant_uuid question.
+    :type participant_uuid_question_id: str | None
+    :param uuid_table: UUID table to use to de-identify the urn
+    :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :return: Participant uuid for this response.
+    :rtype: str
+    """
     participant_id_answer = response["answers"].get(participant_uuid_question_id, None)
     if participant_id_answer is None:
         participant_uuid = response["responseId"]
     else:
         assert len(participant_id_answer["textAnswers"]["answers"]) == 1
         participant_id = participant_id_answer["textAnswers"]["answers"][0]["value"]
-        participant_urn = validate_phone_number_and_format_as_urn(participant_id, "254", 12, {"10", "11", "7"})
+
+        # Get the
+        assert uuid_type == GoogleFormUuidTypes.KENYA_MOBILE_NUMBER, \
+            f"Participant id type {uuid_type} not recognised."
+        participant_urn = validate_phone_number_and_format_as_urn(
+            phone_number=participant_id, country_code="254", valid_length=12, valid_prefixes={"10", "11", "7"}
+        )
+
         participant_uuid = uuid_table.data_to_uuid(participant_urn)
 
     return participant_uuid
@@ -154,13 +182,33 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
 
 
 def validate_phone_number_and_format_as_urn(phone_number, country_code, valid_length, valid_prefixes=None):
+    """
+    :param phone_number: Phone number to validate and format. This may be just the phone number or the phone number
+                         and country code, and may contain punctuation or alpha characters e.g. tel:+ or (0123) 70-40
+    :type phone_number: str
+    :param country_code: Expected country code. This method ensures the phone number begins with this country code,
+                         or adds it if not.
+    :type country_code: str
+    :param valid_length: Valid length of the phone number, including the country code.
+                         This function will fail with an assertion error if it sees a phone number that doesn't have
+                         this length.
+    :type valid_length: int
+    :param valid_prefixes: Optional list of prefixes to check. If provided, this function will ensure every phone
+                           number starts with one of these prefixes. For example, this could be used to ensure
+                           this is a mobile number, or to ensure it belongs to a valid network.
+    :type valid_prefixes: set of str | None
+    :return: Phone number as urn e.g. 'tel:+254700123123'
+    :rtype: str
+    """
     # Normalise the phone number (removes spaces, non-numeric, and leading 0s).
     phone_number = PhoneCleaner.normalise_phone(phone_number)
 
     if phone_number.startswith(country_code):
-        assert len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) == 1
+        if valid_prefixes is not None:
+            assert len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) == 1
     else:
-        assert len([p for p in valid_prefixes if phone_number.startswith(p)]) == 1
+        if valid_prefixes is not None:
+            assert len([p for p in valid_prefixes if phone_number.startswith(p)]) == 1
         phone_number = f"{country_code}{phone_number}"
 
     assert len(phone_number) == valid_length
@@ -226,7 +274,9 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
         log.info(f"Processing response {i + 1}/{len(responses)}...")
         sync_stats.add_event(GoogleFormSyncEvents.READ_RESPONSE_FROM_GOOGLE_FORM)
 
-        participant_uuid = get_participant_uuid_for_response(response, participant_uuid_question_id, uuid_table)
+        participant_uuid = get_participant_uuid_for_response(
+            response, form_config.participant_uuid_configuration.uuid_type, participant_uuid_question_id, uuid_table
+        )
 
         answers = response["answers"].values()
         for j, answer in enumerate(answers):
