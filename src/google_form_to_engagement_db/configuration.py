@@ -23,23 +23,23 @@ class GoogleFormsClientConfiguration:
         return rapid_pro_client
 
 
-class GoogleFormUuidTypes:
+class GoogleFormParticipantIdTypes:
     KENYA_MOBILE_NUMBER = "kenya_mobile_number"
 
 
-class ParticipantUuidConfiguration:
-    def __init__(self, question_title, uuid_type):
+class ParticipantIdConfiguration:
+    def __init__(self, question_title, id_type):
         """
         Configuration for a participant uuid question.
 
         :param question_title: Question title. This is the text presented to the form user for this question
                                e.g. "What is your phone number?"
         :type question_title: str
-        :param uuid_type: See `GoogleFormUuidTypes`.
-        :type uuid_type: str
+        :param id_type: See `GoogleFormParticipantIdTypes`.
+        :type id_type: str
         """
         self.question_title = question_title
-        self.uuid_type = uuid_type
+        self.id_type = id_type
 
 
 class QuestionConfiguration:
@@ -56,20 +56,20 @@ class QuestionConfiguration:
 
 
 class GoogleFormToEngagementDBConfiguration:
-    def __init__(self, form_id, question_configurations, participant_uuid_configuration=None):
+    def __init__(self, form_id, question_configurations, participant_id_configuration=None):
         """
         :param form_id: Id of Google Form to sync.
         :type form_id: str
         :param question_configurations: Configuration for each question on the Google Form to sync.
         :type question_configurations: list of QuestionConfiguration
-        :param participant_uuid_configuration: Optional configuration for the participant uuid.
+        :param participant_id_configuration: Optional configuration for the participant uuid.
                                                If set, the participant uuid will be derived from the answer to an
                                                id question, otherwise it will be set to the form response id.
-        :type participant_uuid_configuration: ParticipantUuidConfiguration | None
+        :type participant_id_configuration: ParticipantIdConfiguration | None
         """
         self.form_id = form_id
         self.question_configurations = question_configurations
-        self.participant_uuid_configuration = participant_uuid_configuration
+        self.participant_id_configuration = participant_id_configuration
 
 
 class GoogleFormSource:

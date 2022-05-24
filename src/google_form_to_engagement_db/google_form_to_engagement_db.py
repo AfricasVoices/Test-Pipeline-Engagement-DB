@@ -7,7 +7,7 @@ from engagement_database.data_models import (Message, MessageDirections, Message
                                              HistoryEntryOrigin)
 
 from src.common.cache import Cache
-from src.google_form_to_engagement_db.configuration import GoogleFormUuidTypes
+from src.google_form_to_engagement_db.configuration import GoogleFormParticipantIdTypes
 from src.google_form_to_engagement_db.sync_stats import GoogleFormToEngagementDBSyncStats, GoogleFormSyncEvents
 
 log = Logger(__name__)
@@ -38,8 +38,8 @@ def _validate_configuration_against_form_structure(form, form_config):
         assert question_config.question_title not in config_questions, \
             f"Question '{question_config.question_title} specified in configuration for form {form_config.form_id} twice"
         config_questions.add(question_config.question_title)
-    if form_config.participant_uuid_configuration is not None:
-        config_questions.add(form_config.participant_uuid_configuration.question_title)
+    if form_config.participant_id_configuration is not None:
+        config_questions.add(form_config.participant_id_configuration.question_title)
 
     # Ensure that all questions requested in the configuration exist in the form.
     config_questions_not_in_form = config_questions - form_questions
@@ -91,11 +91,11 @@ def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_l
     return urn
 
 
-def _get_participant_uuid_for_response(response, uuid_type, participant_uuid_question_id, uuid_table):
+def _get_participant_uuid_for_response(response, id_type, participant_id_question_id, uuid_table):
     """
     Gets the participant_uuid for the given response.
 
-    If the response contains an answer to a question with id `participant_uuid_question_id`, validates the contact
+    If the response contains an answer to a question with id `participant_id_question_id`, validates the contact
     info given on the form and formats it as a URN.
 
     If no answer or question_id is provided, uses the response id as the participant_uuid instead. In this case, the
@@ -103,16 +103,16 @@ def _get_participant_uuid_for_response(response, uuid_type, participant_uuid_que
 
     :param response: Response to get the participant uuid for.
     :type response: dict
-    :param uuid_type: A GoogleFormUuidType
-    :type uuid_type: str
-    :param participant_uuid_question_id: Id of the participant_uuid question.
-    :type participant_uuid_question_id: str | None
+    :param id_type: A GoogleFormIdType
+    :type id_type: str
+    :param participant_id_question_id: Id of the participant_id question.
+    :type participant_id_question_id: str | None
     :param uuid_table: UUID table to use to de-identify the urn
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
     :return: Participant uuid for this response.
     :rtype: str
     """
-    participant_id_answer = response["answers"].get(participant_uuid_question_id, None)
+    participant_id_answer = response["answers"].get(participant_id_question_id, None)
     if participant_id_answer is None:
         participant_uuid = response["responseId"]
     else:
@@ -120,8 +120,8 @@ def _get_participant_uuid_for_response(response, uuid_type, participant_uuid_que
         participant_id = participant_id_answer["textAnswers"]["answers"][0]["value"]
 
         # Get the
-        assert uuid_type == GoogleFormUuidTypes.KENYA_MOBILE_NUMBER, \
-            f"Participant id type {uuid_type} not recognised."
+        assert id_type == GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER, \
+            f"Participant id type {id_type} not recognised."
         participant_urn = _validate_phone_number_and_format_as_urn(
             phone_number=participant_id, country_code="254", valid_length=12, valid_prefixes={"10", "11", "7"}
         )
@@ -249,16 +249,16 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
         question_title_to_engagement_db_dataset[question_config.question_title] = question_config.engagement_db_dataset
 
     question_id_to_engagement_db_dataset = dict()
-    participant_uuid_question_id = None
+    participant_id_question_id = None
     for item in form["items"]:
         question_id = item["questionItem"]["question"]["questionId"]
         question_title = item["title"]
         if question_title in question_title_to_engagement_db_dataset:
             engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
             question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
-        if form_config.participant_uuid_configuration is not None and \
-                question_title == form_config.participant_uuid_configuration.question_title:
-            participant_uuid_question_id = question_id
+        if form_config.participant_id_configuration is not None and \
+                question_title == form_config.participant_id_configuration.question_title:
+            participant_id_question_id = question_id
 
     # Download responses
     last_seen_response_time = None if cache is None else cache.get_date_time(form_config.form_id)
@@ -274,18 +274,18 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
         log.info(f"Processing response {i + 1}/{len(responses)}...")
         sync_stats.add_event(GoogleFormSyncEvents.READ_RESPONSE_FROM_GOOGLE_FORM)
 
-        uuid_type = None
-        if form_config.participant_uuid_configuration is not None:
-            uuid_type = form_config.participant_uuid_configuration.uuid_type
+        participant_id_type = None
+        if form_config.participant_id_configuration is not None:
+            participant_id_type = form_config.participant_id_configuration.id_type
         participant_uuid = _get_participant_uuid_for_response(
-            response, uuid_type, participant_uuid_question_id, uuid_table
+            response, participant_id_type, participant_id_question_id, uuid_table
         )
 
         answers = response["answers"].values()
         for j, answer in enumerate(answers):
             log.info(f"Processing answer {j + 1}/{len(answers)} for response {i + 1}/{len(responses)}...")
-            if answer["questionId"] == participant_uuid_question_id:
-                log.info(f"This answer is to the participant uuid question, skipping")
+            if answer["questionId"] == participant_id_question_id:
+                log.info(f"This answer is to the participant id question, skipping")
                 continue
 
             sync_stats.add_event(GoogleFormSyncEvents.READ_ANSWER_FROM_RESPONSE)

@@ -17,7 +17,7 @@ from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidPro
                                                           WriteModes, ContactField)
 from src.google_form_to_engagement_db.configuration import (GoogleFormToEngagementDBConfiguration,
                                                             GoogleFormsClientConfiguration,
-                                                            ParticipantUuidConfiguration, GoogleFormUuidTypes,
+                                                            ParticipantIdConfiguration, GoogleFormParticipantIdTypes,
                                                             QuestionConfiguration, GoogleFormSource)
 from src.rapid_pro_to_engagement_db.configuration import (FlowResultConfiguration, UuidFilter,
                                                           RapidProToEngagementDBConfiguration)

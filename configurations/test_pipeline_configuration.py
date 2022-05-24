@@ -56,9 +56,9 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             ),
             sync_config=GoogleFormToEngagementDBConfiguration(
                 form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
-                participant_uuid_configuration=ParticipantUuidConfiguration(
+                participant_id_configuration=ParticipantIdConfiguration(
                     question_title="Kenyan Mobile Number",
-                    uuid_type=GoogleFormUuidTypes.KENYA_MOBILE_NUMBER
+                    id_type=GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER
                 ),
                 question_configurations=[
                     # Multiple choice question with other
