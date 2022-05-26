@@ -13,7 +13,7 @@ class CSVSyncEvents:
     MESSAGE_SKIPPED_NO_MATCHING_TIMESTAMP = "message_skipped_no_matching_timestamp"
 
 
-class CsvToEngagementDBSyncStats(SyncStats):
+class CSVToEngagementDBSyncStats(SyncStats):
     def __init__(self):
         super().__init__({
             CSVSyncEvents.READ_ROW_FROM_CSV: 0,
