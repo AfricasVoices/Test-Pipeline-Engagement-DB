@@ -8,7 +8,7 @@ from core_data_modules.data_models import CodeScheme
 class CodeSchemeConfiguration:
     code_scheme: CodeScheme
     auto_coder: Optional[Callable[[str], str]]
-    coda_code_schemes_count: Optional[int] = 3
+    coda_code_schemes_count: Optional[int] = 1
 
 
 @dataclass
