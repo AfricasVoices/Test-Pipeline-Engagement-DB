@@ -1,5 +1,6 @@
 import csv
 import urllib.parse
+from collections import defaultdict
 from datetime import datetime
 from io import StringIO
 
@@ -12,7 +13,7 @@ from engagement_database.data_models import (Message, MessageDirections, Message
 from storage.google_cloud import google_cloud_utils
 
 from src.common.cache import Cache
-from src.csv_to_engagement_db.sync_stats import CSVSyncEvents, CSVToEngagementDBSyncStats
+from src.csv_to_engagement_db.sync_stats import CSVSyncEvents, CSVStats, CSVToEngagementDBSyncStats
 
 log = Logger(__name__)
 
@@ -155,7 +156,8 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
     :return: Sync stats for the sync.
     :rtype: CSVToEngagementDBSyncStats
     """
-    sync_stats = CSVToEngagementDBSyncStats()
+    csv_stats = CSVStats()
+    dataset_to_sync_stats_for_csv_source = defaultdict(lambda: CSVToEngagementDBSyncStats()) 
 
     log.info(f"Downloading csv from '{csv_source.gs_url}'...")
     raw_csv_string = google_cloud_utils.download_blob_to_string(
@@ -177,18 +179,18 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
                                           f"the cache and re-run when it is safe to proceed."
         log.info("This file matches a previous version of the file that was processed in the past.")
         log.info("Returning without reprocessing any of the messages in this file.")
-        return sync_stats
+        return csv_stats, dataset_to_sync_stats_for_csv_source
 
     for i, csv_msg in enumerate(raw_data):
         log.info(f"Processing message {i + 1}/{len(raw_data)}...")
-        sync_stats.add_event(CSVSyncEvents.READ_ROW_FROM_CSV)
+        csv_stats.add_event(CSVSyncEvents.READ_ROW_FROM_CSV)
         engagement_db_message = _csv_message_to_engagement_db_message(
             csv_msg, uuid_table, f"csv_{csv_hash}.row_{i}", csv_source
         )
 
         if engagement_db_message is None:
             log.info(f"No matching dataset for this message, sent at time '{csv_msg['ReceivedOn']}'")
-            sync_stats.add_event(CSVSyncEvents.MESSAGE_SKIPPED_NO_MATCHING_TIMESTAMP)
+            csv_stats.add_event(CSVSyncEvents.MESSAGE_SKIPPED_NO_MATCHING_TIMESTAMP)
             continue
 
         message_origin_details = {
@@ -198,12 +200,15 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
             "csv_hash": csv_hash
         }
         sync_event = _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details, dry_run)
-        sync_stats.add_event(sync_event)
+        dataset_to_sync_stats_for_csv_source[engagement_db_message.dataset].add_event(sync_event)
+    
+    for _ in dataset_to_sync_stats_for_csv_source:
+        csv_stats.add_event(CSVSyncEvents.ENGAGEMENT_DB_DATASETS_IN_CSV)
 
     if cache is not None and not dry_run:
         cache.set_string(escaped_csv_url, csv_hash)
 
-    return sync_stats
+    return csv_stats, dataset_to_sync_stats_for_csv_source
 
 
 def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, engagement_db, uuid_table,
@@ -236,21 +241,36 @@ def sync_csvs_to_engagement_db(google_cloud_credentials_file_path, csv_sources, 
     else:
         cache = Cache(f"{cache_path}/csv_to_engagement_db")
 
-    source_to_sync_stats = dict()
+    csv_source_to_csv_stats = dict() # of gs_url_source -> CSVStats
+    dataset_to_sync_stats = defaultdict(lambda: CSVToEngagementDBSyncStats()) # of Engagement DB dataset -> CSVToEngagementDBSyncStats
     for i, csv_source in enumerate(csv_sources):
         log.info(f"Syncing csv {i + 1}/{len(csv_sources)}: {csv_source.gs_url}...")
-        source_sync_stats = _sync_csv_to_engagement_db(
+        csv_source_stats, dataset_to_sync_stats_for_csv_source = _sync_csv_to_engagement_db(
             google_cloud_credentials_file_path, csv_source, engagement_db, uuid_table, cache, dry_run
         )
-        source_to_sync_stats[csv_source.gs_url] = source_sync_stats
+        csv_source_to_csv_stats[csv_source.gs_url] = csv_source_stats
+        for dataset, sync_stats in dataset_to_sync_stats_for_csv_source.items():
+            dataset_to_sync_stats[dataset].add_stats(sync_stats)
 
     # Log the summaries of actions taken for each dataset then for all datasets combined.
+    all_csv_stats = CSVStats()
     all_sync_stats = CSVToEngagementDBSyncStats()
+    seen_datasets = set() # Enables tracking processed datasets to prevent duplicating dataset sync stats.
     for csv_source in csv_sources:
         log.info(f"Summary of actions for csv source '{csv_source.gs_url}':")
-        source_to_sync_stats[csv_source.gs_url].print_summary()
-        all_sync_stats.add_stats(source_to_sync_stats[csv_source.gs_url])
+        csv_source_to_csv_stats[csv_source.gs_url].print_summary()
+        all_csv_stats.add_stats(csv_source_to_csv_stats[csv_source.gs_url])
 
-    dry_run_text = " (dry run)" if dry_run else ""
+        for csv_dataset_config in csv_source.engagement_db_datasets:
+            if csv_dataset_config.engagement_db_dataset in seen_datasets:
+                continue
+            log.info(f"Summary of actions for dataset '{csv_dataset_config.engagement_db_dataset}':")
+            dataset_to_sync_stats[csv_dataset_config.engagement_db_dataset].print_summary()
+            all_sync_stats.add_stats(dataset_to_sync_stats[csv_dataset_config.engagement_db_dataset])
+            seen_datasets.add(csv_dataset_config.engagement_db_dataset)
+
+    dry_run_text = "(dry run)" if dry_run else ""
     log.info(f"Summary of actions for all {len(csv_sources)} csv source(s){dry_run_text}:")
+    all_csv_stats.print_summary()
+    log.info(f"Summary of actions for all datasets {dry_run_text}:")
     all_sync_stats.print_summary()
