@@ -10,10 +10,9 @@ from core_data_modules.logging import Logger
 from core_data_modules.util import SHAUtils
 from engagement_database.data_models import (Message, MessageDirections, MessageOrigin, MessageStatuses,
                                              HistoryEntryOrigin)
-from storage.google_cloud import google_cloud_utils
-
 from src.common.cache import Cache
-from src.csv_to_engagement_db.sync_stats import CSVSyncEvents, CSVStats, CSVToEngagementDBSyncStats
+from src.csv_to_engagement_db.sync_stats import CSVStats, CSVSyncEvents, CSVToEngagementDBSyncStats
+from storage.google_cloud import google_cloud_utils
 
 log = Logger(__name__)
 
