@@ -33,7 +33,7 @@ class CSVToEngagementDBSyncStats(SyncStats):
         super().__init__({
             CSVSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB: 0,
             CSVSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB: 0,
-            CSVSyncEvents.MESSAGE_EMPTY: 0,
+            CSVSyncEvents.MESSAGE_BLANK: 0,
         })
 
     def print_summary(self):
