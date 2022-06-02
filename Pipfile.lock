@@ -86,9 +86,11 @@
         },
         "coredatamodules": {
             "editable": true,
-            "extras": [],
-            "git": "https://github.com/AfricasVoices/CoreDataModules",
-            "ref": "7a52bfa8236e10f186c728be2f05fe272793ee67"
+            "extras": [
+                "mapping"
+            ],
+            "git": "https://www.github.com/AfricasVoices/CoreDataModules",
+            "ref": "0eac583ccbe183285216eae42f1d51afa4297411"
         },
         "cycler": {
             "hashes": [
@@ -139,14 +141,11 @@
             "version": "==0.10.2"
         },
         "google-api-core": {
-            "extras": [
-                "grpc"
-            ],
             "hashes": [
                 "sha256:958024c6aa3460b08f35741231076a4dd9a4c819a6a39d44da9627febe8b28f0",
                 "sha256:ce1daa49644b50398093d2a9ad886501aa845e2602af70c3001b9f402a9d7359"
             ],
-            "markers": "platform_python_implementation != 'PyPy'",
+            "markers": "python_version >= '3.6'",
             "version": "==2.8.1"
         },
         "google-api-python-client": {
