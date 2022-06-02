@@ -89,8 +89,8 @@
             "extras": [
                 "mapping"
             ],
-            "git": "https://www.github.com/AfricasVoices/CoreDataModules",
-            "ref": "69d41f9d75b72cf2cd4f06291b5ddf7172a36ebd"
+            "git": "https://github.com/AfricasVoices/CoreDataModules",
+            "ref": "7a52bfa8236e10f186c728be2f05fe272793ee67"
         },
         "cycler": {
             "hashes": [
@@ -141,9 +141,7 @@
             "version": "==0.10.2"
         },
         "google-api-core": {
-            "extras": [
-                "grpc"
-            ],
+            "extras": [],
             "hashes": [
                 "sha256:958024c6aa3460b08f35741231076a4dd9a4c819a6a39d44da9627febe8b28f0",
                 "sha256:ce1daa49644b50398093d2a9ad886501aa845e2602af70c3001b9f402a9d7359"

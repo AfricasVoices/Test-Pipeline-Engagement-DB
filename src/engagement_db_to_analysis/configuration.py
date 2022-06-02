@@ -25,7 +25,6 @@ class AnalysisLocations:
     KENYA_CONSTITUENCY = "kenya_constituency"
     KENYA_WARD = "kenya_ward"
 
-
     MOGADISHU_SUB_DISTRICT = "mogadishu_sub_district"
     SOMALIA_DISTRICT = "somalia_district"
     SOMALIA_REGION = "somalia_region"
