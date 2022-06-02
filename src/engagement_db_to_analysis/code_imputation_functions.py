@@ -494,7 +494,6 @@ def _impute_kenya_location_codes(user, messages_traced_data, analysis_dataset_co
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
     """
     analysis_locations_to_cleaners = {
-        AnalysisLocations.KENYA_WARD: KenyaLocations.ward_for_location_code,
         AnalysisLocations.KENYA_CONSTITUENCY: KenyaLocations.constituency_for_location_code,
         AnalysisLocations.KENYA_COUNTY: KenyaLocations.county_for_location_code
     }
