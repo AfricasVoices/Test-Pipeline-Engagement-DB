@@ -1,4 +1,5 @@
 from core_data_modules.logging import Logger
+from engagement_database.data_models import MessageStatuses
 
 log = Logger(__name__)
 
@@ -75,7 +76,8 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
             log.warning(f"Performing a full download for {engagement_db_dataset} messages...")
 
             full_download_filter = lambda q: q \
-                .where("dataset", "==", engagement_db_dataset)
+                .where("dataset", "==", engagement_db_dataset) \
+                .where("status", "in", {MessageStatuses.LIVE, MessageStatuses.STALE})
 
             messages = engagement_db.get_messages(firestore_query_filter=full_download_filter)
             log.info(f"Downloaded {len(messages)} messages")
@@ -92,6 +94,7 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
 
         log.info(f"Filtered for latest message snapshots: {len(latest_messages)}/{len(messages)} snapshots remain")
         messages = latest_messages
+
         engagement_db_messages_map[engagement_db_dataset] = messages
 
         # Update latest_message_timestamp
@@ -123,5 +126,27 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
             assert msg.origin.origin_id not in all_message_origins, f"Multiple messages had the same origin id: " \
                                                                     f"'{msg.origin.origin_id}'"
             all_message_origins.add(msg.origin.origin_id)
+
+    # Filter out messages that don't meet the status conditions
+    for engagement_db_dataset, messages in engagement_db_messages_map.items():
+        # Find the messages that have status "live" or "stale"
+        live_messages = [msg for msg in messages if msg.status == MessageStatuses.LIVE]
+        stale_messages = [msg for msg in messages if msg.status == MessageStatuses.STALE]
+        log.info(f"Filtered {engagement_db_dataset} for live/stale messages: "
+                 f"{len(live_messages) + len(stale_messages)}/{len(messages)} messages remain "
+                 f"({len(live_messages)} live and {len(stale_messages)} stale)")
+
+        # Find the active messages - that is, those that are live, and those that are stale where there is no
+        # live message from this participant in this dataset
+        live_participants = {msg.participant_uuid for msg in live_messages}
+        active_messages = list(live_messages)
+        for msg in stale_messages:
+            if msg.participant_uuid not in live_participants:
+                active_messages.append(msg)
+
+        log.info(f"Filtered {engagement_db_dataset} to exclude stale messages from participants who have live "
+                 f"messages: {len(active_messages)}/{len(live_messages + stale_messages)} messages remain")
+
+        engagement_db_messages_map[engagement_db_dataset] = active_messages
 
     return engagement_db_messages_map
