@@ -7,7 +7,6 @@ log = Logger(__name__)
 
 class CSVSyncEvents:
     READ_ROW_FROM_CSV = "read_row_from_csv"
-    ENGAGEMENT_DB_DATASETS_IN_CSV = "engagement_db_datasets_in_csv"
     MESSAGE_ALREADY_IN_ENGAGEMENT_DB = "message_already_in_engagement_db"
     ADD_MESSAGE_TO_ENGAGEMENT_DB = "add_message_to_engagement_db"
     MESSAGE_SKIPPED_NO_MATCHING_TIMESTAMP = "message_skipped_no_matching_timestamp"
@@ -17,7 +16,6 @@ class CSVStats(SyncStats):
     def __init__(self):
         super().__init__({
             CSVSyncEvents.READ_ROW_FROM_CSV: 0,
-            CSVSyncEvents.ENGAGEMENT_DB_DATASETS_IN_CSV: 0,
             CSVSyncEvents.MESSAGE_SKIPPED_NO_MATCHING_TIMESTAMP: 0
         })
 
@@ -25,7 +23,6 @@ class CSVStats(SyncStats):
         log.info(f"CSV rows read: {self.event_counts[CSVSyncEvents.READ_ROW_FROM_CSV]}")
         log.info(f"Messages skipped because they didn't match a dataset time-range:" \
                  f"{self.event_counts[CSVSyncEvents.MESSAGE_SKIPPED_NO_MATCHING_TIMESTAMP]}")
-        log.info(f"Engagement db datasets: {self.event_counts[CSVSyncEvents.ENGAGEMENT_DB_DATASETS_IN_CSV]}")
 
 
 class CSVToEngagementDBSyncStats(SyncStats):
