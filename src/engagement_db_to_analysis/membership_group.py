@@ -1,12 +1,11 @@
-import os
-from google.api_core.exceptions import NotFound
 import csv
+import os
 
 from core_data_modules.logging import Logger
-from core_data_modules.util import IOUtils
-from storage.google_cloud import google_cloud_utils
-from core_data_modules.util import TimeUtils
 from core_data_modules.traced_data import Metadata
+from core_data_modules.util import IOUtils, TimeUtils
+from google.api_core.exceptions import NotFound
+from storage.google_cloud import google_cloud_utils
 
 log = Logger(__name__)
 

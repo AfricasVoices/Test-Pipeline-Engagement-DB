@@ -8,12 +8,11 @@ from core_data_modules.logging import Logger
 from core_data_modules.traced_data import Metadata
 from core_data_modules.util import TimeUtils
 from engagement_database.data_models import Message
-
-from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs,
+from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_config_for_message,
+                                                                  analysis_dataset_configs_to_column_configs,
                                                                   analysis_dataset_configs_to_demog_column_configs,
-                                                                  coding_config_to_column_config)
-from src.engagement_db_to_analysis.column_view_conversion import (get_latest_labels_with_code_scheme,
-                                                                  analysis_dataset_config_for_message)
+                                                                  coding_config_to_column_config, 
+                                                                  get_latest_labels_with_code_scheme)
 from src.engagement_db_to_analysis.configuration import AnalysisLocations
 
 log = Logger(__name__)

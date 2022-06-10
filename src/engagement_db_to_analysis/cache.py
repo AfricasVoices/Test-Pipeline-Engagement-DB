@@ -1,5 +1,5 @@
-from os import path
 import json
+from os import path
 
 from core_data_modules.util import IOUtils
 

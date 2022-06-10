@@ -1,9 +1,8 @@
 import json
 
 from core_data_modules.logging import Logger
-from storage.google_cloud import google_cloud_utils
-
 from src.google_form_to_engagement_db.google_forms_client import GoogleFormsClient
+from storage.google_cloud import google_cloud_utils
 
 log = Logger(__name__)
 

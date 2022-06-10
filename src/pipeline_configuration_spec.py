@@ -1,10 +1,10 @@
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
 
-from core_data_modules.data_models import CodeScheme
 from core_data_modules.analysis.traffic_analysis import TrafficLabel
+from core_data_modules.data_models import CodeScheme
 
 from src.common.configuration import (RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration,
                                       EngagementDatabaseClientConfiguration, OperationsDashboardConfiguration,

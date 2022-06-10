@@ -1,12 +1,10 @@
-from dateutil.parser import isoparse
 import time
 
 from core_data_modules.logging import Logger
 from core_data_modules.traced_data import Metadata
 from core_data_modules.util import TimeUtils
-
+from dateutil.parser import isoparse
 from src.pipeline_configuration_spec import *
-
 
 log = Logger(__name__)
 

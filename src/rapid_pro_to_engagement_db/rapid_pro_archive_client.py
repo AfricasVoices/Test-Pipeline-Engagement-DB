@@ -1,8 +1,7 @@
 import json
 
 from core_data_modules.logging import Logger
-from temba_client.v2 import Org, Flow, Run, Contact
-
+from temba_client.v2 import Contact, Flow, Org, Run
 
 log = Logger(__name__)
 

@@ -1,18 +1,15 @@
-from datetime import datetime
 import json
+from datetime import datetime
 
+from core_data_modules.cleaners import SocialMediaCodes
+from core_data_modules.logging import Logger
+from engagement_database.data_models import (HistoryEntryOrigin, Message, MessageDirections, MessageOrigin,
+                                             MessageStatuses)
+from src.telegram_to_engagement_db.cache import TelegramGroupSyncCache
+from storage.google_cloud import google_cloud_utils
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
-from telethon.tl.types import (PeerChannel)
-
-from storage.google_cloud import google_cloud_utils
-from core_data_modules.logging import Logger
-from core_data_modules.cleaners import SocialMediaCodes
-
-from engagement_database.data_models import (Message, MessageDirections, MessageOrigin, MessageStatuses,
-                                             HistoryEntryOrigin)
-
-from src.telegram_to_engagement_db.cache import TelegramGroupSyncCache
+from telethon.tl.types import PeerChannel
 
 log = Logger(__name__)
 

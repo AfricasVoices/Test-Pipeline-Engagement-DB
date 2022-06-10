@@ -1,7 +1,6 @@
+import json
 from datetime import datetime
 from os import path
-import json
-
 
 from core_data_modules.util import IOUtils
 from engagement_database.data_models import Message

@@ -1,11 +1,11 @@
 from core_data_modules.logging import Logger
 from core_data_modules.util import SHAUtils
-from engagement_database.data_models import MessageStatuses, HistoryEntryOrigin
+from engagement_database.data_models import HistoryEntryOrigin, MessageStatuses
 from google.cloud import firestore
 
 from src.engagement_db_coda_sync.cache import CodaSyncCache
-from src.engagement_db_coda_sync.lib import _update_engagement_db_message_from_coda_message, _add_message_to_coda
-from src.engagement_db_coda_sync.sync_stats import EngagementDBToCodaSyncStats, CodaSyncEvents
+from src.engagement_db_coda_sync.lib import _add_message_to_coda, _update_engagement_db_message_from_coda_message
+from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, EngagementDBToCodaSyncStats
 
 log = Logger(__name__)
 

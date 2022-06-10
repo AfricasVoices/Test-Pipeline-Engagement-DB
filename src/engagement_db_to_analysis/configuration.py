@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Iterable, Tuple
+from typing import Iterable, Optional, Tuple
 
 from core_data_modules.analysis.traffic_analysis import TrafficLabel
 from core_data_modules.data_models import CodeScheme

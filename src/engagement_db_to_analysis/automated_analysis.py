@@ -1,12 +1,14 @@
-from core_data_modules.analysis import (engagement_counts, repeat_participations, theme_distributions, sample_messages,
-                                        AnalysisConfiguration, traffic_analysis, cross_tabs)
-from core_data_modules.analysis.mapping import participation_maps, kenya_mapper, somalia_mapper
+from core_data_modules.analysis import (AnalysisConfiguration, cross_tabs,
+                                        engagement_counts,
+                                        repeat_participations, sample_messages,
+                                        theme_distributions, traffic_analysis)
+from core_data_modules.analysis.mapping import kenya_mapper, participation_maps, somalia_mapper
 from core_data_modules.logging import Logger
 from core_data_modules.util import IOUtils
-
-from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_rqa_column_configs,
-                                                                  analysis_dataset_configs_to_demog_column_configs,
-                                                                  analysis_dataset_configs_to_column_configs)
+from src.engagement_db_to_analysis.column_view_conversion import (
+    analysis_dataset_configs_to_column_configs,
+    analysis_dataset_configs_to_demog_column_configs,
+    analysis_dataset_configs_to_rqa_column_configs)
 from src.engagement_db_to_analysis.configuration import AnalysisLocations
 
 log = Logger(__name__)

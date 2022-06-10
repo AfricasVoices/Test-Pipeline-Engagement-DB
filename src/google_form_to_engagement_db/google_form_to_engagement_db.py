@@ -2,11 +2,10 @@ from collections import OrderedDict
 
 from core_data_modules.logging import Logger
 from dateutil.parser import isoparse
-from engagement_database.data_models import (Message, MessageDirections, MessageStatuses, MessageOrigin,
-                                             HistoryEntryOrigin)
-
+from engagement_database.data_models import (HistoryEntryOrigin, Message, MessageDirections, MessageOrigin,
+                                             MessageStatuses)
 from src.common.cache import Cache
-from src.google_form_to_engagement_db.sync_stats import GoogleFormToEngagementDBSyncStats, GoogleFormSyncEvents
+from src.google_form_to_engagement_db.sync_stats import GoogleFormSyncEvents, GoogleFormToEngagementDBSyncStats
 
 log = Logger(__name__)
 

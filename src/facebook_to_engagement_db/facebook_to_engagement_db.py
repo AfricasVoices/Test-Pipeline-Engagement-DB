@@ -1,17 +1,13 @@
-from dateutil.parser import isoparse
 import csv
 
-
-from storage.google_cloud import google_cloud_utils
-from social_media_tools.facebook import (FacebookClient, facebook_utils)
 from core_data_modules.logging import Logger
 from core_data_modules.util import IOUtils
-
-from engagement_database.data_models import (Message, MessageDirections, MessageOrigin, MessageStatuses,
-                                             HistoryEntryOrigin)
-
+from dateutil.parser import isoparse
+from engagement_database.data_models import (HistoryEntryOrigin, Message, MessageDirections, MessageOrigin,
+                                             MessageStatuses)
+from social_media_tools.facebook import FacebookClient, facebook_utils
 from src.facebook_to_engagement_db.cache import FacebookSyncCache
-
+from storage.google_cloud import google_cloud_utils
 
 log = Logger(__name__)
 

@@ -3,12 +3,11 @@ from datetime import timedelta
 
 from core_data_modules.cleaners import URNCleaner
 from core_data_modules.logging import Logger
-from engagement_database.data_models import (Message, MessageDirections, MessageStatuses, HistoryEntryOrigin,
-                                             MessageOrigin)
-from storage.google_cloud import google_cloud_utils
-
+from engagement_database.data_models import (HistoryEntryOrigin, Message, MessageDirections, MessageOrigin,
+                                             MessageStatuses)
 from src.rapid_pro_to_engagement_db.cache import RapidProSyncCache
-from src.rapid_pro_to_engagement_db.sync_stats import RapidProToEngagementDBSyncStats, RapidProSyncEvents
+from src.rapid_pro_to_engagement_db.sync_stats import RapidProSyncEvents, RapidProToEngagementDBSyncStats
+from storage.google_cloud import google_cloud_utils
 
 log = Logger(__name__)
 

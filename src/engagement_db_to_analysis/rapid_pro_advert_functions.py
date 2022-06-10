@@ -1,12 +1,12 @@
 
-from core_data_modules.analysis import analysis_utils, AnalysisConfiguration as core_data_analysis_config
+from core_data_modules.analysis import AnalysisConfiguration as core_data_analysis_config
+from core_data_modules.analysis import analysis_utils
 from core_data_modules.cleaners import Codes
 from core_data_modules.logging import Logger
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
-from src.engagement_db_to_analysis.membership_group import (_get_membership_groups_data)
+from src.engagement_db_to_analysis.membership_group import _get_membership_groups_data
 from src.pipeline_configuration_spec import *
-
 
 log = Logger(__name__)
 

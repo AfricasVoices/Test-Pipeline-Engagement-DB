@@ -1,12 +1,10 @@
 import argparse
+import importlib
 import os
 import re
-import importlib
-
 
 from core_data_modules.logging import Logger
 from storage.google_cloud import google_cloud_utils
-
 
 log = Logger(__name__)
 

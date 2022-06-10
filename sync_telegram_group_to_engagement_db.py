@@ -1,13 +1,13 @@
 import argparse
+import asyncio
 import importlib
 import subprocess
-import asyncio
 
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
-from src.telegram_to_engagement_db.telegram_group_to_engagement_db import (sync_messages_from_groups_to_engagement_db,
-                                                                           _initialize_telegram_client)
+from src.telegram_to_engagement_db.telegram_group_to_engagement_db import (_initialize_telegram_client,
+                                                                           sync_messages_from_groups_to_engagement_db)
 
 log = Logger(__name__)
 

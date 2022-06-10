@@ -4,7 +4,7 @@ from google.cloud import firestore
 
 from src.engagement_db_coda_sync.cache import CodaSyncCache
 from src.engagement_db_coda_sync.lib import _update_engagement_db_message_from_coda_message
-from src.engagement_db_coda_sync.sync_stats import CodaToEngagementDBSyncStats, CodaSyncEvents
+from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, CodaToEngagementDBSyncStats
 
 log = Logger(__name__)
 

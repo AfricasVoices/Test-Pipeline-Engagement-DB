@@ -3,13 +3,14 @@ import json
 from coda_v2_python_client.firebase_client_wrapper import CodaV2Client
 from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
-from core_data_modules.data_models import Message as CodaMessage, Label, Origin
+from core_data_modules.data_models import Label
+from core_data_modules.data_models import Message as CodaMessage
+from core_data_modules.data_models import Origin
 from core_data_modules.logging import Logger
 from core_data_modules.util import TimeUtils
 from engagement_database.data_models import HistoryEntryOrigin
-from storage.google_cloud import google_cloud_utils
-
 from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, EngagementDBToCodaSyncStats
+from storage.google_cloud import google_cloud_utils
 
 log = Logger(__name__)
 
