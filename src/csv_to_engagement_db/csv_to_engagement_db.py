@@ -8,10 +8,10 @@ import pytz
 from core_data_modules.cleaners import URNCleaner
 from core_data_modules.logging import Logger
 from core_data_modules.util import SHAUtils
-from engagement_database.data_models import (Message, MessageDirections, MessageOrigin, MessageStatuses,
-                                             HistoryEntryOrigin)
+from engagement_database.data_models import (HistoryEntryOrigin, Message, MessageDirections, MessageOrigin,
+                                             MessageStatuses)
 from src.common.cache import Cache
-from src.csv_to_engagement_db.sync_stats import CSVStats, CSVSyncEvents, CSVToEngagementDBSyncStats
+from src.csv_to_engagement_db.sync_stats import CSVSyncEvents, CSVToEngagementDBDatasetSyncStats, CSVToEngagementDBSyncStats
 from storage.google_cloud import google_cloud_utils
 
 log = Logger(__name__)
