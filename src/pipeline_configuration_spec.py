@@ -6,26 +6,21 @@ from typing import List, Optional
 from core_data_modules.analysis.traffic_analysis import TrafficLabel
 from core_data_modules.data_models import CodeScheme
 
-from src.common.configuration import (RapidProClientConfiguration, CodaClientConfiguration, UUIDTableClientConfiguration,
-                                      EngagementDatabaseClientConfiguration, OperationsDashboardConfiguration,
-                                      ArchiveConfiguration)
-from src.csv_to_engagement_db.configuration import (CSVSource, CSVDatasetConfiguration)
-
-from src.engagement_db_coda_sync.configuration import (CodaSyncConfiguration, CodaDatasetConfiguration,
-                                                       CodeSchemeConfiguration)
-from src.engagement_db_to_rapid_pro.configuration import (EngagementDBToRapidProConfiguration, DatasetConfiguration,
-                                                          WriteModes, ContactField)
-from src.google_form_to_engagement_db.configuration import (GoogleFormToEngagementDBConfiguration,
-                                                            GoogleFormsClientConfiguration,
-                                                            QuestionConfiguration, GoogleFormSource)
-from src.rapid_pro_to_engagement_db.configuration import (FlowResultConfiguration, UuidFilter,
-                                                          RapidProToEngagementDBConfiguration)
-from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfiguration, OperatorDatasetConfiguration,
-                                                         DatasetTypes, AgeCategoryConfiguration, AnalysisLocations,
-                                                         CodingConfiguration, GoogleDriveUploadConfiguration,
-                                                         MembershipGroupConfiguration, AnalysisConfiguration)
-from src.facebook_to_engagement_db.configuration import (FacebookSource, FacebookDataset, FacebookSearch)
-from src.telegram_to_engagement_db.configuration import (TelegramGroupSource, TelegramGroupDataset, TelegramGroupSearch)
+from src.common.configuration import (ArchiveConfiguration, CodaClientConfiguration, EngagementDatabaseClientConfiguration,
+                                      OperationsDashboardConfiguration, RapidProClientConfiguration, UUIDTableClientConfiguration)
+from src.csv_to_engagement_db.configuration import CSVDatasetConfiguration, CSVSource
+from src.engagement_db_coda_sync.configuration import CodaDatasetConfiguration, CodaSyncConfiguration, CodeSchemeConfiguration
+from src.engagement_db_to_analysis.configuration import (AgeCategoryConfiguration, AnalysisConfiguration,
+                                                         AnalysisDatasetConfiguration, AnalysisLocations, CodingConfiguration,
+                                                         DatasetTypes, GoogleDriveUploadConfiguration, MembershipGroupConfiguration,
+                                                         OperatorDatasetConfiguration)
+from src.engagement_db_to_rapid_pro.configuration import (ContactField, DatasetConfiguration, EngagementDBToRapidProConfiguration,
+                                                          WriteModes)
+from src.facebook_to_engagement_db.configuration import FacebookDataset, FacebookSearch, FacebookSource
+from src.google_form_to_engagement_db.configuration import (GoogleFormsClientConfiguration, GoogleFormSource, 
+                                                            GoogleFormToEngagementDBConfiguration, QuestionConfiguration)
+from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration, RapidProToEngagementDBConfiguration, UuidFilter
+from src.telegram_to_engagement_db.configuration import TelegramGroupDataset, TelegramGroupSearch, TelegramGroupSource
 
 
 def load_code_scheme(fname):
