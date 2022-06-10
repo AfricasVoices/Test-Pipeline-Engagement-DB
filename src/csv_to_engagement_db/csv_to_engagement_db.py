@@ -153,7 +153,7 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
     :param dry_run: Whether to perform a dry run.
     :type dry_run: bool
     :return: Sync stats for the sync.
-    :rtype: CSVToEngagementDBSyncStats
+    :rtype: (CSVToEngagementDBSyncStats, CSVToEngagementDBDatasetSyncStats)
     """
     csv_sync_stats = CSVToEngagementDBSyncStats()
     dataset_to_sync_stats = defaultdict(lambda: CSVToEngagementDBDatasetSyncStats()) 
