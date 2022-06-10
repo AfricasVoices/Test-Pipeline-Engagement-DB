@@ -17,10 +17,10 @@ class GoogleFormsClientConfiguration:
         form_credentials = json.loads(
             google_cloud_utils.download_blob_to_string(google_cloud_credentials_file_path, self.credentials_file_url)
         )
-        rapid_pro_client = GoogleFormsClient(form_credentials)
+        google_forms_client = GoogleFormsClient(form_credentials)
         log.info("Initialised Google Forms client")
 
-        return rapid_pro_client
+        return google_forms_client
 
 
 class QuestionConfiguration:
