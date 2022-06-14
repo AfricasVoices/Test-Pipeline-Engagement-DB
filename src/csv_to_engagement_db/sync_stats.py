@@ -21,7 +21,7 @@ class CSVToEngagementDBSyncStats(SyncStats):
 
     def print_summary(self):
         log.info(f"CSV rows read: {self.event_counts[CSVSyncEvents.READ_ROW_FROM_CSV]}")
-        log.info(f"Messages skipped because they didn't match a dataset time-range:" \
+        log.info(f"Messages skipped because they didn't match a dataset time-range: " \
                  f"{self.event_counts[CSVSyncEvents.MESSAGE_SKIPPED_NO_MATCHING_TIMESTAMP]}")
 
 
