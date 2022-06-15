@@ -148,7 +148,8 @@ def _sync_csv_to_engagement_db(google_cloud_credentials_file_path, csv_source, e
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to re-identify the URNs so we can set the channel operator.
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
-    :param cache: csv sync cache
+    :param cache: CSV sync cache or None. If specified, terminates the CSV sync if the csv had already been processed or 
+                  differs since the last time it was requested. If None, processes the messages in the CSV.
     :type cache: src.common.cache.Cache | None
     :param dry_run: Whether to perform a dry run.
     :type dry_run: bool
