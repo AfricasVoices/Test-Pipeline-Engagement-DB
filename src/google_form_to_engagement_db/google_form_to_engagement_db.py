@@ -153,7 +153,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     :type form_config: src.google_form_to_engagement_db.configuration.GoogleFormToEngagementDBConfiguration
     :param cache: Cache to use, or None. If None, downloads all form responses. If a cache is specified, only fetches
                   responses last submitted after this function was last run.
-    :type cache: src.common.cache.Cache
+    :type cache: src.common.cache.Cache | None
     :return: sync_stats
     :rtype: src.google_form_to_engagement_db.sync_stats.GoogleFormToEngagementDBSyncStats
     """
@@ -231,7 +231,7 @@ def _sync_google_form_source_to_engagement_db(google_cloud_credentials_file_path
     :type engagement_db: engagement_database.EngagementDatabase
     :param cache: Cache to use, or None. If None, downloads all form responses. If a cache is specified, only fetches
                   responses last submitted after this function was last run.
-    :type cache: src.common.cache.Cache
+    :type cache: src.common.cache.Cache | None
     :return: sync_stats
     :rtype: src.google_form_to_engagement_db.sync_stats.GoogleFormToEngagementDBSyncStats
     """

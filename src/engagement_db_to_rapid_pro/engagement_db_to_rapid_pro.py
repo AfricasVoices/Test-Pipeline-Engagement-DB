@@ -45,7 +45,7 @@ def _get_all_messages(engagement_db, sync_config, cache=None):
     :param sync_config: Sync config defining which messages to get.
     :type sync_config: src.engagement_db_to_rapid_pro.configuration.EngagementDBToRapidProConfiguration
     :param cache: Cache to use for messages, or None.
-    :type cache: src.common.cache.Cache
+    :type cache: src.common.cache.Cache | None
     :return: All messages in the datasets in the sync_config.
     :rtype: list of engagement_database.data_models.Message
     """

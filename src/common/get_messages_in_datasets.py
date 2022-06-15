@@ -15,7 +15,7 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
     :param cache: Cache to use, or None. If None, downloads all messages from the engagement database. If a cache is
                   specified, writes all the fetched messages to the cache and only queries for messages changed since
                   the most recently updated message in the cache.
-    :type cache: src.common.cache.Cache
+    :type cache: src.common.cache.Cache | None
     :param dry_run: Whether to perform a dry run.
     :type dry_run: bool
     :return: Dictionary of engagement db dataset -> list of Messages in dataset.
