@@ -7,8 +7,8 @@ log = Logger(__name__)
 
 
 class FacebookSyncEvents:
-    READ_POSTS_FROM_FACEBOOK = "read_posts_from_facebook"
-    READ_COMMENTS_FROM_POSTS = "read_comments_from_posts"
+    READ_POST_FROM_FACEBOOK = "read_post_from_facebook"
+    READ_COMMENT_FROM_POST = "read_comment_from_post"
     COMMENT_SYNCED_IN_PREVIOUS_RUN = "comment_synced_in_previous_run"
     ADD_MESSAGE_TO_ENGAGEMENT_DB = "add_message_to_engagement_db"
 
