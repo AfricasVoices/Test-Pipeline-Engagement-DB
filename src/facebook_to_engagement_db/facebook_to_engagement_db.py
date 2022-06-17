@@ -67,7 +67,7 @@ def _engagement_db_has_message(engagement_db, message):
 
     return len(matching_messages) > 0
 
-
+# Todo pass stats out via return statements
 def _ensure_engagement_db_has_comment(engagement_db, facebook_comment, message_origin_details, sync_stats):
     """
     Ensures that the given facebook comment exists in an engagement database.
