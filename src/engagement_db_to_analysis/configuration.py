@@ -23,6 +23,7 @@ class AgeCategoryConfiguration:
 class AnalysisLocations:
     KENYA_COUNTY = "kenya_county"
     KENYA_CONSTITUENCY = "kenya_constituency"
+    KENYA_WARD = "kenya_ward"
 
     MOGADISHU_SUB_DISTRICT = "mogadishu_sub_district"
     SOMALIA_DISTRICT = "somalia_district"
