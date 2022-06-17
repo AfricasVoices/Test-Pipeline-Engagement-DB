@@ -1,10 +1,10 @@
-from datetime import datetime
-from os import path
 import json
-
+from datetime import datetime
+from os import path, remove
 
 from core_data_modules.util import IOUtils
 from engagement_database.data_models import Message
+from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 from temba_client.v2 import Contact
 
 
@@ -90,3 +90,11 @@ class Cache:
         with open(export_file_path, "w") as f:
             for msg in messages:
                 f.write(f"{json.dumps(msg.to_dict(serialize_datetimes_to_str=True))}\n")
+
+    def _delete_file(self, filename):
+        filepath = f"{self.cache_dir}/{filename}"
+        IOUtils.ensure_dirs_exist_for_file(filepath)
+        remove(file_path)
+
+    def clear_timestamp(self, entry_name):
+        self._delete_file(f"{entry_name}.txt")

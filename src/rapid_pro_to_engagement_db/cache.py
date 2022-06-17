@@ -1,4 +1,8 @@
+import json
+
+from core_data_modules.util import IOUtils
 from src.common.cache import Cache
+from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 
 
 class RapidProSyncCache(Cache):
@@ -20,28 +24,46 @@ class RapidProSyncCache(Cache):
         """
         self.set_rapid_pro_contacts("contacts", contacts)
 
-    def get_latest_run_timestamp(self, flow_id, result_field):
+    def get_latest_run_timestamp(self, flow_id):
         """
-        Gets the latest seen run.modified_on cache for the given flow_id and result_field context.
+        Gets the latest seen run.modified_on cache for the given flow_id.
 
         :param flow_id: Flow id.
         :type flow_id: str
-        :param result_field: Flow result field.
-        :type result_field: str
-        :return: Cached latest run.modified_on, or None if there is no cached value for this context.
+        :return: Cached latest run.modified_on, or None if there is no cached value for the given flow_id.
         :rtype: datetime.datetime | None
         """
-        return self.get_date_time(f"{flow_id}.{result_field}")
+        return self.get_date_time(flow_id)
 
-    def set_latest_run_timestamp(self, flow_id, result_field, timestamp):
+    def set_latest_run_timestamp(self, flow_id, timestamp):
         """
-        Sets the latest seen run.modified_on cache for the given flow_id and result_field context.
+        Sets the latest seen run.modified_on cache for the given flow_id.
 
         :param flow_id: Flow id.
         :type flow_id: str
-        :param result_field: Flow result field.
-        :type result_field: str
-        :param timestamp: Latest seen run.modified_on for the given floW_id and result_field context.
+        :param timestamp: Latest seen run.modified_on for the given flow_id.
         :type timestamp: datetime.datetime
         """
-        self.set_date_time(f"{flow_id}.{result_field}", timestamp)
+        self.set_date_time(flow_id, timestamp)
+
+    def reset_latest_run_timestamp(self, flow_id):
+        """
+        Resets the latest seen run.modified_on cache for the given flow_id.
+
+        :param flow_id: Flow id.
+        :type flow_id: str
+        """
+        self.clear_timestamp(flow_id)
+
+    def set_flow_result_configs(self, configs):
+        export_path = f"{self.cache_dir}/flow_result_configurations.json"
+        IOUtils.ensure_dirs_exist_for_file(export_path)
+        with open(export_path, "w") as f:
+            json.dump([c.to_dict() for c in configs], f)
+
+    def get_flow_result_configs(self):
+        try:
+            with open(f"{self.cache_dir}/flow_result_configurations.json") as f:
+                return [FlowResultConfiguration.from_dict(d) for d in json.load(f)]
+        except FileNotFoundError:
+            return None
