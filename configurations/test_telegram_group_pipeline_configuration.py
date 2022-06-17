@@ -59,7 +59,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("test_telegram_group_s01e01"), auto_coder=None,
                                                 coda_code_schemes_count=3)
                     ],
-                    ws_code_string_value="test_telegram_s01e01"
+                    ws_code_match_value="test_telegram_s01e01"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="TEST_Telegram_group_s01e02",
@@ -68,7 +68,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("test_telegram_group_s01e02"), auto_coder=None,
                                                 coda_code_schemes_count=3)
                     ],
-                    ws_code_string_value="test_telegram_s01e02"
+                    ws_code_match_value="test_telegram_s01e02"
                 ),
             ],
             ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset"),

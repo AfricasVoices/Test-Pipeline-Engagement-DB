@@ -93,7 +93,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                             auto_coder=swahili.DemographicCleaner.clean_gender
                         )
                     ],
-                    ws_code_string_value="gender"
+                    ws_code_match_value="gender"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="TEST_location",
@@ -102,7 +102,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_constituency"), auto_coder=None),
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_county"), auto_coder=None)
                     ],
-                    ws_code_string_value="location"
+                    ws_code_match_value="location"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="TEST_age",
@@ -114,7 +114,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                             coda_code_schemes_count=2
                         )
                     ],
-                    ws_code_string_value="age",
+                    ws_code_match_value="age",
                     dataset_users_file_url=f"gs://avf-project-datasets/2021/TEST-PIPELINE-ENGAGEMENT-DB/TEST_age_coda_users.json"
                 ),
                 CodaDatasetConfiguration(
@@ -123,7 +123,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("s01e01"), auto_coder=None, coda_code_schemes_count=3)
                     ],
-                    ws_code_string_value="s01e01"
+                    ws_code_match_value="s01e01"
                 ),
             ],
             ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset"),

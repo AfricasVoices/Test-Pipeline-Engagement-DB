@@ -158,7 +158,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_constituency"), auto_coder=None),
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_county"), auto_coder=None)
                     ],
-                    ws_code_string_value="location"
+                    ws_code_match_value="location"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="Kenya_Pool_gender",
@@ -166,7 +166,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("gender"), auto_coder=swahili.DemographicCleaner.clean_gender)
                     ],
-                    ws_code_string_value="gender"
+                    ws_code_match_value="gender"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="Kenya_Pool_age",
@@ -174,7 +174,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None)  # TODO
                     ],
-                    ws_code_string_value="age"
+                    ws_code_match_value="age"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="Kenya_Pool_disabled",
@@ -182,7 +182,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("disabled"), auto_coder=None)  # TODO
                     ],
-                    ws_code_string_value="disabled"
+                    ws_code_match_value="disabled"
                 ),
             ],
             ws_correct_dataset_code_scheme=load_code_scheme("kenya_pool_ws_correct_dataset"),

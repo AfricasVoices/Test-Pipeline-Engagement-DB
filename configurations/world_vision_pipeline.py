@@ -44,7 +44,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("world_vision_s01e01"), auto_coder=None)
                     ],
-                    ws_code_string_value="s01e01"
+                    ws_code_match_value="s01e01"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="WorldVision_s01e02",
@@ -52,7 +52,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("world_vision_s01e02"), auto_coder=None)
                     ],
-                    ws_code_string_value="s01e02"
+                    ws_code_match_value="s01e02"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="WorldVision_s01e03",
@@ -60,7 +60,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("world_vision_s01e03"), auto_coder=None)
                     ],
-                    ws_code_string_value="s01e03"
+                    ws_code_match_value="s01e03"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="WorldVision_age",
@@ -68,7 +68,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("age"), auto_coder=None)
                     ],
-                    ws_code_string_value="age"
+                    ws_code_match_value="age"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="WorldVision_gender",
@@ -76,7 +76,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     code_scheme_configurations=[
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("gender"), auto_coder=swahili.DemographicCleaner.clean_gender)
                     ],
-                    ws_code_string_value="gender"
+                    ws_code_match_value="gender"
                 ),
                 CodaDatasetConfiguration(
                     coda_dataset_id="WorldVision_location",
@@ -85,7 +85,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_constituency"), auto_coder=None),
                         CodeSchemeConfiguration(code_scheme=load_code_scheme("kenya_county"), auto_coder=None)
                     ],
-                    ws_code_string_value="location"
+                    ws_code_match_value="location"
                 ),
             ],
             ws_correct_dataset_code_scheme=load_code_scheme("world_vision_ws_correct_dataset")
