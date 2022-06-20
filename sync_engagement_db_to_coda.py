@@ -6,7 +6,7 @@ from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
 from src.engagement_db_coda_sync.engagement_db_to_coda import sync_engagement_db_to_coda
-from src.engagement_db_coda_sync.lib import ensure_coda_datasets_up_to_date
+from src.engagement_db_coda_sync.lib import ensure_coda_users_and_code_schemes_up_to_date
 
 log = Logger(__name__)
 
@@ -54,5 +54,5 @@ if __name__ == "__main__":
     coda = pipeline_config.coda_sync.coda.init_coda_client(google_cloud_credentials_file_path)
 
     if not args.skip_coda_users_and_code_schemes_update:
-        ensure_coda_datasets_up_to_date(coda, pipeline_config.coda_sync.sync_config, google_cloud_credentials_file_path, dry_run)
+        ensure_coda_users_and_code_schemes_up_to_date(coda, pipeline_config.coda_sync.sync_config, google_cloud_credentials_file_path, dry_run)
     sync_engagement_db_to_coda(engagement_db, coda, pipeline_config.coda_sync.sync_config, incremental_cache_path, dry_run)

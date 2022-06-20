@@ -20,7 +20,7 @@ def _get_coda_users_from_gcloud(dataset_users_file_url, google_cloud_credentials
     ))
 
 
-def ensure_coda_datasets_up_to_date(coda, coda_config, google_cloud_credentials_file_path, dry_run): 
+def ensure_coda_users_and_code_schemes_up_to_date(coda, coda_config, google_cloud_credentials_file_path, dry_run): 
     """
     Ensures coda datasets are up to date based on coda configuration. 
 
