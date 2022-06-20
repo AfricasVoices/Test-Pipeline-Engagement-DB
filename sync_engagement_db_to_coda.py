@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser.add_argument("--incremental-cache-path",
                         help="Path to a directory to use to cache results needed for incremental operation.")
     parser.add_argument("-s", "--skip-coda-users-and-code-schemes-update", action="store_true",
-                        help="Whether to skip coda users and code schemes updates")
+                        help="Whether to skip updating coda users and code schemes")
     parser.add_argument("user", help="Identifier of the user launching this program")
     parser.add_argument("google_cloud_credentials_file_path", metavar="google-cloud-credentials-file-path",
                         help="Path to a Google Cloud service account credentials file to use to access the "
