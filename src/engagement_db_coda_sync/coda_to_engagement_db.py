@@ -144,10 +144,14 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
     )
     for _ in coda_messages:
         sync_stats.add_event(CodaSyncEvents.READ_MESSAGE_FROM_CODA)
-
-    coda_messages.sort(key=lambda msg: msg.last_updated)
+    
+    # Sort list while pushing None values to the end
+    coda_messages.sort(key=lambda msg: (msg.last_updated is None, msg.last_updated))
 
     for i, coda_message in enumerate(coda_messages):
+        if coda_message.last_updated is None:
+            break
+        
         log.info(f"Processing Coda message {i + 1}/{len(coda_messages)}: {coda_message.message_id}...")
         message_sync_stats = _sync_coda_message_to_engagement_db(
             coda_message, engagement_db, dataset_config.engagement_db_dataset, coda_config, dry_run
