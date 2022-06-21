@@ -151,7 +151,7 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
     for i, coda_message in enumerate(coda_messages):
         if coda_message.last_updated is None:
             break
-        
+
         log.info(f"Processing Coda message {i + 1}/{len(coda_messages)}: {coda_message.message_id}...")
         message_sync_stats = _sync_coda_message_to_engagement_db(
             coda_message, engagement_db, dataset_config.engagement_db_dataset, coda_config, dry_run
@@ -164,7 +164,10 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
         have_read_last_message = (i == len(coda_messages) - 1)
         # Note that this ensures we don't update the time-based cache when we are processing messages with the same timestamp.
         if not have_read_last_message:
-            has_timestamp_changed = coda_messages[i + 1].last_updated > coda_message.last_updated
+            if coda_messages[i + 1].last_updated is None:
+                has_timestamp_changed = True
+            else:
+                has_timestamp_changed = coda_messages[i + 1].last_updated > coda_message.last_updated
 
         if not dry_run and cache is not None and (have_read_last_message or has_timestamp_changed):
             cache.set_last_updated_timestamp(dataset_config.coda_dataset_id, coda_message.last_updated)
