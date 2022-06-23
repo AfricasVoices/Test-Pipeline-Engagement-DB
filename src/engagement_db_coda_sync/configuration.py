@@ -45,4 +45,4 @@ class CodaSyncConfiguration:
                 if config.ws_code_match_value == value:
                     return config
         raise ValueError(f"Coda configuration does not contain a dateset_configuration with ws_code_match_value "
-                         f"'{string_value}'")
+                         f"'{config.ws_code_match_value}'")
