@@ -168,7 +168,7 @@ def _labels_contain_consent_withdrawn(labels, code_schemes):
     """
     for label in labels:
         code_scheme = _code_scheme_for_label(label, code_schemes)
-        if code_scheme.get_code_with_code_id(label.code_id).control_code == Codes.STOP:
+        if code_scheme and code_scheme.get_code_with_code_id(label.code_id).control_code == Codes.STOP:
             return True
 
     return False
