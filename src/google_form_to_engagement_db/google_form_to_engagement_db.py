@@ -119,7 +119,6 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
         assert len(participant_id_answer["textAnswers"]["answers"]) == 1
         participant_id = participant_id_answer["textAnswers"]["answers"][0]["value"]
 
-        # Get the
         assert id_type == GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER, \
             f"Participant id type {id_type} not recognised."
         participant_urn = _validate_phone_number_and_format_as_urn(
