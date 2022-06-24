@@ -167,6 +167,7 @@ def _labels_contain_consent_withdrawn(labels, code_schemes):
     :rtype: bool
     """
     for label in labels:
+        print(label)
         code_scheme = _code_scheme_for_label(label, code_schemes)
         if code_scheme.get_code_with_code_id(label.code_id).control_code == Codes.STOP:
             return True
