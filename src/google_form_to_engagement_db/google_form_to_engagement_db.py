@@ -87,7 +87,7 @@ def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_l
 
     assert len(phone_number) == valid_length
 
-    urn = f"tel:{phone_number}"
+    urn = f"tel:+{phone_number}"
     return urn
 
 
