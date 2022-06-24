@@ -100,8 +100,7 @@ def _generate_non_relevant_advert_uuids_by_dataset(participants_by_column, analy
             codes = analysis_utils.get_codes_from_td(participant_td, analysis_configurations)
             if not analysis_utils.relevant(participant_td, "consent_withdrawn", analysis_configurations):
                 for code in codes:
-                    if code.string_value in ["showtime_question", "greeting", "opt_in",
-                                             "about_conversation", "gratitude", "question", "NC"]: #TODO Move this to config?
+                    if code.string_value in ["opt_in"]: #TODO Move this to config?
                         non_relevant_uuids.add(participant_td["participant_uuid"])
 
     return non_relevant_uuids
