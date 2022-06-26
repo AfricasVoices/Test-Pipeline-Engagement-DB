@@ -313,6 +313,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 dataset_to_sync_stats[f"{flow_name}.{config.flow_result_field}"].add_stats(sync_stats)
 
             have_read_last_run = (i == len(runs) - 1)
+            has_timestamp_changed = False
             # Note that this ensures we don't update the time-based cache when we are processing runs with the same timestamp.
             if not have_read_last_run:
                 has_timestamp_changed = runs[i + 1].modified_on > run.modified_on
