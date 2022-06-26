@@ -78,7 +78,7 @@ class GoogleFormSource:
         """
         :param google_form_client: Google Form client configuration
         :type google_form_client: GoogleFormsClientConfiguration
-        :param sync_config: Sync configuration.s
+        :param sync_config: Sync configuration
         :type sync_config: GoogleFormToEngagementDBConfiguration
         """
         self.google_form_client = google_form_client
