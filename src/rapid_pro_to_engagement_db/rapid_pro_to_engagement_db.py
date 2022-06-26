@@ -38,7 +38,7 @@ def _get_contacts_from_cache(cache=None):
         return cache.get_contacts()
 
 
-def _update_cache_with_changes_in_flow_result_configs(cache, flow_result_configurations, dry_run=False):
+def _update_cache_with_changes_in_flow_result_configs(cache, rapid_pro, flow_result_configurations, dry_run=False):
     # TODO: Add docstring
     if cache is None:
         return
@@ -208,7 +208,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     contacts = _get_contacts_from_cache(cache)
 
     # Check the configs are the same before proceeding with cached data
-    _update_cache_with_changes_in_flow_result_configs(cache, rapid_pro_config.flow_result_configurations, dry_run=dry_run)
+    _update_cache_with_changes_in_flow_result_configs(cache, rapid_pro, rapid_pro_config.flow_result_configurations, dry_run=dry_run)
 
     flow_name_to_flow_configs = defaultdict(list)
     for flow_result_config in rapid_pro_config.flow_result_configurations:
