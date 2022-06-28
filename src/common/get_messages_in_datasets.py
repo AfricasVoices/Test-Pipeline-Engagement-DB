@@ -123,9 +123,13 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
     all_message_origins = set()
     for messages in engagement_db_messages_map.values():
         for msg in messages:
-            assert msg.origin.origin_id not in all_message_origins, f"Multiple messages had the same origin id: " \
+            origin_id = msg.origin.origin_id
+            if type(origin_id) == list:
+                origin_id = tuple(origin_id)
+
+            assert origin_id not in all_message_origins, f"Multiple messages had the same origin id: " \
                                                                     f"'{msg.origin.origin_id}'"
-            all_message_origins.add(msg.origin.origin_id)
+            all_message_origins.add(origin_id)
 
     # Filter out messages that don't meet the status conditions
     for engagement_db_dataset, messages in engagement_db_messages_map.items():
