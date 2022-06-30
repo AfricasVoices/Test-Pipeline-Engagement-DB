@@ -44,16 +44,17 @@ class ParticipantIdConfiguration:
 
 
 class QuestionConfiguration:
-    def __init__(self, question_title, engagement_db_dataset):
+    def __init__(self, question_titles, engagement_db_dataset, answers_delimeter=";"):
         """
-        :param question_title: Question title. This is the text presented to the form user for this question
+        :param question_titles: Question title. This is the text presented to the form user for this question
                                e.g. "Do you live in a town/city?"
-        :type question_title: str
+        :type question_titles: list
         :param engagement_db_dataset: Name of the dataset to use in the engagement database.
         :type engagement_db_dataset: str
         """
-        self.question_title = question_title
+        self.question_titles = question_titles
         self.engagement_db_dataset = engagement_db_dataset
+        self.answers_delimeter = answers_delimeter
 
 
 class GoogleFormToEngagementDBConfiguration:
