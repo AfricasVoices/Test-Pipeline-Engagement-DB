@@ -209,10 +209,10 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
         return GoogleFormSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
 
     log.debug(f"Adding message to engagement database dataset {message.dataset}...")
-    engagement_db.set_message(
-        message,
-        HistoryEntryOrigin(origin_name="Google Form -> Database Sync", details=message_origin_details)
-    )
+    # engagement_db.set_message(
+    #     message,
+    #     HistoryEntryOrigin(origin_name="Google Form -> Database Sync", details=message_origin_details)
+    # )
     return GoogleFormSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 
