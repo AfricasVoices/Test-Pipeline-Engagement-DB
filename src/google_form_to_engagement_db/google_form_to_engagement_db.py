@@ -78,16 +78,21 @@ def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_l
     """
     # Normalise the phone number (removes spaces, non-numeric, and leading 0s).
     phone_number = PhoneCleaner.normalise_phone(phone_number)
+    if len(phone_number) == 0:
+        return None
 
     if phone_number.startswith(country_code):
         if valid_prefixes is not None:
-            assert len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) == 1
+            if len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) != 1:
+                return None
     else:
         if valid_prefixes is not None:
-            assert len([p for p in valid_prefixes if phone_number.startswith(p)]) == 1
+            if len([p for p in valid_prefixes if phone_number.startswith(p)]) != 1:
+                return None
         phone_number = f"{country_code}{phone_number}"
 
-    assert len(phone_number) == valid_length
+    if len(phone_number) != valid_length:
+        return None
 
     urn = f"tel:+{phone_number}"
     return urn
@@ -126,8 +131,10 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
         participant_urn = _validate_phone_number_and_format_as_urn(
             phone_number=participant_id, country_code="254", valid_length=12, valid_prefixes={"10", "11", "7"}
         )
-
-        participant_uuid = uuid_table.data_to_uuid(participant_urn)
+        if participant_urn is None:
+            participant_uuid = response["responseId"]
+        else:
+            participant_uuid = uuid_table.data_to_uuid(participant_urn)
 
     return participant_uuid
 
