@@ -54,7 +54,8 @@ class QuestionConfiguration:
         """
         self.question_titles = question_titles
         self.engagement_db_dataset = engagement_db_dataset
-        self.answers_delimeter = answers_delimeter
+        if len(self.question_titles) > 1:
+            self.answers_delimeter = answers_delimeter
 
 
 class GoogleFormToEngagementDBConfiguration:
