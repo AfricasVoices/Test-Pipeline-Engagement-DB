@@ -109,7 +109,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     QuestionConfiguration(engagement_db_dataset="aik_other_institutions_effectiveness", question_titles=["List other institutions and their ratings?"]),
 
                     ## PARTICIPATION IN FUTURE SURVEYS
-                    QuestionConfiguration(engagement_db_dataset="", question_titles=["Would you wish to participate in other surveys in future?"]),
+                    # QuestionConfiguration(engagement_db_dataset="aik_consent", question_titles=["Would you wish to participate in other surveys in future?"]),
                 ]
             )
         )
