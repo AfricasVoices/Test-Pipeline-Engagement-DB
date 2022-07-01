@@ -322,12 +322,12 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
             else:
                 value = ", ".join([i["value"] for i in answer["textAnswers"]["answers"]])
 
-            # Question -> answer
             answer_details = dict()
             answer_details["text"] = value
             answer_details["participant_uuid"] = participant_uuid
             answer_details["response_id"] = response["responseId"]
             answer_details["timestamp"] = response["createTime"]
+            answer_details["answer"] = answer
             question_id_to_answer[answer["questionId"]] = answer_details
 
         for question_config in form_config.question_configurations:
@@ -338,7 +338,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                     message = _form_answer_to_engagement_db_message(form_config.form_id, [answer_detail], question_config.engagement_dataset, qid)
                     message_origin_details = {
                         "formId": form_config.form_id,
-                        "answer": answer,
+                        "answer": answer_detail["answer"],
                     }
     
             if len(question_config.question_titles) > 1:
@@ -355,14 +355,14 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                     message = _form_answer_to_engagement_db_message(form_config.form_id, answer_details, question_config.engagement_dataset, qid)
                     message_origin_details = {
                         "formId": form_config.form_id,
-                        "answer": answer,
+                        "answer": answer_details[0]["answer"],
                     }
 
                 if len(answer_details) > 1:
-                    message = _form_answer_to_engagement_db_message(form_config.form_id, [answer_detail], question_config.engagement_dataset, qid)
+                    message = _form_answer_to_engagement_db_message(form_config.form_id, answer_details, question_config.engagement_dataset, qid)
                     message_origin_details = {
                         "formId": form_config.form_id,
-                        "answer": [answer],
+                        "answer": [d[answer] for d in answer_details],
                     }
             sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
             sync_stats.add_event(sync_event)
