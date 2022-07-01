@@ -247,16 +247,31 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     log.info("Linking question ids to the form configuration...")
     question_title_to_engagement_db_dataset = dict()
     for question_config in form_config.question_configurations:
-        question_title_to_engagement_db_dataset[question_config.question_title] = question_config.engagement_db_dataset
+        for question_title in question_config.question_titles:
+            question_title_to_engagement_db_dataset[question_title] = question_config.engagement_db_dataset
 
     question_id_to_engagement_db_dataset = dict()
+    question_title_to_question_id = dict()
     participant_id_question_id = None
     for item in form["items"]:
+        if "questionGroupItem" in item:
+            for question in item["questionGroupItem"]["questions"]:
+                question_id = question["questionId"]
+                question_title = question["rowQuestion"]["title"]
+                if question_title in question_title_to_engagement_db_dataset:
+                    engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
+                    question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
+                    question_title_to_question_id[question_title] = question_id
+    
+        if "questionItem" not in item:
+            print(item)
+            continue
         question_id = item["questionItem"]["question"]["questionId"]
         question_title = item["title"]
         if question_title in question_title_to_engagement_db_dataset:
             engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
             question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
+            question_title_to_question_id[question_title] = question_id
         if form_config.participant_id_configuration is not None and \
                 question_title == form_config.participant_id_configuration.question_title:
             participant_id_question_id = question_id
@@ -272,6 +287,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     responses.sort(key=lambda resp: resp["lastSubmittedTime"])
     sync_stats = GoogleFormToEngagementDBSyncStats()
     for i, response in enumerate(responses):
+        question_id_to_answer = dict()
         log.info(f"Processing response {i + 1}/{len(responses)}...")
         sync_stats.add_event(GoogleFormSyncEvents.READ_RESPONSE_FROM_GOOGLE_FORM)
 
@@ -294,20 +310,52 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                 log.info(f"This answer is to question {answer['questionId']}, which isn't configured in this sync")
                 continue
 
-            message = _form_answer_to_engagement_db_message(
-                answer, form_config.form_id, response, participant_uuid, question_id_to_engagement_db_dataset
-            )
-            message_origin_details = {
-                "formId": form_config.form_id,
-                "answer": answer,
-            }
-            sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
-            sync_stats.add_event(sync_event)
+            if len(answer["textAnswers"]["answers"]) == 1:
+                value = answer["textAnswers"]["answers"][0]["value"]
+            else:
+                value = ", ".join([i["value"] for i in answer["textAnswers"]["answers"]])
 
-        if cache is not None:
-            if i == len(responses) - 1 or \
-                    isoparse(responses[i + 1]["lastSubmittedTime"]) > isoparse(response["lastSubmittedTime"]):
-                cache.set_date_time(form_config.form_id, isoparse(response["lastSubmittedTime"]))
+            # Question -> answer
+            answer_details = dict()
+            answer_details["text"] = value
+            answer_details["participant_uuid"] = participant_uuid
+            answer_details["response_id"] = response["responseId"]
+            answer_details["timestamp"] = response["createTime"]
+            question_id_to_answer[answer["questionId"]] = answer_details
+
+        for question_config in form_config.question_configurations:
+            if len(question_config.question_titles) == 1:
+                print(question_config.question_titles[0])
+                print(question_title_to_question_id[question_config.question_titles[0]])
+
+                qid = question_title_to_question_id[question_config.question_titles[0]]
+                if qid in question_id_to_answer:
+                    answer_detail = question_id_to_answer[qid]
+    
+            if len(question_config.question_titles) > 1:
+                answer_details = []
+                for question_title in question_config.question_titles:
+
+                    qid = question_title_to_question_id[question_title]
+                    if qid in question_id_to_answer:
+                        answer_details.append(question_id_to_answer[qid])
+
+                merged_text = f"{question_config.answers_delimeter} ".join([ans["text"] for ans in answer_details])
+
+                # message = _form_answer_to_engagement_db_message(
+                #     answer, form_config.form_id, response, participant_uuid, question_id_to_engagement_db_dataset,
+                # )
+                # message_origin_details = {
+                #     "formId": form_config.form_id,
+                #     "answer": answer,
+                # }
+                # sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
+                # sync_stats.add_event(sync_event)
+
+        # if cache is not None:
+        #     if i == len(responses) - 1 or \
+        #             isoparse(responses[i + 1]["lastSubmittedTime"]) > isoparse(response["lastSubmittedTime"]):
+        #         cache.set_date_time(form_config.form_id, isoparse(response["lastSubmittedTime"]))
 
     return sync_stats
 
