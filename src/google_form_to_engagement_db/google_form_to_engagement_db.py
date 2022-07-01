@@ -335,31 +335,42 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                 qid = question_title_to_question_id[question_config.question_titles[0]]
                 if qid in question_id_to_answer:
                     answer_detail = question_id_to_answer[qid]
+                    message = _form_answer_to_engagement_db_message(form_config.form_id, [answer_detail], question_config.engagement_dataset, qid)
+                    message_origin_details = {
+                        "formId": form_config.form_id,
+                        "answer": answer,
+                    }
     
             if len(question_config.question_titles) > 1:
                 answer_details = []
                 for question_title in question_config.question_titles:
-
                     qid = question_title_to_question_id[question_title]
                     if qid in question_id_to_answer:
                         answer_details.append(question_id_to_answer[qid])
 
-                merged_text = f"{question_config.answers_delimeter} ".join([ans["text"] for ans in answer_details])
+                if len(answer_details) < 1:
+                    continue
 
-                # message = _form_answer_to_engagement_db_message(
-                #     answer, form_config.form_id, response, participant_uuid, question_id_to_engagement_db_dataset,
-                # )
-                # message_origin_details = {
-                #     "formId": form_config.form_id,
-                #     "answer": answer,
-                # }
-                # sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
-                # sync_stats.add_event(sync_event)
+                if len(answer_details) == 1:
+                    message = _form_answer_to_engagement_db_message(form_config.form_id, answer_details, question_config.engagement_dataset, qid)
+                    message_origin_details = {
+                        "formId": form_config.form_id,
+                        "answer": answer,
+                    }
 
-        # if cache is not None:
-        #     if i == len(responses) - 1 or \
-        #             isoparse(responses[i + 1]["lastSubmittedTime"]) > isoparse(response["lastSubmittedTime"]):
-        #         cache.set_date_time(form_config.form_id, isoparse(response["lastSubmittedTime"]))
+                if len(answer_details) > 1:
+                    message = _form_answer_to_engagement_db_message(form_config.form_id, [answer_detail], question_config.engagement_dataset, qid)
+                    message_origin_details = {
+                        "formId": form_config.form_id,
+                        "answer": [answer],
+                    }
+            sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
+            sync_stats.add_event(sync_event)
+
+        if cache is not None:
+            if i == len(responses) - 1 or \
+                    isoparse(responses[i + 1]["lastSubmittedTime"]) > isoparse(response["lastSubmittedTime"]):
+                cache.set_date_time(form_config.form_id, isoparse(response["lastSubmittedTime"]))
 
     return sync_stats
 
