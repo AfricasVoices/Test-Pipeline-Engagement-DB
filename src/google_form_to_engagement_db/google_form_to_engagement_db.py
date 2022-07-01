@@ -139,44 +139,49 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
     return participant_uuid
 
 
-def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, participant_uuid,
-                                          question_id_to_engagement_db_dataset):
+def _form_answer_to_engagement_db_message(form_id, answer_details, engagement_dataset, question_config):
     """
     Converts a Form answer to an engagement database message.
-
-    :param form_answer: Answer to convert, in Google Forms' answer dictionary format.
-    :type form_answer: dict
-    :param form_id: Id of the form this answer is for.
-    :type form_id: str
-    :param form_response: The form response that this answer was given as part of, in Google Forms' response dictionary
-                          format
-    :type form_response: dict
-    :param question_id_to_engagement_db_dataset: Dictionary of Google Form question id -> engagement db dataset to
-                                                 use for that question.
-    :type question_id_to_engagement_db_dataset: dict of str -> str
     :return: `form_answer` as an engagement db message.
     :rtype: engagement_database.data_models.Message
     """
-    # Validate structure of free text response
-    # TODO: Handle other types of questions too
-    free_text_answers = form_answer["textAnswers"]["answers"]
-    assert len(free_text_answers) == 1, len(free_text_answers)
-    free_text_answer = free_text_answers[0]["value"]
-
-    return Message(
-        participant_uuid=participant_uuid,
-        text=free_text_answer,
-        timestamp=isoparse(form_response["createTime"]),
-        direction=MessageDirections.IN,
-        channel_operator="google_form",  # TODO: Move google_form to core_data_modules.Codes
-        status=MessageStatuses.LIVE,
-        dataset=question_id_to_engagement_db_dataset[form_answer["questionId"]],
-        labels=[],
-        origin=MessageOrigin(
-            origin_id=f"google_form_id_{form_id}.response_id_{form_response['responseId']}.question_id_{form_answer['questionId']}",
-            origin_type="google_form"
+    if len(answer_details) == 1:
+        answer_detail = answer_details[0]
+        return Message(
+            participant_uuid= answer_detail["participant_uuid"],
+            text= answer_detail["text"],
+            timestamp=answer_detail["timestamp"],
+            direction=MessageDirections.IN,
+            channel_operator="google_form",  # TODO: Move google_form to core_data_modules.Codes
+            status=MessageStatuses.LIVE,
+            dataset=engagement_dataset,
+            labels=[],
+            origin=MessageOrigin(
+                origin_id=f"google_form_id_{form_id}.response_id_{answer_detail['response_id']}.question_id_{answer_detail['answer']['questionId']}",
+                origin_type="google_form"
+            )
         )
-    )
+    if len(answer_details) > 1:
+        answer_details.sort(key = lambda x: x["timestamp"])
+        text = f"{question_config.answers_delimeter} ".join([ans["text"] for ans in answer_details])
+        origin_ids = []
+        for answer_detail in answer_details:
+            origin_ids.append(f"google_form_id_{form_id}.response_id_{answer_detail['response_id']}.question_id_{answer_detail['answer']['questionId']}")
+
+        return Message(
+            participant_uuid= answer_details[-1]["participant_uuid"],
+            text=text,
+            timestamp=answer_details[-1]["timestamp"],
+            direction=MessageDirections.IN,
+            channel_operator="google_form",  # TODO: Move google_form to core_data_modules.Codes
+            status=MessageStatuses.LIVE,
+            dataset=engagement_dataset,
+            labels=[],
+            origin=MessageOrigin(
+                origin_id=origin_ids,
+                origin_type="google_form"
+            )
+        )
 
 
 def _engagement_db_has_message(engagement_db, message):
@@ -218,10 +223,10 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
         return GoogleFormSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
 
     log.debug(f"Adding message to engagement database dataset {message.dataset}...")
-    # engagement_db.set_message(
-    #     message,
-    #     HistoryEntryOrigin(origin_name="Google Form -> Database Sync", details=message_origin_details)
-    # )
+    engagement_db.set_message(
+        message,
+        HistoryEntryOrigin(origin_name="Google Form -> Database Sync", details=message_origin_details)
+    )
     return GoogleFormSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 
@@ -326,7 +331,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
             answer_details["text"] = value
             answer_details["participant_uuid"] = participant_uuid
             answer_details["response_id"] = response["responseId"]
-            answer_details["timestamp"] = response["createTime"]
+            answer_details["timestamp"] = isoparse(response["createTime"])
             answer_details["answer"] = answer
             question_id_to_answer[answer["questionId"]] = answer_details
 
@@ -335,7 +340,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                 qid = question_title_to_question_id[question_config.question_titles[0]]
                 if qid in question_id_to_answer:
                     answer_detail = question_id_to_answer[qid]
-                    message = _form_answer_to_engagement_db_message(form_config.form_id, [answer_detail], question_config.engagement_dataset, qid)
+                    message = _form_answer_to_engagement_db_message(form_config.form_id, [answer_detail], question_config.engagement_db_dataset, question_config)
                     message_origin_details = {
                         "formId": form_config.form_id,
                         "answer": answer_detail["answer"],
@@ -352,18 +357,19 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                     continue
 
                 if len(answer_details) == 1:
-                    message = _form_answer_to_engagement_db_message(form_config.form_id, answer_details, question_config.engagement_dataset, qid)
+                    message = _form_answer_to_engagement_db_message(form_config.form_id, answer_details, question_config.engagement_db_dataset, question_config)
                     message_origin_details = {
                         "formId": form_config.form_id,
                         "answer": answer_details[0]["answer"],
                     }
 
                 if len(answer_details) > 1:
-                    message = _form_answer_to_engagement_db_message(form_config.form_id, answer_details, question_config.engagement_dataset, qid)
+                    message = _form_answer_to_engagement_db_message(form_config.form_id, answer_details, question_config.engagement_db_dataset, question_config)
                     message_origin_details = {
                         "formId": form_config.form_id,
-                        "answer": [d[answer] for d in answer_details],
+                        "answer": [d["answer"] for d in answer_details],
                     }
+
             sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
             sync_stats.add_event(sync_event)
 
