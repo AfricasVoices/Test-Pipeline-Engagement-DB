@@ -271,8 +271,8 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                     question_title_to_question_id[question_title] = question_id
     
         if "questionItem" not in item:
-            print(item)
             continue
+        
         question_id = item["questionItem"]["question"]["questionId"]
         question_title = item["title"]
         if question_title in question_title_to_engagement_db_dataset:
@@ -332,9 +332,6 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
 
         for question_config in form_config.question_configurations:
             if len(question_config.question_titles) == 1:
-                print(question_config.question_titles[0])
-                print(question_title_to_question_id[question_config.question_titles[0]])
-
                 qid = question_title_to_question_id[question_config.question_titles[0]]
                 if qid in question_id_to_answer:
                     answer_detail = question_id_to_answer[qid]
