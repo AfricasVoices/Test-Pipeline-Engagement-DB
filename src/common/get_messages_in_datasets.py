@@ -127,17 +127,25 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
             if type(origin_id) == list:
                 origin_id = tuple(origin_id)
 
-            assert origin_id not in all_message_origins, f"Multiple messages had the same origin id: " \
-                                                                    f"'{msg.origin.origin_id}'"
-            all_message_origins.add(origin_id)
+            #assert origin_id not in all_message_origins, f"Multiple messages had the same origin id: " \
+                                                                    #f"'{msg.origin.origin_id}'"
+            #all_message_origins.add(origin_id)
 
     # Filter out messages that don't meet the status conditions
+
     for engagement_db_dataset, messages in engagement_db_messages_map.items():
+        unique_message = []
+        for msg in messages:
+            if msg in unique_message:
+                continue
+
+            unique_message.append(msg)
+
         # Find the messages that have status "live" or "stale"
-        live_messages = [msg for msg in messages if msg.status == MessageStatuses.LIVE]
-        stale_messages = [msg for msg in messages if msg.status == MessageStatuses.STALE]
+        live_messages = [msg for msg in unique_message if msg.status == MessageStatuses.LIVE]
+        stale_messages = [msg for msg in unique_message if msg.status == MessageStatuses.STALE]
         log.info(f"Filtered {engagement_db_dataset} for live/stale messages: "
-                 f"{len(live_messages) + len(stale_messages)}/{len(messages)} messages remain "
+                 f"{len(live_messages) + len(stale_messages)}/{len(unique_message)} messages remain "
                  f"({len(live_messages)} live and {len(stale_messages)} stale)")
 
         # Find the active messages - that is, those that are live, and those that are stale where there is no
@@ -152,5 +160,7 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
                  f"messages: {len(active_messages)}/{len(live_messages + stale_messages)} messages remain")
 
         engagement_db_messages_map[engagement_db_dataset] = active_messages
+        log.debug(f'No of unique messages in {engagement_db_dataset} {len(unique_message)}')
+        log.debug(f'No of duplicate messages in {engagement_db_dataset} {len(messages)} - {len(unique_message)}')
 
     return engagement_db_messages_map
