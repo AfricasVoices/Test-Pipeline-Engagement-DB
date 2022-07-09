@@ -242,6 +242,13 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
     for i, message in enumerate(messages_triggering_sync):
         log.info(f"Syncing message {i + 1}/{len(messages_triggering_sync)}: {message.message_id}...")
         participant_uuid = message.participant_uuid
+
+        # Skip syncing non mobile/telegram contacts to rapid_pro
+        non_mobile_participants = set()
+        if not participant_uuid.startswith("avf"):
+            non_mobile_participants.add(participant_uuid)
+            continue
+
         if participant_uuid in participants_synced_this_cycle:
             log.info(f"Skipping this message because we've already synced participant_uuid {participant_uuid} in this "
                      f"pipeline run")
@@ -270,6 +277,8 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         participants_synced_this_cycle.add(participant_uuid)
         if cache is not None and not dry_run:
             cache.set_message("last_synced", message)
+
+        log.debug(f"skipped syncing {len(non_mobile_participants)} non mobile/telegram contacts")
 
     log.info(f"Done")
     # TODO: Print summary of actions
