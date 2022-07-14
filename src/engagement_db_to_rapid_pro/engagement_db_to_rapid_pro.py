@@ -232,7 +232,7 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
 
     # Load all the project code schemes so we can easily scan for STOP messages later.
     code_schemes = []
-    for path in glob.glob("code_schemes/*.json"):
+    for path in glob.glob("**/*.json", recursive=True):
         with open(path) as f:
             code_schemes.append(CodeScheme.from_firebase_map(json.load(f)))
 
