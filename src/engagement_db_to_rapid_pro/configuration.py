@@ -23,12 +23,12 @@ class DatasetConfiguration:
 
 @dataclass
 class EngagementDBToRapidProConfiguration:
-    weekly_advert_contact_field: ContactField
     # Whether to allow setting contact fields to empty. Setting this to True may not be appropriate for continuous
     # sync because a new message may have arrived in Rapid Pro but not yet in the engagement database.
     allow_clearing_fields: bool
     normal_datasets: Optional[List[DatasetConfiguration]] = None
     consent_withdrawn_dataset: Optional[DatasetConfiguration] = None
+    weekly_advert_contact_field: Optional[ContactField] = None
     write_mode: str = WriteModes.SHOW_PRESENCE
     sync_advert_contacts: bool = False   # Whether to sync advert contacts to rapid pro.
 
