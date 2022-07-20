@@ -454,8 +454,8 @@ def _impute_location_codes(user, messages_traced_data, analysis_dataset_configs,
     for analysis_dataset_config in analysis_dataset_configs:
         location_engagement_db_datasets = analysis_dataset_config.engagement_db_datasets
 
-        # dict of location -> (None | coding_config_cleaner_tuple)
-        locations_dict = {location: None for location in analysis_locations_to_cleaners}
+        # dict of location -> coding_config_cleaner_tuple
+        locations_dict = dict()
         for coding_config in analysis_dataset_config.coding_configs:
             analysis_location = coding_config.analysis_location
             if analysis_location not in analysis_locations_to_cleaners:
@@ -463,20 +463,22 @@ def _impute_location_codes(user, messages_traced_data, analysis_dataset_configs,
 
             log.info(f"Found coding config '{coding_config.analysis_dataset}' for analysis location "
                      f"'{analysis_location}'")
-            assert locations_dict[analysis_location] is None
+            assert analysis_location not in locations_dict
             locations_dict[analysis_location] = (
                 coding_config, analysis_locations_to_cleaners[analysis_location]
             )
 
         # If we didn't find any analysis locations, then skip this analysis_dataset_config without imputing anything.
-        found_analysis_locations = len([loc_tuple for loc_tuple in locations_dict.values() if loc_tuple is not None])
+        found_analysis_locations = len(locations_dict)
         if found_analysis_locations == 0:
             continue
-        if found_analysis_locations < len(locations_dict):
-            log.error(f"Found {found_analysis_locations} locations, but {locations_dict} locations were searched for. "
-                      f"Partial location imputation is not yet supported")
-            exit(1)
-
+        if found_analysis_locations < len(analysis_locations_to_cleaners):
+            # If we didn't find matches for all the location datasets that's ok because often this is desirable -
+            # for example, a project may not be interested in ward-level data. However, there's a chance this is due
+            # to a configuration error so log a warning just in case.
+            log.warning(f"Searched for locations {list(analysis_locations_to_cleaners.keys())}, "
+                        f"but only found {list(locations_dict.keys())}. "
+                        f"Proceeding to impute with this subset of the possible locations.")
         _impute_location_codes_for_dataset(
             user, messages_traced_data, location_engagement_db_datasets, locations_dict.values()
         )
