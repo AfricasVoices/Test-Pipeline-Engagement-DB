@@ -41,7 +41,11 @@ if __name__ == "__main__":
     pipeline_config = importlib.import_module(args.configuration_module).PIPELINE_CONFIGURATION
 
     dry_run_text = "(dry run)" if dry_run else ""
-    log.info(f"Synchronizing data from rapidpro to an engagement database {dry_run_text}")
+    log.info(f"Synchronizing data from rapid pro to an engagement database {dry_run_text}")
+
+    if pipeline_config.rapid_pro_sources is None or len(pipeline_config.rapid_pro_sources) == 0:
+        log.info(f"No Rapid Pro sources specified; exiting")
+        exit(0)
 
     # Parse any local archive arguments, validating that all arguments do override a Rapid Pro source
     local_archives_map = dict()  # of gs url -> local path
@@ -62,10 +66,6 @@ if __name__ == "__main__":
     project = subprocess.check_output(["git", "config", "--get", "remote.origin.url"]).decode().strip()
 
     HistoryEntryOrigin.set_defaults(user, project, pipeline, commit)
-
-    if pipeline_config.rapid_pro_sources is None or len(pipeline_config.rapid_pro_sources) == 0:
-        log.info(f"No Rapid Pro sources specified; exiting")
-        exit(0)
 
     uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
