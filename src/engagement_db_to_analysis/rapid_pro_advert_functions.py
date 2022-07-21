@@ -229,14 +229,17 @@ def sync_advert_contacts_to_rapid_pro(participants_by_column, uuid_table, pipeli
     # Get workspace contact fields to check whether our target contact field exists
     workspace_contact_fields = rapid_pro.get_fields()
 
-    log.info(f'Syncing weekly advert contacts to rapid pro...')
     weekly_advert_contact_field = pipeline_config.rapid_pro_target.sync_config.weekly_advert_contact_field
-    _ensure_contact_field_exists(workspace_contact_fields, weekly_advert_contact_field, rapid_pro)
+    if weekly_advert_contact_field is None:
+        log.debug(f"Not syncing the weekly advert contacts to rapid pro because `weekly_advert_contact_field` was None")
+    else:
+        log.info(f"Syncing weekly advert contacts to rapid pro...")
+        _ensure_contact_field_exists(workspace_contact_fields, weekly_advert_contact_field, rapid_pro)
+        _sync_advert_contacts_fields_to_rapid_pro(
+            cache, weekly_advert_uuids, weekly_advert_contact_field.key, uuid_table, rapid_pro
+        )
 
-    _sync_advert_contacts_fields_to_rapid_pro(cache, weekly_advert_uuids, weekly_advert_contact_field.key, uuid_table,
-                                              rapid_pro)
-
-    #Update  dataset non relevant groups to rapid_pro
+    # Update dataset non-relevant groups to rapid_pro
     log.info(f'Syncing contacts who sent non relevant messages for each episode...')
     for analysis_dataset_config in pipeline_config.analysis.dataset_configurations:
         if analysis_dataset_config.rapid_pro_non_relevant_field is not None:
