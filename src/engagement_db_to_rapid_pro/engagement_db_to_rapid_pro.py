@@ -243,7 +243,7 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         log.info(f"Syncing message {i + 1}/{len(messages_triggering_sync)}: {message.message_id}...")
         participant_uuid = message.participant_uuid
 
-        if not participant_uuid.startswith("avf"):
+        if not participant_uuid.startswith(uuid_table.uuid_prefix):
             non_deindentified_uuids += 1
             continue
 
@@ -276,7 +276,7 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         if cache is not None and not dry_run:
             cache.set_message("last_synced", message)
 
-    log.debug(f"skipped syncing {non_deindentified_uuids} non_deindentified_uuids uuids")
+    log.warning(f"skipped syncing {non_deindentified_uuids} non deindentified uuids")
 
     log.info(f"Done")
     # TODO: Print summary of actions
