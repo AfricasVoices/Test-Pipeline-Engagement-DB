@@ -283,7 +283,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 # Get the relevant result from this run, if it exists.
                 rapid_pro_result = run.values.get(config.flow_result_field)
                 if rapid_pro_result is None:
-                    log.debug(f"Field `{config.flow_result_field}` has no relevant run result.")
+                    log.debug(f"Field '{config.flow_result_field}' has no relevant run result.")
                     sync_stats.add_event(RapidProSyncEvents.RUN_VALUE_EMPTY)
                 else:
                     # Create a message and origin objects for this result and ensure it's in the engagement database.
@@ -308,6 +308,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                         "flow_name": flow_name,
                         "run_value": rapid_pro_result.serialize()
                     }
+                    log.debug(f"Field '{config.flow_result_field}' has a relevant run result. Ensuring this message is "
+                              f"in the database...")
                     sync_event = _ensure_engagement_db_has_message(engagement_db, msg, message_origin_details, dry_run)
                     sync_stats.add_event(sync_event)
                 dataset_to_sync_stats[f"{flow_name}.{config.flow_result_field}"].add_stats(sync_stats)
