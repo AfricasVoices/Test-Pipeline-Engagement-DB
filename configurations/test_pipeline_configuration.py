@@ -64,6 +64,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             ),
             sync_config=GoogleFormToEngagementDBConfiguration(
                 form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
+                participant_id_configuration=ParticipantIdConfiguration(
+                    question_title="Kenyan Mobile Number",
+                    id_type=GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER
+                ),
                 question_configurations=[
                     # Multiple choice question with other
                     QuestionConfiguration(question_title="What is your gender?", engagement_db_dataset="gender"),

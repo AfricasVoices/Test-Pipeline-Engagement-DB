@@ -35,7 +35,8 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
                 .where("dataset", "==", engagement_db_dataset) \
                 .where("last_updated", ">", latest_message_timestamp)
 
-            updated_messages = engagement_db.get_messages(firestore_query_filter=incremental_messages_filter)
+            updated_messages = engagement_db.get_messages(
+                firestore_query_filter=incremental_messages_filter, batch_size=500)
             messages.extend(updated_messages)
 
             # Check and remove cached messages that have been ws corrected away from this dataset after the previous
@@ -46,7 +47,8 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
                 .where("previous_datasets", "array_contains", engagement_db_dataset) \
                 .where("last_updated", ">", latest_ws_message_timestamp)
 
-            downloaded_ws_corrected_messages = engagement_db.get_messages(firestore_query_filter=ws_corrected_messages_filter)
+            downloaded_ws_corrected_messages = engagement_db.get_messages(
+                firestore_query_filter=ws_corrected_messages_filter, batch_size=500)
 
             # Filter ws_corrected_messages whose dataset == the engagement_db_dataset.
             # This prevents messages that have the current dataset in their previous_datasets from being erroneously
@@ -79,7 +81,7 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
                 .where("dataset", "==", engagement_db_dataset) \
                 .where("status", "in", {MessageStatuses.LIVE, MessageStatuses.STALE})
 
-            messages = engagement_db.get_messages(firestore_query_filter=full_download_filter)
+            messages = engagement_db.get_messages(firestore_query_filter=full_download_filter, batch_size=500)
             log.info(f"Downloaded {len(messages)} messages")
 
         # Filter messages for their latest versions
@@ -123,9 +125,13 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
     all_message_origins = set()
     for messages in engagement_db_messages_map.values():
         for msg in messages:
-            assert msg.origin.origin_id not in all_message_origins, f"Multiple messages had the same origin id: " \
+            origin_id = msg.origin.origin_id
+            if type(origin_id) == list:
+                origin_id = tuple(origin_id)
+
+            assert origin_id not in all_message_origins, f"Multiple messages had the same origin id: " \
                                                                     f"'{msg.origin.origin_id}'"
-            all_message_origins.add(msg.origin.origin_id)
+            all_message_origins.add(origin_id)
 
     # Filter out messages that don't meet the status conditions
     for engagement_db_dataset, messages in engagement_db_messages_map.items():

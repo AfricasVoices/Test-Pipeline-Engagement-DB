@@ -94,7 +94,7 @@ class Cache:
     def _delete_file(self, filename):
         filepath = f"{self.cache_dir}/{filename}"
         IOUtils.ensure_dirs_exist_for_file(filepath)
-        remove(file_path)
+        remove(filepath)
 
     def clear_timestamp(self, entry_name):
         self._delete_file(f"{entry_name}.txt")

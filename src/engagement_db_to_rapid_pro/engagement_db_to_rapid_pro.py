@@ -232,15 +232,21 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
 
     # Load all the project code schemes so we can easily scan for STOP messages later.
     code_schemes = []
-    for path in glob.glob("code_schemes/*.json"):
+    for path in glob.glob("code_schemes/**/*.json", recursive=True):
         with open(path) as f:
             code_schemes.append(CodeScheme.from_firebase_map(json.load(f)))
 
     # Sync each message to Rapid Pro, by recomputing the state of every participant.
     participants_synced_this_cycle = set()
+    non_deindentified_uuids = 0
     for i, message in enumerate(messages_triggering_sync):
         log.info(f"Syncing message {i + 1}/{len(messages_triggering_sync)}: {message.message_id}...")
         participant_uuid = message.participant_uuid
+
+        if not participant_uuid.startswith(uuid_table.uuid_prefix):
+            non_deindentified_uuids += 1
+            continue
+
         if participant_uuid in participants_synced_this_cycle:
             log.info(f"Skipping this message because we've already synced participant_uuid {participant_uuid} in this "
                      f"pipeline run")
@@ -269,6 +275,8 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         participants_synced_this_cycle.add(participant_uuid)
         if cache is not None and not dry_run:
             cache.set_message("last_synced", message)
+
+    log.warning(f"skipped syncing {non_deindentified_uuids} non deindentified uuids")
 
     log.info(f"Done")
     # TODO: Print summary of actions
