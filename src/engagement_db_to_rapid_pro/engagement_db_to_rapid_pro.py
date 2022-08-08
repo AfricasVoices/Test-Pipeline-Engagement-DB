@@ -168,7 +168,8 @@ def _labels_contain_consent_withdrawn(labels, code_schemes):
     """
     for label in labels:
         code_scheme = _code_scheme_for_label(label, code_schemes)
-        assert code_scheme is not None
+        assert code_scheme is not None, f"Label has scheme_id {label.scheme_id}, but this is not present in any of " \
+                                        f"the given code schemes."
         if code_scheme.get_code_with_code_id(label.code_id).control_code == Codes.STOP:
             return True
 
