@@ -292,12 +292,12 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
             sync_stats.add_event(GoogleFormSyncEvents.READ_ANSWER_FROM_RESPONSE)
             if answer["questionId"] not in question_id_to_engagement_db_dataset:
                 log.info(f"This answer is to question {answer['questionId']}, which isn't configured in this sync")
-                continue
+                continue 
 
-            message = _form_answer_to_engagement_db_message(
+            question_id_to_engagement_db_message[answer["questionId"]] = _form_answer_to_engagement_db_message(
                 answer, form_config.form_id, response, participant_uuid, question_id_to_engagement_db_dataset
             )
-            message_origin_details = {
+            question_id_to_message_origin_details[answer["questionId"]] = {
                 "formId": form_config.form_id,
                 "answer": answer,
             }
