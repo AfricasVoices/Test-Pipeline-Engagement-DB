@@ -150,8 +150,6 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
     :return: `form_answer` as an engagement db message.
     :rtype: engagement_database.data_models.Message
     """
-    # Validate structure of free text response
-    # TODO: Handle other types of questions too
     form_answer = ", ".join([answer["value"] for answer in form_answer["textAnswers"]["answers"]])
 
     return Message(
