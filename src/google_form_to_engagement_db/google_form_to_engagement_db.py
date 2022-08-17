@@ -152,13 +152,11 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
     """
     # Validate structure of free text response
     # TODO: Handle other types of questions too
-    free_text_answers = form_answer["textAnswers"]["answers"]
-    assert len(free_text_answers) == 1, len(free_text_answers)
-    free_text_answer = free_text_answers[0]["value"]
+    form_answer = ", ".join([answer["value"] for answer in form_answer["textAnswers"]["answers"]])
 
     return Message(
         participant_uuid=participant_uuid,
-        text=free_text_answer,
+        text=form_answer,
         timestamp=isoparse(form_response["createTime"]),
         direction=MessageDirections.IN,
         channel_operator="google_form",  # TODO: Move google_form to core_data_modules.Codes
