@@ -247,19 +247,32 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     log.info("Linking question ids to the form configuration...")
     question_title_to_engagement_db_dataset = dict()
     for question_config in form_config.question_configurations:
-        question_title_to_engagement_db_dataset[question_config.question_title] = question_config.engagement_db_dataset
+        for question_title in question_config.question_titles:
+            question_title_to_engagement_db_dataset[question_title] = question_config.engagement_db_dataset
 
-    question_id_to_engagement_db_dataset = dict()
+    question_id_to_engagement_db_dataset, question_title_to_question_id = dict(), dict()
     participant_id_question_id = None
-    for item in form["items"]:
-        question_id = item["questionItem"]["question"]["questionId"]
-        question_title = item["title"]
-        if question_title in question_title_to_engagement_db_dataset:
-            engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
-            question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
-        if form_config.participant_id_configuration is not None and \
-                question_title == form_config.participant_id_configuration.question_title:
-            participant_id_question_id = question_id
+    for item in form["items"]:            
+        if "questionItem" not in item:
+            question_id, question_title = item["questionItem"]["question"]["questionId"], item["title"]
+            if question_title in question_title_to_engagement_db_dataset:
+                engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
+                question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
+                question_title_to_question_id[question_title] = question_id
+
+            if form_config.participant_id_configuration is not None and \
+                    question_title == form_config.participant_id_configuration.question_title:
+                participant_id_question_id = question_id
+        
+        # Question group - a group of questions that all share the same set of possible answers 
+        # (for example, a grid of ratings from 1 to 5).
+        elif "questionGroupItem" in item:
+            for question in item["questionGroupItem"]["questions"]:
+                question_id, question_title = question["questionId"], question["rowQuestion"]["title"]
+                if question_title in question_title_to_engagement_db_dataset:
+                    engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
+                    question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
+                    question_title_to_question_id[question_title] = question_id
 
     # Download responses
     last_seen_response_time = None if cache is None else cache.get_date_time(form_config.form_id)
