@@ -70,16 +70,16 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 ),
                 question_configurations=[
                     # Multiple choice question with other
-                    QuestionConfiguration(question_title="What is your gender?", engagement_db_dataset="gender"),
+                    QuestionConfiguration(question_titles=["What is your gender?"], engagement_db_dataset="gender"),
 
                     # Short answer
-                    QuestionConfiguration(question_title="What is your age?", engagement_db_dataset="age"),
+                    QuestionConfiguration(question_titles=["What is your age?"], engagement_db_dataset="age"),
 
                     # Long answer
-                    QuestionConfiguration(question_title="Test Question 1", engagement_db_dataset="s01e01"),
+                    QuestionConfiguration(question_titles=["Test Question 1"], engagement_db_dataset="s01e01"),
 
                     # Short answer
-                    QuestionConfiguration(question_title="Test Question 2", engagement_db_dataset="s01e02"),
+                    QuestionConfiguration(question_titles=["Test Question 2"], engagement_db_dataset="s01e02"),
                 ]
             )
         ),
