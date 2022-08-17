@@ -316,17 +316,20 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
             assert len(question_config.question_titles) > 0
             if len(question_config.question_titles) == 1:
                 question_id = question_title_to_question_id[question_config.question_titles[0]]
-                if question_id in question_id_to_engagement_db_message:
-                    message = question_id_to_engagement_db_message[question_id]
-                    message_origin_details = question_id_to_message_origin_details[question_id]
+                if question_id not in question_id_to_engagement_db_message:
+                    continue
+                message = question_id_to_engagement_db_message[question_id]
+                message_origin_details = question_id_to_message_origin_details[question_id]
             else:
                 messages = []
                 messages_origin_details = []
                 for question_title in question_config.question_titles:
                     question_id = question_title_to_question_id[question_title]
-                    if question_id in question_id_to_engagement_db_message:
-                        messages.append(question_id_to_engagement_db_message[question_id])
-                        messages_origin_details.append(question_id_to_message_origin_details[question_id])
+                    if question_id not in question_id_to_engagement_db_message:
+                        continue
+                    messages.append(question_id_to_engagement_db_message[question_id])
+                    messages_origin_details.append(question_id_to_message_origin_details[question_id])
+                    
                 if not len(messages) > 0:
                     continue
                 elif len(messages) == 1:
