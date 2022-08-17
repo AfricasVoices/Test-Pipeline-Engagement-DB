@@ -35,9 +35,11 @@ def _validate_configuration_against_form_structure(form, form_config):
 
     config_questions = set()
     for question_config in form_config.question_configurations:
-        assert question_config.question_title not in config_questions, \
-            f"Question '{question_config.question_title} specified in configuration for form {form_config.form_id} twice"
-        config_questions.add(question_config.question_title)
+        for question_title in question_config.question_titles:
+            assert question_title not in config_questions, \
+                f"Question '{question_title} specified in configuration for form {form_config.form_id} twice"
+        config_questions.add(question_title)
+
     if form_config.participant_id_configuration is not None:
         config_questions.add(form_config.participant_id_configuration.question_title)
 
