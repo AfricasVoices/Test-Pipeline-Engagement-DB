@@ -285,6 +285,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     responses.sort(key=lambda resp: resp["lastSubmittedTime"])
     sync_stats = GoogleFormToEngagementDBSyncStats()
     for i, response in enumerate(responses):
+        question_id_to_engagement_db_message, question_id_to_message_origin_details = dict(), dict()
         log.info(f"Processing response {i + 1}/{len(responses)}...")
         sync_stats.add_event(GoogleFormSyncEvents.READ_RESPONSE_FROM_GOOGLE_FORM)
 
@@ -314,6 +315,31 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                 "formId": form_config.form_id,
                 "answer": answer,
             }
+
+        for question_config in form_config.question_configurations:
+            assert len(question_config.question_titles) > 0
+            if len(question_config.question_titles) == 1:
+                question_id = question_title_to_question_id[question_config.question_titles[0]]
+                if question_id in question_id_to_engagement_db_message:
+                    message = question_id_to_engagement_db_message[question_id]
+                    message_origin_details = question_id_to_message_origin_details[question_id]
+            else:
+                messages = []
+                messages_origin_details = []
+                for question_title in question_config.question_titles:
+                    question_id = question_title_to_question_id[question_title]
+                    if question_id in question_id_to_engagement_db_message:
+                        messages.append(question_id_to_engagement_db_message[question_id])
+                        messages_origin_details.append(question_id_to_message_origin_details[question_id])
+                if not len(messages) > 0:
+                    continue
+                elif len(messages) == 1:
+                    [message], [message_origin_details] = messages, messages_origin_details
+                else:
+                    # TODO: Implement the function below that merges engagement db messages including their origin details
+                    # message, message_origin_details = _merge_engagement_db_messages(messages, messages_origin_details, question_config.answers_delimeter)
+                    continue
+
             sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
             sync_stats.add_event(sync_event)
 
