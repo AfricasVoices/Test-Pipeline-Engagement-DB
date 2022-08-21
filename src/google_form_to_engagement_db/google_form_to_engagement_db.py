@@ -150,11 +150,11 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
     :return: `form_answer` as an engagement db message.
     :rtype: engagement_database.data_models.Message
     """
-    form_answer = ", ".join([answer["value"] for answer in form_answer["textAnswers"]["answers"]])
+    text = ", ".join([answer["value"] for answer in form_answer["textAnswers"]["answers"]])
 
     return Message(
         participant_uuid=participant_uuid,
-        text=form_answer,
+        text=text,
         timestamp=isoparse(form_response["createTime"]),
         direction=MessageDirections.IN,
         channel_operator="google_form",  # TODO: Move google_form to core_data_modules.Codes
