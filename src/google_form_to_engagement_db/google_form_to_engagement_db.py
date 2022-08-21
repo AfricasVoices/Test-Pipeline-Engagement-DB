@@ -249,7 +249,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     question_id_to_engagement_db_dataset, question_title_to_question_id = dict(), dict()
     participant_id_question_id = None
     for item in form["items"]:            
-        if "questionItem" not in item:
+        if "questionItem" in item:
             question_id, question_title = item["questionItem"]["question"]["questionId"], item["title"]
             if question_title in question_title_to_engagement_db_dataset:
                 engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
