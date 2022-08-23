@@ -44,7 +44,7 @@ class ParticipantIdConfiguration:
 
 
 class QuestionConfiguration:
-    def __init__(self, question_titles, engagement_db_dataset, answers_delimeter=";"):
+    def __init__(self, question_titles, engagement_db_dataset, answers_delimeter="; "):
         """
         :param question_titles: Question titles. This are the texts presented to the form user for these questions
                                e.g. ["Do you live in a town/city?"]
