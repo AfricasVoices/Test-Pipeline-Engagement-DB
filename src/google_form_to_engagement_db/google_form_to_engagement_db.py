@@ -73,21 +73,28 @@ def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_l
                            number starts with one of these prefixes. For example, this could be used to ensure
                            this is a mobile number, or to ensure it belongs to a valid network.
     :type valid_prefixes: set of str | None
-    :return: Phone number as urn e.g. 'tel:+254700123123'
-    :rtype: str
+    :return: Phone number as urn e.g. 'tel:+254700123123' or None.
+    :rtype: str | None
     """
     # Normalise the phone number (removes spaces, non-numeric, and leading 0s).
     phone_number = PhoneCleaner.normalise_phone(phone_number)
 
-    if phone_number.startswith(country_code):
-        if valid_prefixes is not None:
-            assert len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) == 1
-    else:
-        if valid_prefixes is not None:
-            assert len([p for p in valid_prefixes if phone_number.startswith(p)]) == 1
-        phone_number = f"{country_code}{phone_number}"
+    try:
+        assert len(phone_number) > 0, "Invalid phone number"
+        if phone_number.startswith(country_code):
+            if valid_prefixes is not None:
+                assert len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) == 1, \
+                    f"Phone number must contain a valid prefix; Valid prefixes specified: {','.join(valid_prefixes)}"
+        else:
+            if valid_prefixes is not None:
+                assert len([p for p in valid_prefixes if phone_number.startswith(p)]) == 1, \
+                    f"Phone number must contain a valid prefix; Valid prefixes specified: {','.join(valid_prefixes)}"
+            phone_number = f"{country_code}{phone_number}"
 
-    assert len(phone_number) == valid_length
+        assert len(phone_number) == valid_length, "Invalid phone number length"
+    except AssertionError as e:
+        log.warning(e)
+        return
 
     urn = f"tel:+{phone_number}"
     return urn
@@ -128,6 +135,8 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
         )
 
         participant_uuid = uuid_table.data_to_uuid(participant_urn)
+        if participant_uuid is None:
+            participant_uuid = response["responseId"]
 
     return participant_uuid
 
