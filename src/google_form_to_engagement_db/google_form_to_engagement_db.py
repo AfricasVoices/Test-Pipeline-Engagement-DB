@@ -339,7 +339,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                         continue
                     messages.append(question_id_to_engagement_db_message[question_id])
                     messages_origin_details.append(question_id_to_message_origin_details[question_id])
-                if not len(messages) > 0:
+                if len(messages) == 0:
                     continue
                 elif len(messages) == 1:
                     [message], [message_origin_details] = messages, messages_origin_details
