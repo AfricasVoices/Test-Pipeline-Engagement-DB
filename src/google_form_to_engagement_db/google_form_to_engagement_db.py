@@ -134,9 +134,10 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
             phone_number=participant_id, country_code="254", valid_length=12, valid_prefixes={"10", "11", "7"}
         )
 
-        participant_uuid = uuid_table.data_to_uuid(participant_urn)
-        if participant_uuid is None:
+        if participant_urn is None:
             participant_uuid = response["responseId"]
+        else:
+            participant_uuid = uuid_table.data_to_uuid(participant_urn)
 
     return participant_uuid
 
