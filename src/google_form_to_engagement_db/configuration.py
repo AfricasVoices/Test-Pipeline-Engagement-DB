@@ -48,7 +48,7 @@ class QuestionConfiguration:
         """
         :param question_titles: Question titles. This are the texts presented to the form user for these questions
                                e.g. ["Do you live in a town/city?"]
-        :type question_titles: list
+        :type question_titles: list of str
         :param engagement_db_dataset: Name of the dataset to use in the engagement database.
         :type engagement_db_dataset: str
         """
