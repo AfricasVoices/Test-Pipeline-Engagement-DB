@@ -51,6 +51,9 @@ class QuestionConfiguration:
         :type question_titles: list of str
         :param engagement_db_dataset: Name of the dataset to use in the engagement database.
         :type engagement_db_dataset: str
+        :param answers_delimeter: a character for specifying the boundary between the answers given for multiple
+                                `question_titles` 
+        :type answers_delimeter: str
         """
         self.question_titles = question_titles
         self.engagement_db_dataset = engagement_db_dataset
