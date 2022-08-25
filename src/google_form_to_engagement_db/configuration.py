@@ -61,7 +61,7 @@ class QuestionConfiguration:
 
 
 class GoogleFormToEngagementDBConfiguration:
-    def __init__(self, form_id, question_configurations, participant_id_configuration=None):
+    def __init__(self, form_id, question_configurations, participant_id_configuration=None, ignore_invalid_mobile_numbers=False):
         """
         :param form_id: Id of Google Form to sync.
         :type form_id: str
@@ -71,10 +71,17 @@ class GoogleFormToEngagementDBConfiguration:
                                                If set, the participant uuid will be derived from the answer to an
                                                id question, otherwise it will be set to the form response id.
         :type participant_id_configuration: ParticipantIdConfiguration | None
+        ignore_invalid_mobile_numbers: bool = False
+        ignore_invalid_mobile_numbers: Whether to ignore invalid mobile numbers during validation.
         """
         self.form_id = form_id
         self.question_configurations = question_configurations
         self.participant_id_configuration = participant_id_configuration
+        self.ignore_invalid_mobile_numbers = ignore_invalid_mobile_numbers
+
+        if participant_id_configuration.id_type not in [GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER]:
+            assert ignore_invalid_mobile_numbers == False, f"`ignore_invalid_mobile_numbers` cannot be set to True " \
+                f"if participant id type is {participant_id_configuration.id_type}. See `GoogleFormToEngagementDBConfiguration`"
 
 
 class GoogleFormSource:
