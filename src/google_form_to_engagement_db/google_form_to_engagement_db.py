@@ -100,15 +100,15 @@ def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_l
     return urn
 
 
-def _get_participant_uuid_for_response(response, id_type, participant_id_question_id, uuid_table):
+def _get_participant_uuid_for_response(response, id_type, participant_id_question_id, uuid_table, form_config):
     """
     Gets the participant_uuid for the given response.
 
     If the response contains an answer to a question with id `participant_id_question_id`, validates the contact
     info given on the form and formats it as a URN.
 
-    If no answer or question_id is provided, uses the response id as the participant_uuid instead. In this case, the
-    response id is not de-identified via the uuid table.
+    If no answer or question_id is provided or an invalid answer is provided, uses the response id as the participant_uuid 
+    instead. In this case, the response id is not de-identified via the uuid table.
 
     :param response: Response to get the participant uuid for.
     :type response: dict
@@ -118,6 +118,8 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
     :type participant_id_question_id: str | None
     :param uuid_table: UUID table to use to de-identify the urn
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :param form_config: Configuration for the form to sync.
+    :type form_config: src.google_form_to_engagement_db.configuration.GoogleFormToEngagementDBConfiguration
     :return: Participant uuid for this response.
     :rtype: str
     """
@@ -130,14 +132,18 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
 
         assert id_type == GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER, \
             f"Participant id type {id_type} not recognised."
-        participant_urn = _validate_phone_number_and_format_as_urn(
-            phone_number=participant_id, country_code="254", valid_length=12, valid_prefixes={"10", "11", "7"}
-        )
-
-        if participant_urn is None:
-            participant_uuid = response["responseId"]
-        else:
+        
+        try:
+            participant_urn = _validate_phone_number_and_format_as_urn(
+                phone_number=participant_id, country_code="254", valid_length=12, valid_prefixes={"10", "11", "7"}
+            )
             participant_uuid = uuid_table.data_to_uuid(participant_urn)
+        except ValueError as e:
+            if form_config.ignore_invalid_mobile_numbers:
+                log.warning(f"{e}, using the response id as the participant_uuid instead")
+                participant_uuid = response["responseId"]
+            else:
+                raise e
 
     return participant_uuid
 
