@@ -93,6 +93,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     question_title="What is your phone number",
                     id_type=GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER
                 ),
+                ignore_invalid_mobile_numbers=True,
                 question_configurations=[
                     # Demographic Questions
                     QuestionConfiguration(engagement_db_dataset="aik_language", question_titles=["We could either do the interview in English or Swahili. Which language would you prefer? "]),
