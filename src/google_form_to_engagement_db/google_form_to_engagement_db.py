@@ -66,7 +66,7 @@ def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_l
                          or adds it if not.
     :type country_code: str
     :param valid_length: Valid length of the phone number, including the country code.
-                         This function will fail with an assertion error if it sees a phone number that doesn't have
+                         This function will fail with a value error if it sees a phone number that doesn't have
                          this length.
     :type valid_length: int
     :param valid_prefixes: Optional list of prefixes to check. If provided, this function will ensure every phone
