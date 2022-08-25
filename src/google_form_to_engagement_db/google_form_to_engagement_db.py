@@ -304,7 +304,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
         if form_config.participant_id_configuration is not None:
             participant_id_type = form_config.participant_id_configuration.id_type
         participant_uuid = _get_participant_uuid_for_response(
-            response, participant_id_type, participant_id_question_id, uuid_table
+            response, participant_id_type, participant_id_question_id, uuid_table, form_config
         )
 
         answers = response["answers"].values()
