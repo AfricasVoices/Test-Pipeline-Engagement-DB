@@ -79,22 +79,21 @@ def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_l
     # Normalise the phone number (removes spaces, non-numeric, and leading 0s).
     phone_number = PhoneCleaner.normalise_phone(phone_number)
 
-    try:
-        assert len(phone_number) > 0, "Invalid phone number"
-        if phone_number.startswith(country_code):
-            if valid_prefixes is not None:
-                assert len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) == 1, \
-                    f"Phone number must contain a valid prefix; Valid prefixes specified: {','.join(valid_prefixes)}"
-        else:
-            if valid_prefixes is not None:
-                assert len([p for p in valid_prefixes if phone_number.startswith(p)]) == 1, \
-                    f"Phone number must contain a valid prefix; Valid prefixes specified: {','.join(valid_prefixes)}"
-            phone_number = f"{country_code}{phone_number}"
+    if len(phone_number) == 0:
+        raise ValueError("Invalid phone number")
 
-        assert len(phone_number) == valid_length, "Invalid phone number length"
-    except AssertionError as e:
-        log.warning(e)
-        return
+    if phone_number.startswith(country_code):
+        if valid_prefixes is not None:
+            if not len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) == 1:
+                raise ValueError(f"Phone number must contain a valid prefix; Valid prefixes specified: {','.join(valid_prefixes)}")
+    else:
+        if valid_prefixes is not None:
+            if not len([p for p in valid_prefixes if phone_number.startswith(p)]) == 1:
+                raise ValueError(f"Phone number must contain a valid prefix; Valid prefixes specified: {','.join(valid_prefixes)}")
+        phone_number = f"{country_code}{phone_number}"
+
+    if not len(phone_number) == valid_length:
+        raise ValueError("Invalid phone number length")  
 
     urn = f"tel:+{phone_number}"
     return urn
