@@ -348,11 +348,8 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                     continue
                 elif len(messages) == 1:
                     [message], [message_origin_details] = messages, messages_origin_details
-                    continue
                 else:
-                    # TODO: Implement the function below that merges engagement db messages including their origin details
-                    # message, message_origin_details = _merge_engagement_db_messages(messages, messages_origin_details, question_config.answers_delimeter)
-                    continue
+                    message, message_origin_details = _merge_engagement_db_messages(messages, messages_origin_details, question_config.answers_delimeter)
 
             sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
             sync_stats.add_event(sync_event)
