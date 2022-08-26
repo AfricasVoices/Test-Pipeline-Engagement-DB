@@ -183,6 +183,44 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
     )
 
 
+def _merge_engagement_db_messages(messages, messages_origin_details, answers_delimeter):
+    assert len(messages) > 1
+
+    messages_participant_uuids = [msg.participant_uuid for msg in messages]
+    assert all_equal(messages_participant_uuids)
+    participant_uuid=messages_participant_uuids[0]
+
+    messages_datasets = [msg.dataset for msg in messages]
+    assert all_equal(messages_datasets)
+    dataset=messages_datasets[0]
+
+    text = f"{answers_delimeter} ".join([msg.text for msg in messages])
+    timestamp = [msg.timestamp for msg in messages].sort()[-1]
+    origin_id=[msg.origin.origin_id for msg in messages]
+
+    message = Message(
+        participant_uuid=participant_uuid,
+        text=text,
+        timestamp=timestamp,
+        direction=MessageDirections.IN,
+        channel_operator="google_form",
+        status=MessageStatuses.LIVE,
+        dataset=dataset,
+        labels=[],
+        origin=MessageOrigin(
+            origin_id=origin_id,
+            origin_type="google_form"
+        )
+    )
+
+    message_origin_details = {
+        "formId": messages_origin_details[0]["formId"],
+        "answer": [msg["answer"] for msg in messages_origin_details],
+    }
+
+    return message, message_origin_details
+
+
 def _engagement_db_has_message(engagement_db, message):
     """
     Checks if an engagement database contains a message with the same origin id as the given message.
