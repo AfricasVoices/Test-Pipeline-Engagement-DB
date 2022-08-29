@@ -183,9 +183,9 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
     )
 
 
-def _all_equal(iterator):
-    """Checks if all elements in a list are identical"""
-    iterator = iter(iterator)
+def _all_equal(iterable):
+    """Checks if all elements in an iterable are identical"""
+    iterator = iter(iterable)
     try:
         first_item = next(iterator)
     except StopIteration:
