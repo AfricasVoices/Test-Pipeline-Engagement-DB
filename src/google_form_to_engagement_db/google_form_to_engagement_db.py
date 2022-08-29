@@ -197,11 +197,11 @@ def _merge_engagement_db_messages(messages, messages_origin_details, answers_del
     assert len(messages) > 1
 
     messages_participant_uuids = [msg.participant_uuid for msg in messages]
-    assert all_equal(messages_participant_uuids)
+    assert _all_equal(messages_participant_uuids)
     participant_uuid=messages_participant_uuids[0]
 
     messages_datasets = [msg.dataset for msg in messages]
-    assert all_equal(messages_datasets)
+    assert _all_equal(messages_datasets)
     dataset=messages_datasets[0]
 
     text = f"{answers_delimeter} ".join([msg.text for msg in messages])
