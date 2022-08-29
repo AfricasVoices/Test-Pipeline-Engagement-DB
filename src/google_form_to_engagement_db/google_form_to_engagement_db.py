@@ -205,7 +205,7 @@ def _merge_engagement_db_messages(messages, messages_origin_details, answers_del
     dataset=messages_datasets[0]
 
     text = f"{answers_delimeter} ".join([msg.text for msg in messages])
-    timestamp = [msg.timestamp for msg in messages].sort()[-1]
+    timestamp = sorted([msg.timestamp for msg in messages])[-1]
     origin_id=[msg.origin.origin_id for msg in messages]
 
     message = Message(
