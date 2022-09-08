@@ -249,7 +249,7 @@ def _engagement_db_has_message(engagement_db, message):
     return len(matching_messages) > 0
 
 
-def _ensure_engagement_db_has_message(engagement_db, message, message_origin_details):
+def _ensure_engagement_db_has_message(engagement_db, message, message_origin_details, dry_run):
     """
     Ensures that the given message exists in an engagement database.
 
@@ -262,6 +262,8 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     :type message: engagement_database.data_models.Message
     :param message_origin_details: Message origin details, to be logged in the HistoryEntryOrigin.details.
     :type message_origin_details: dict
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: Sync event.
     :rtype: str
     """
@@ -270,14 +272,15 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
         return GoogleFormSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
 
     log.debug(f"Adding message to engagement database dataset {message.dataset}...")
-    engagement_db.set_message(
-        message,
-        HistoryEntryOrigin(origin_name="Google Form -> Database Sync", details=message_origin_details)
-    )
+    if not dry_run:
+        engagement_db.set_message(
+            message,
+            HistoryEntryOrigin(origin_name="Google Form -> Database Sync", details=message_origin_details)
+        )
     return GoogleFormSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 
-def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_config, uuid_table, cache=None):
+def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_config, uuid_table, cache=None, dry_run=False):
     """
     Syncs a Google Form to an engagement database.
 
@@ -294,6 +297,8 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     :param cache: Cache to use, or None. If None, downloads all form responses. If a cache is specified, only fetches
                   responses last submitted after this function was last run.
     :type cache: src.common.cache.Cache | None
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: sync_stats
     :rtype: src.google_form_to_engagement_db.sync_stats.GoogleFormToEngagementDBSyncStats
     """
@@ -399,10 +404,10 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                 else:
                     message, message_origin_details = _merge_engagement_db_messages(messages, messages_origin_details, question_config.answers_delimeter)
 
-            sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
+            sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details, dry_run)
             sync_stats.add_event(sync_event)
 
-        if cache is not None:
+        if not dry_run and cache is not None:
             if i == len(responses) - 1 or \
                     isoparse(responses[i + 1]["lastSubmittedTime"]) > isoparse(response["lastSubmittedTime"]):
                 cache.set_date_time(form_config.form_id, isoparse(response["lastSubmittedTime"]))
@@ -411,7 +416,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
 
 
 def _sync_google_form_source_to_engagement_db(google_cloud_credentials_file_path, form_source, engagement_db,
-                                              uuid_table, cache=None):
+                                              uuid_table, cache=None, dry_run=False):
     """
     Syncs a Google Form source to an engagement database.
 
@@ -427,15 +432,17 @@ def _sync_google_form_source_to_engagement_db(google_cloud_credentials_file_path
     :param cache: Cache to use, or None. If None, downloads all form responses. If a cache is specified, only fetches
                   responses last submitted after this function was last run.
     :type cache: src.common.cache.Cache | None
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: sync_stats
     :rtype: src.google_form_to_engagement_db.sync_stats.GoogleFormToEngagementDBSyncStats
     """
     google_form_client = form_source.google_form_client.init_google_forms_client(google_cloud_credentials_file_path)
-    return _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_source.sync_config, uuid_table, cache)
+    return _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_source.sync_config, uuid_table, cache, dry_run)
 
 
 def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path, form_sources, engagement_db,
-                                              uuid_table, cache_path=None):
+                                              uuid_table, cache_path=None, dry_run=False):
     """
     Syncs Google Forms to an engagement database.
 
@@ -451,6 +458,8 @@ def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
                        If None, runs in non-incremental mode.
     :type cache_path: str | None
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     """
     cache = None
     if cache_path is not None:
@@ -462,7 +471,7 @@ def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path
         log.info(f"Processing form configuration {i + 1}/{len(form_sources)}...")
         form_id = form_source.sync_config.form_id
         sync_stats = _sync_google_form_source_to_engagement_db(
-            google_cloud_credentials_file_path, form_source, engagement_db, uuid_table, cache
+            google_cloud_credentials_file_path, form_source, engagement_db, uuid_table, cache, dry_run
         )
         form_id_to_sync_stats[form_id] = sync_stats
         all_sync_stats.add_stats(sync_stats)
