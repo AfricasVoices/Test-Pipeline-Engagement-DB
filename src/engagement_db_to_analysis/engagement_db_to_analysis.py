@@ -50,10 +50,6 @@ def export_traced_data(traced_data, export_path):
     with open(export_path, "w") as f:
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
-    log.info(f"Validating {export_path}...")
-    with open(export_path) as f:
-        TracedDataJsonIO.import_jsonl_to_traced_data_iterable(f)
-
 
 def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, uuid_table, engagement_db, rapid_pro,
                             membership_group_dir_path,output_dir, cache_path=None, dry_run=False):
