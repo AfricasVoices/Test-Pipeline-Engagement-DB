@@ -79,7 +79,8 @@ class GoogleFormToEngagementDBConfiguration:
         self.participant_id_configuration = participant_id_configuration
         self.ignore_invalid_mobile_numbers = ignore_invalid_mobile_numbers
 
-        if participant_id_configuration.id_type not in [GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER]:
+        if participant_id_configuration is not None and participant_id_configuration.id_type not in \
+            [GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER]:
             assert ignore_invalid_mobile_numbers == False, f"`ignore_invalid_mobile_numbers` cannot be set to True " \
                 f"if participant id type is {participant_id_configuration.id_type}. See `GoogleFormToEngagementDBConfiguration`"
 
