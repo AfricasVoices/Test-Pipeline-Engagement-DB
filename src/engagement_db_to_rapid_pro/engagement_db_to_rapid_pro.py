@@ -245,7 +245,7 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         log.info(f"Syncing message {i + 1}/{len(messages_triggering_sync)}: {message.message_id}...")
         participant_uuid = message.participant_uuid
 
-        if not participant_uuid.startswith(uuid_table.uuid_prefix):
+        if not participant_uuid.startswith(uuid_table._uuid_prefix):
             non_deindentified_uuids += 1
             continue
 
