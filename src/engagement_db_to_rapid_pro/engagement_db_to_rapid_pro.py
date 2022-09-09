@@ -135,7 +135,7 @@ def _get_consent_withdrawn_field_for_participant(participant_messages, sync_conf
     return contact_fields
 
 
-def _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields):
+def _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields, dry_run=False):
     """
     Ensures a Rapid Pro workspace has the given contact fields.
 
@@ -143,11 +143,13 @@ def _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields):
     :type rapid_pro: rapid_pro_tools.rapid_pro.RapidProClient
     :param contact_fields: Keys of the contact fields to make sure exist.
     :type contact_fields: list of src.engagement_db_to_rapid_pro.configuration.ContactField
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     """
     existing_contact_field_keys = [f.key for f in rapid_pro.get_fields()]
     for contact_field in contact_fields:
         log.info(f"Ensuring Rapid Pro workspace has contact field '{contact_field.key}'")
-        if contact_field.key not in existing_contact_field_keys:
+        if contact_field.key not in existing_contact_field_keys and not dry_run:
             rapid_pro.create_field(field_id=contact_field.key, label=contact_field.label)
 
 
@@ -230,7 +232,7 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         for dataset_config in sync_config.normal_datasets] if sync_config.normal_datasets is not None else []
     if sync_config.consent_withdrawn_dataset is not None:
         contact_fields_to_sync.append(sync_config.consent_withdrawn_dataset.rapid_pro_contact_field)
-    _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields_to_sync)
+    _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields_to_sync, dry_run)
 
     # Load all the project code schemes so we can easily scan for STOP messages later.
     code_schemes = []
