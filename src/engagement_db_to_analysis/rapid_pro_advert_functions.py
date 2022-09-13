@@ -1,7 +1,9 @@
+import csv
 
 from core_data_modules.analysis import analysis_utils, AnalysisConfiguration as core_data_analysis_config
 from core_data_modules.cleaners import Codes
 from core_data_modules.logging import Logger
+from core_data_modules.util import IOUtils
 
 from src.engagement_db_to_analysis.cache import AnalysisCache
 from src.engagement_db_to_analysis.membership_group import (_get_membership_groups_data)
@@ -144,7 +146,8 @@ def _ensure_contact_field_exists(workspace_contact_fields, contact_field, rapid_
         rapid_pro.create_field(field_id=contact_field.key, label=contact_field.label)
 
 
-def _sync_advert_contacts_fields_to_rapid_pro(cache, target_uuids, advert_contact_field_key, uuid_table, rapid_pro):
+def _sync_advert_contacts_fields_to_rapid_pro(cache, target_uuids, advert_contact_field_key, uuid_table, rapid_pro,
+                                              output_dir):
     '''
     Updates the advert contact field for the target urns.
 
@@ -174,13 +177,24 @@ def _sync_advert_contacts_fields_to_rapid_pro(cache, target_uuids, advert_contac
         log.info(f'Syncing {len(uuids_to_sync)} urns in this run ')
         # Re-identify the uuids.
         urns_to_sync = _convert_uuids_to_urns(uuids_to_sync, uuid_table)
-        # Update the advert contact field for the target urns.
-        for urn in urns_to_sync:
-            rapid_pro.update_contact(urn, contact_fields={advert_contact_field_key: "yes"})
-            synced_uuids.append(uuid_table.data_to_uuid(urn))
 
-            if cache is not None:
-                cache.set_synced_uuids(advert_contact_field_key, synced_uuids)
+        output_file = f"{output_dir}/advert_groups/{advert_contact_field_key}.csv"
+        IOUtils.ensure_dirs_exist_for_file(output_file)
+        log.warning(f"Writing advert contact numbers to {output_file}...")
+        with open(output_file, "w") as f:
+            writer = csv.DictWriter(f, fieldnames=["URN:Tel"])
+            writer.writeheader()
+
+            for urn in urns_to_sync:
+                writer.writerow({"URN:Tel": urn.replace("tel:", "")})
+
+        # Update the advert contact field for the target urns.
+        # for urn in urns_to_sync:
+        #     rapid_pro.update_contact(urn, contact_fields={advert_contact_field_key: "yes"})
+        #     synced_uuids.append(uuid_table.data_to_uuid(urn))
+        #
+        #     if cache is not None:
+        #         cache.set_synced_uuids(advert_contact_field_key, synced_uuids)
 
     else:
         assert len(uuids_to_sync) == 0
@@ -188,7 +202,8 @@ def _sync_advert_contacts_fields_to_rapid_pro(cache, target_uuids, advert_contac
 
 
 def sync_advert_contacts_to_rapid_pro(participants_by_column, uuid_table, pipeline_config, rapid_pro,
-                                     google_cloud_credentials_file_path, membership_group_dir_path, cache_path):
+                                     google_cloud_credentials_file_path, membership_group_dir_path, cache_path,
+                                      output_dir):
     '''
     Syncs advert contacts to rapid_pro by:
       1. Updating the contact field for weekly advert urns who are in the participants_by_column or a listening group and
@@ -234,10 +249,10 @@ def sync_advert_contacts_to_rapid_pro(participants_by_column, uuid_table, pipeli
         log.debug(f"Not syncing the weekly advert contacts to rapid pro because `weekly_advert_contact_field` was None")
     else:
         log.info(f"Syncing weekly advert contacts to rapid pro...")
-        _ensure_contact_field_exists(workspace_contact_fields, weekly_advert_contact_field, rapid_pro)
-        _sync_advert_contacts_fields_to_rapid_pro(
-            cache, weekly_advert_uuids, weekly_advert_contact_field.key, uuid_table, rapid_pro
-        )
+        # _ensure_contact_field_exists(workspace_contact_fields, weekly_advert_contact_field, rapid_pro)
+        # _sync_advert_contacts_fields_to_rapid_pro(
+        #     cache, weekly_advert_uuids, weekly_advert_contact_field.key, uuid_table, rapid_pro
+        # )
 
     # Update dataset non-relevant groups to rapid_pro
     log.info(f'Syncing contacts who sent non relevant messages for each episode...')
@@ -246,9 +261,9 @@ def sync_advert_contacts_to_rapid_pro(participants_by_column, uuid_table, pipeli
             non_relevant_uuids = _generate_non_relevant_advert_uuids_by_dataset(participants_by_column,
                                                                                 analysis_dataset_config)
 
-            _ensure_contact_field_exists(workspace_contact_fields, analysis_dataset_config.rapid_pro_non_relevant_field,
-                                         rapid_pro)
+            # _ensure_contact_field_exists(workspace_contact_fields, analysis_dataset_config.rapid_pro_non_relevant_field,
+            #                              rapid_pro)
 
             _sync_advert_contacts_fields_to_rapid_pro(cache, non_relevant_uuids,
                                                       analysis_dataset_config.rapid_pro_non_relevant_field.key,
-                                                      uuid_table, rapid_pro)
+                                                      uuid_table, rapid_pro, output_dir)
