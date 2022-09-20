@@ -88,6 +88,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json"
             ),
             sync_config=GoogleFormToEngagementDBConfiguration(
+                # Copy of Data Collectors' Questionnaire
+                # https://docs.google.com/forms/d/1L0ax6R4XZJPjHYRbDTvcrEGZXlOzEoshllOxxwqq4M4
                 form_id="1L0ax6R4XZJPjHYRbDTvcrEGZXlOzEoshllOxxwqq4M4",
                 participant_id_configuration=ParticipantIdConfiguration(
                     question_title="What is your phone number",
