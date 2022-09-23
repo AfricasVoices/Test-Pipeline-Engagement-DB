@@ -286,6 +286,14 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 if rapid_pro_result is None:
                     log.debug(f"Field '{config.flow_result_field}' has no relevant run result.")
                     sync_stats.add_event(RapidProSyncEvents.RUN_VALUE_EMPTY)
+                elif rapid_pro_result.time < config.created_after_inclusive:
+                    log.debug(f"Skipping result because it was created before {config.created_after_inclusive}, "
+                              f"at {rapid_pro_result.time}")
+                    sync_stats.add_event(RapidProSyncEvents.RESULT_TIME_OUT_OF_RANGE)
+                elif rapid_pro_result.time >= config.created_before_exclusive:
+                    log.debug(f"Skipping result because it was created after {config.created_before_exclusive}, "
+                              f"at {rapid_pro_result.time}")
+                    sync_stats.add_event(RapidProSyncEvents.RESULT_TIME_OUT_OF_RANGE)
                 else:
                     # Create a message and origin objects for this result and ensure it's in the engagement database.
                     msg = Message(
