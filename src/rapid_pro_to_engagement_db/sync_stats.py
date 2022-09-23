@@ -14,6 +14,7 @@ class RapidProSyncEvents:
     MESSAGE_ALREADY_IN_ENGAGEMENT_DB = "message_already_in_engagement_db"
     ADD_MESSAGE_TO_ENGAGEMENT_DB = "add_message_to_engagement_db"
     RUN_VALUE_EMPTY = "run_value_empty"
+    RESULT_TIME_OUT_OF_RANGE = "result_time_out_of_range"
 
 
 class FlowStats(SyncStats):
@@ -38,11 +39,13 @@ class FlowResultToEngagementDBSyncStats(SyncStats):
     def __init__(self):
         super().__init__({
             RapidProSyncEvents.RUN_VALUE_EMPTY: 0,
+            RapidProSyncEvents.RESULT_TIME_OUT_OF_RANGE: 0,
             RapidProSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB: 0,
-            RapidProSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB: 0
+            RapidProSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB: 0,
         })
 
     def print_summary(self):
         log.info(f"Empty run value: {self.event_counts[RapidProSyncEvents.RUN_VALUE_EMPTY]}")
+        log.info(f"Result with timestamp out of filter time-range: {self.event_counts[RapidProSyncEvents.RESULT_TIME_OUT_OF_RANGE]}")
         log.info(f"Messages already in engagement db: {self.event_counts[RapidProSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB]}")
         log.info(f"Messages added to engagement db: {self.event_counts[RapidProSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB]}")
