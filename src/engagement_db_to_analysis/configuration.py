@@ -38,7 +38,7 @@ class AnalysisLocations:
 
 
 class CodingConfiguration:
-    def __init__(self, code_scheme, analysis_dataset, age_category_config, analysis_location):
+    def __init__(self, code_scheme, analysis_dataset, age_category_config=None, analysis_location=None):
         """
         Configuration for coded data.
 
