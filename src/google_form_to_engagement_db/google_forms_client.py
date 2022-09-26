@@ -1,6 +1,5 @@
 import google.oauth2.service_account
 from core_data_modules.logging import Logger
-from dateutil.parser import isoparse
 from googleapiclient import discovery
 
 log = Logger(__name__)
