@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 from core_data_modules.data_models import CodeScheme
 
 from src.engagement_db_to_rapid_pro.configuration import ContactField
@@ -39,7 +37,6 @@ class AnalysisLocations:
     SOMALIA_OPERATOR = "somalia_operator"
 
 
-@dataclass
 class CodingConfiguration:
     def __init__(self, code_scheme, analysis_dataset, age_category_config, analysis_location):
         """
@@ -64,7 +61,6 @@ class CodingConfiguration:
         self.analysis_location = analysis_location
 
 
-@dataclass
 class AnalysisDatasetConfiguration:
     def __init__(self, engagement_db_datasets, dataset_type, raw_dataset, coding_configs,
                  rapid_pro_non_relevant_field=None):
@@ -134,7 +130,6 @@ class GoogleDriveUploadConfiguration:
         self.drive_dir = drive_dir
 
 
-@dataclass
 class MembershipGroupConfiguration:
     def __init__(self, membership_group_csv_urls=None):
         """
@@ -157,7 +152,6 @@ class MembershipGroupConfiguration:
         self.membership_group_csv_urls = membership_group_csv_urls
 
 
-@dataclass
 class AnalysisConfiguration:
     def __init__(self, dataset_configurations, ws_correct_dataset_code_scheme, cross_tabs=None, traffic_labels=None,
                  google_drive_upload=None, membership_group_configuration=None):
