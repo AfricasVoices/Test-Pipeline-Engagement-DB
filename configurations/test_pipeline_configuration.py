@@ -63,6 +63,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json"
             ),
             sync_config=GoogleFormToEngagementDBConfiguration(
+                # Copy of Email Questionnaire
+                # https://docs.google.com/forms/d/1TvTklQPQRFjEmUXP4_9sO9uxP9kUEca0RSpyVLYqVaQ
                 form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
                 participant_id_configuration=ParticipantIdConfiguration(
                     question_title="Kenyan Mobile Number",
