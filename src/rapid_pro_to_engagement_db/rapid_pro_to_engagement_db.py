@@ -52,13 +52,14 @@ def _update_cache_with_changes_in_flow_result_configs(cache, rapid_pro, flow_res
     # TODO: Update the cache appropriately in the case a flow configuration has be removed.
     #      - Enable the ability to reintergrate flow_result_config back after i.e swithching branches.
     cached_flow_result_configs = [d.to_dict() for d in cached_flow_result_configs]
+    cached_flows = [config["flow_name"] for config in cached_flow_result_configs]
     updated_flow_result_configs = [config for config in flow_result_configurations
                        if config.to_dict() not in cached_flow_result_configs]
 
     if len(updated_flow_result_configs) > 0:
         seen = set()
         for config in updated_flow_result_configs:
-            if config.flow_name not in seen:
+            if config.flow_name in cached_flows and config.flow_name not in seen:
                 cache.reset_latest_run_timestamp(rapid_pro.get_flow_id(config.flow_name))
                 seen.add(config.flow_name)
         if not dry_run:
@@ -285,6 +286,14 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 if rapid_pro_result is None:
                     log.debug(f"Field '{config.flow_result_field}' has no relevant run result.")
                     sync_stats.add_event(RapidProSyncEvents.RUN_VALUE_EMPTY)
+                elif rapid_pro_result.time < config.created_after_inclusive:
+                    log.debug(f"Skipping result because it was created before {config.created_after_inclusive}, "
+                              f"at {rapid_pro_result.time}")
+                    sync_stats.add_event(RapidProSyncEvents.RESULT_TIME_OUT_OF_RANGE)
+                elif rapid_pro_result.time >= config.created_before_exclusive:
+                    log.debug(f"Skipping result because it was created after {config.created_before_exclusive}, "
+                              f"at {rapid_pro_result.time}")
+                    sync_stats.add_event(RapidProSyncEvents.RESULT_TIME_OUT_OF_RANGE)
                 else:
                     # Create a message and origin objects for this result and ensure it's in the engagement database.
                     msg = Message(
