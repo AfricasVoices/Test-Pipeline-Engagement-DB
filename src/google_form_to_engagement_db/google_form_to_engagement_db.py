@@ -185,12 +185,8 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
 
 def _all_equal(iterable):
     """Checks if all elements in an iterable are identical"""
-    iterator = iter(iterable)
-    try:
-        first_item = next(iterator)
-    except StopIteration:
-        return True
-    return all(first_item == x for x in iterator)
+    iterable = list(iterable)
+    return all(x == iterable[0] for i, x in enumerate(iterable) if i != 0)
 
 
 def _merge_engagement_db_messages(messages, messages_origin_details, answers_delimeter):
