@@ -190,7 +190,8 @@ def _all_equal(iterable):
 
 
 def _merge_engagement_db_messages(messages, messages_origin_details, answers_delimeter):
-    assert len(messages) > 1
+    assert len(messages) > 1 and len(messages_origin_details) > 1
+    assert len(messages) == len(messages_origin_details)
 
     messages_participant_uuids = [msg.participant_uuid for msg in messages]
     assert _all_equal(messages_participant_uuids)
