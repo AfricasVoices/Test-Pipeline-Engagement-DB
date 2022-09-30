@@ -73,6 +73,8 @@ class GoogleFormToEngagementDBConfiguration:
         :type participant_id_configuration: ParticipantIdConfiguration | None
         ignore_invalid_mobile_numbers: bool = False
         ignore_invalid_mobile_numbers: Whether to ignore invalid mobile numbers during validation.
+                                    If a participant provides an invalid mobile number, instead of the pipeline terminating with a valueError
+                                    the participant uuid will be derived from the form response id.                               
         """
         self.form_id = form_id
         self.question_configurations = question_configurations
