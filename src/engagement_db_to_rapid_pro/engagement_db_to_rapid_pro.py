@@ -135,7 +135,7 @@ def _get_consent_withdrawn_field_for_participant(participant_messages, sync_conf
     return contact_fields
 
 
-def _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields):
+def _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields, dry_run=False):
     """
     Ensures a Rapid Pro workspace has the given contact fields.
 
@@ -143,11 +143,13 @@ def _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields):
     :type rapid_pro: rapid_pro_tools.rapid_pro.RapidProClient
     :param contact_fields: Keys of the contact fields to make sure exist.
     :type contact_fields: list of src.engagement_db_to_rapid_pro.configuration.ContactField
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     """
     existing_contact_field_keys = [f.key for f in rapid_pro.get_fields()]
     for contact_field in contact_fields:
         log.info(f"Ensuring Rapid Pro workspace has contact field '{contact_field.key}'")
-        if contact_field.key not in existing_contact_field_keys:
+        if contact_field.key not in existing_contact_field_keys and not dry_run:
             rapid_pro.create_field(field_id=contact_field.key, label=contact_field.label)
 
 
@@ -168,6 +170,8 @@ def _labels_contain_consent_withdrawn(labels, code_schemes):
     """
     for label in labels:
         code_scheme = _code_scheme_for_label(label, code_schemes)
+        assert code_scheme is not None, f"Label has scheme_id {label.scheme_id}, but this is not present in any of " \
+                                        f"the given code schemes."
         if code_scheme.get_code_with_code_id(label.code_id).control_code == Codes.STOP:
             return True
 
@@ -228,19 +232,25 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         for dataset_config in sync_config.normal_datasets] if sync_config.normal_datasets is not None else []
     if sync_config.consent_withdrawn_dataset is not None:
         contact_fields_to_sync.append(sync_config.consent_withdrawn_dataset.rapid_pro_contact_field)
-    _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields_to_sync)
+    _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields_to_sync, dry_run)
 
     # Load all the project code schemes so we can easily scan for STOP messages later.
     code_schemes = []
-    for path in glob.glob("code_schemes/*.json"):
+    for path in glob.glob("code_schemes/**/*.json", recursive=True):
         with open(path) as f:
             code_schemes.append(CodeScheme.from_firebase_map(json.load(f)))
 
     # Sync each message to Rapid Pro, by recomputing the state of every participant.
     participants_synced_this_cycle = set()
+    non_deindentified_uuids = 0
     for i, message in enumerate(messages_triggering_sync):
         log.info(f"Syncing message {i + 1}/{len(messages_triggering_sync)}: {message.message_id}...")
         participant_uuid = message.participant_uuid
+
+        if not participant_uuid.startswith(uuid_table._uuid_prefix):
+            non_deindentified_uuids += 1
+            continue
+
         if participant_uuid in participants_synced_this_cycle:
             log.info(f"Skipping this message because we've already synced participant_uuid {participant_uuid} in this "
                      f"pipeline run")
@@ -269,6 +279,8 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         participants_synced_this_cycle.add(participant_uuid)
         if cache is not None and not dry_run:
             cache.set_message("last_synced", message)
+
+    log.warning(f"skipped syncing {non_deindentified_uuids} non deindentified uuids")
 
     log.info(f"Done")
     # TODO: Print summary of actions

@@ -49,7 +49,6 @@ if __name__ == "__main__":
         log.info(f"No Coda sync configuration provided; exiting")
         exit(0)
 
-    uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
     coda = pipeline_config.coda_sync.coda.init_coda_client(google_cloud_credentials_file_path)
 

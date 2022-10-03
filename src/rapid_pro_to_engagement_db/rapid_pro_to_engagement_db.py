@@ -38,7 +38,7 @@ def _get_contacts_from_cache(cache=None):
         return cache.get_contacts()
 
 
-def _update_cache_with_changes_in_flow_result_configs(cache, flow_result_configurations, dry_run=False):
+def _update_cache_with_changes_in_flow_result_configs(cache, rapid_pro, flow_result_configurations, dry_run=False):
     # TODO: Add docstring
     if cache is None:
         return
@@ -52,13 +52,14 @@ def _update_cache_with_changes_in_flow_result_configs(cache, flow_result_configu
     # TODO: Update the cache appropriately in the case a flow configuration has be removed.
     #      - Enable the ability to reintergrate flow_result_config back after i.e swithching branches.
     cached_flow_result_configs = [d.to_dict() for d in cached_flow_result_configs]
+    cached_flows = [config["flow_name"] for config in cached_flow_result_configs]
     updated_flow_result_configs = [config for config in flow_result_configurations
                        if config.to_dict() not in cached_flow_result_configs]
 
     if len(updated_flow_result_configs) > 0:
         seen = set()
         for config in updated_flow_result_configs:
-            if config.flow_name not in seen:
+            if config.flow_name in cached_flows and config.flow_name not in seen:
                 cache.reset_latest_run_timestamp(rapid_pro.get_flow_id(config.flow_name))
                 seen.add(config.flow_name)
         if not dry_run:
@@ -208,7 +209,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     contacts = _get_contacts_from_cache(cache)
 
     # Check the configs are the same before proceeding with cached data
-    _update_cache_with_changes_in_flow_result_configs(cache, rapid_pro_config.flow_result_configurations, dry_run=dry_run)
+    _update_cache_with_changes_in_flow_result_configs(cache, rapid_pro, rapid_pro_config.flow_result_configurations, dry_run=dry_run)
 
     flow_name_to_flow_configs = defaultdict(list)
     for flow_result_config in rapid_pro_config.flow_result_configurations:
@@ -283,8 +284,16 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 # Get the relevant result from this run, if it exists.
                 rapid_pro_result = run.values.get(config.flow_result_field)
                 if rapid_pro_result is None:
-                    log.debug(f"Field `{config.flow_result_field}` has no relevant run result.")
+                    log.debug(f"Field '{config.flow_result_field}' has no relevant run result.")
                     sync_stats.add_event(RapidProSyncEvents.RUN_VALUE_EMPTY)
+                elif rapid_pro_result.time < config.created_after_inclusive:
+                    log.debug(f"Skipping result because it was created before {config.created_after_inclusive}, "
+                              f"at {rapid_pro_result.time}")
+                    sync_stats.add_event(RapidProSyncEvents.RESULT_TIME_OUT_OF_RANGE)
+                elif rapid_pro_result.time >= config.created_before_exclusive:
+                    log.debug(f"Skipping result because it was created after {config.created_before_exclusive}, "
+                              f"at {rapid_pro_result.time}")
+                    sync_stats.add_event(RapidProSyncEvents.RESULT_TIME_OUT_OF_RANGE)
                 else:
                     # Create a message and origin objects for this result and ensure it's in the engagement database.
                     msg = Message(
@@ -308,11 +317,14 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                         "flow_name": flow_name,
                         "run_value": rapid_pro_result.serialize()
                     }
+                    log.debug(f"Field '{config.flow_result_field}' has a relevant run result. Ensuring this message is "
+                              f"in the database...")
                     sync_event = _ensure_engagement_db_has_message(engagement_db, msg, message_origin_details, dry_run)
                     sync_stats.add_event(sync_event)
                 dataset_to_sync_stats[f"{flow_name}.{config.flow_result_field}"].add_stats(sync_stats)
 
             have_read_last_run = (i == len(runs) - 1)
+            has_timestamp_changed = False
             # Note that this ensures we don't update the time-based cache when we are processing runs with the same timestamp.
             if not have_read_last_run:
                 has_timestamp_changed = runs[i + 1].modified_on > run.modified_on

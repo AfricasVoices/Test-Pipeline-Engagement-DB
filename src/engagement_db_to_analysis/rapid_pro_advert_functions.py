@@ -128,7 +128,7 @@ def _convert_uuids_to_urns(uuids_group, uuid_table):
 
 
 #Todo: standardize and move to rapidpro tools
-def _ensure_contact_field_exists(workspace_contact_fields, contact_field, rapid_pro):
+def _ensure_contact_field_exists(workspace_contact_fields, contact_field, rapid_pro, dry_run=False):
     """
     Checks if a workspace contains the target contact field, creates one otherwise.
 
@@ -138,14 +138,17 @@ def _ensure_contact_field_exists(workspace_contact_fields, contact_field, rapid_
     :type contact_field: src.engagement_db_to_rapid_pro.configuration.ContactField
     :param rapid_pro: Rapid Pro client to check the contact fields from.
     :type rapid_pro: rapid_pro_tools.rapid_pro.RapidProClient
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     """
     workspace_contact_field_keys = [cf.key for cf in workspace_contact_fields]
-    if contact_field.key not in workspace_contact_field_keys:
+    if contact_field.key not in workspace_contact_field_keys and not dry_run:
         rapid_pro.create_field(field_id=contact_field.key, label=contact_field.label)
 
 
-def _sync_advert_contacts_fields_to_rapid_pro(cache, target_uuids, advert_contact_field_key, uuid_table, rapid_pro):
-    '''
+def _sync_advert_contacts_fields_to_rapid_pro(cache, target_uuids, advert_contact_field_key, uuid_table, rapid_pro,
+                                              dry_run=False):
+    """
     Updates the advert contact field for the target urns.
 
     :param cache: An instance of AnalysisCache to get uuids synced in previous pipeline run and set uuids synced in this session.
@@ -158,8 +161,9 @@ def _sync_advert_contacts_fields_to_rapid_pro(cache, target_uuids, advert_contac
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable.
     :param rapid_pro: Rapid Pro client to sync the groups to.
     :type rapid_pro: rapid_pro_tools.rapid_pro.RapidProClient
-    '''
-
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
+    """
     synced_uuids = []
     if cache is not None:
         previously_synced_non_relevant_uuids = cache.get_synced_uuids(advert_contact_field_key)
@@ -176,10 +180,11 @@ def _sync_advert_contacts_fields_to_rapid_pro(cache, target_uuids, advert_contac
         urns_to_sync = _convert_uuids_to_urns(uuids_to_sync, uuid_table)
         # Update the advert contact field for the target urns.
         for urn in urns_to_sync:
-            rapid_pro.update_contact(urn, contact_fields={advert_contact_field_key: "yes"})
+            if not dry_run:
+                rapid_pro.update_contact(urn, contact_fields={advert_contact_field_key: "yes"})
             synced_uuids.append(uuid_table.data_to_uuid(urn))
 
-            if cache is not None:
+            if cache is not None and not dry_run:
                 cache.set_synced_uuids(advert_contact_field_key, synced_uuids)
 
     else:
@@ -188,8 +193,9 @@ def _sync_advert_contacts_fields_to_rapid_pro(cache, target_uuids, advert_contac
 
 
 def sync_advert_contacts_to_rapid_pro(participants_by_column, uuid_table, pipeline_config, rapid_pro,
-                                     google_cloud_credentials_file_path, membership_group_dir_path, cache_path):
-    '''
+                                      google_cloud_credentials_file_path, membership_group_dir_path, cache_path,
+                                      dry_run=False):
+    """
     Syncs advert contacts to rapid_pro by:
       1. Updating the contact field for weekly advert urns who are in the participants_by_column or a listening group and
          have not opted out.
@@ -212,8 +218,9 @@ def sync_advert_contacts_to_rapid_pro(participants_by_column, uuid_table, pipeli
     :type: membership_group_dir_path: str.
     :param cache_path: Path to a directory to get uuids synced in previous pipeline run and set uuids synced in this session.
     :type cache_path: str
-    '''
-
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
+    """
     if cache_path is None:
         cache = None
         log.warning(f"No `cache_path` provided. This tool will perform a full sync of advert contacts to rapidpro")
@@ -229,14 +236,17 @@ def sync_advert_contacts_to_rapid_pro(participants_by_column, uuid_table, pipeli
     # Get workspace contact fields to check whether our target contact field exists
     workspace_contact_fields = rapid_pro.get_fields()
 
-    log.info(f'Syncing weekly advert contacts to rapid pro...')
     weekly_advert_contact_field = pipeline_config.rapid_pro_target.sync_config.weekly_advert_contact_field
-    _ensure_contact_field_exists(workspace_contact_fields, weekly_advert_contact_field, rapid_pro)
+    if weekly_advert_contact_field is None:
+        log.debug(f"Not syncing the weekly advert contacts to rapid pro because `weekly_advert_contact_field` was None")
+    else:
+        log.info(f"Syncing weekly advert contacts to rapid pro...")
+        _ensure_contact_field_exists(workspace_contact_fields, weekly_advert_contact_field, rapid_pro, dry_run)
+        _sync_advert_contacts_fields_to_rapid_pro(
+            cache, weekly_advert_uuids, weekly_advert_contact_field.key, uuid_table, rapid_pro, dry_run
+        )
 
-    _sync_advert_contacts_fields_to_rapid_pro(cache, weekly_advert_uuids, weekly_advert_contact_field.key, uuid_table,
-                                              rapid_pro)
-
-    #Update  dataset non relevant groups to rapid_pro
+    # Update dataset non-relevant groups to rapid_pro
     log.info(f'Syncing contacts who sent non relevant messages for each episode...')
     for analysis_dataset_config in pipeline_config.analysis.dataset_configurations:
         if analysis_dataset_config.rapid_pro_non_relevant_field is not None:
@@ -244,8 +254,8 @@ def sync_advert_contacts_to_rapid_pro(participants_by_column, uuid_table, pipeli
                                                                                 analysis_dataset_config)
 
             _ensure_contact_field_exists(workspace_contact_fields, analysis_dataset_config.rapid_pro_non_relevant_field,
-                                         rapid_pro)
+                                         rapid_pro, dry_run)
 
             _sync_advert_contacts_fields_to_rapid_pro(cache, non_relevant_uuids,
                                                       analysis_dataset_config.rapid_pro_non_relevant_field.key,
-                                                      uuid_table, rapid_pro)
+                                                      uuid_table, rapid_pro, dry_run)
