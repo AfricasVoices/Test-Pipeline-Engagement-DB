@@ -133,5 +133,5 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     if pipeline_config.rapid_pro_target is not None and pipeline_config.rapid_pro_target.sync_config.sync_advert_contacts:
         sync_advert_contacts_to_rapid_pro(
             participants_by_column, uuid_table, pipeline_config, rapid_pro,
-            google_cloud_credentials_file_path, membership_group_dir_path, cache_path
+            google_cloud_credentials_file_path, membership_group_dir_path, cache_path, dry_run
         )
