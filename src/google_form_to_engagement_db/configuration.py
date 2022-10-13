@@ -47,7 +47,7 @@ class QuestionConfiguration:
     def __init__(self, question_titles, engagement_db_dataset, answers_delimeter="; "):
         """
         :param question_titles: Question titles. This are the texts presented to the form user for these questions
-                               e.g. ["Do you live in a town/city?"]
+                               e.g. ["Do you live in a town/city?", "which town/city?"]
         :type question_titles: list of str
         :param engagement_db_dataset: Name of the dataset to use in the engagement database.
         :type engagement_db_dataset: str
