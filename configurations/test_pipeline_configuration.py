@@ -63,6 +63,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json"
             ),
             sync_config=GoogleFormToEngagementDBConfiguration(
+                # Copy of Email Questionnaire
+                # https://docs.google.com/forms/d/1TvTklQPQRFjEmUXP4_9sO9uxP9kUEca0RSpyVLYqVaQ
                 form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
                 participant_id_configuration=ParticipantIdConfiguration(
                     question_title="Kenyan Mobile Number",
@@ -88,7 +90,9 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json"
             ),
             sync_config=GoogleFormToEngagementDBConfiguration(
-                form_id="1cEeq9ujJTv381xTXEB0oP0vLNnSLIfP9Rz32zL1HnHk",
+                # Copy of Data Collectors' Questionnaire
+                # https://docs.google.com/forms/d/1L0ax6R4XZJPjHYRbDTvcrEGZXlOzEoshllOxxwqq4M4
+                form_id="1L0ax6R4XZJPjHYRbDTvcrEGZXlOzEoshllOxxwqq4M4",
                 participant_id_configuration=ParticipantIdConfiguration(
                     question_title="What is your phone number",
                     id_type=GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER

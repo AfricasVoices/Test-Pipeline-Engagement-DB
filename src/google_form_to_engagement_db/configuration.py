@@ -47,7 +47,7 @@ class QuestionConfiguration:
     def __init__(self, question_titles, engagement_db_dataset, answers_delimeter="; "):
         """
         :param question_titles: Question titles. This are the texts presented to the form user for these questions
-                               e.g. ["Do you live in a town/city?"]
+                               e.g. ["Do you live in a town/city?", "which town/city?"]
         :type question_titles: list of str
         :param engagement_db_dataset: Name of the dataset to use in the engagement database.
         :type engagement_db_dataset: str
@@ -73,13 +73,16 @@ class GoogleFormToEngagementDBConfiguration:
         :type participant_id_configuration: ParticipantIdConfiguration | None
         ignore_invalid_mobile_numbers: bool = False
         ignore_invalid_mobile_numbers: Whether to ignore invalid mobile numbers during validation.
+                                    If a participant provides an invalid mobile number, instead of the pipeline terminating with a valueError
+                                    the participant uuid will be derived from the form response id.                               
         """
         self.form_id = form_id
         self.question_configurations = question_configurations
         self.participant_id_configuration = participant_id_configuration
         self.ignore_invalid_mobile_numbers = ignore_invalid_mobile_numbers
 
-        if participant_id_configuration.id_type not in [GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER]:
+        if participant_id_configuration is not None and participant_id_configuration.id_type not in \
+            [GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER]:
             assert ignore_invalid_mobile_numbers == False, f"`ignore_invalid_mobile_numbers` cannot be set to True " \
                 f"if participant id type is {participant_id_configuration.id_type}. See `GoogleFormToEngagementDBConfiguration`"
 
