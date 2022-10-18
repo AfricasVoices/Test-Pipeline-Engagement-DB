@@ -11,13 +11,29 @@ from storage.google_cloud import google_cloud_utils
 log = Logger(__name__)
 
 
-@dataclass
-# TODO: Convert from data-class once design is better tested
 class EngagementDatabaseClientConfiguration:
-    credentials_file_url: str
-    database_path: str
+    def __init__(self, credentials_file_url, database_path):
+        """
+        Configuration for creating an EngagementDatabase client.
+
+        :param credentials_file_url: GS URL to the Firebase credentials file to use to initialise the client.
+        :type credentials_file_url: str
+        :param database_path: Path to the engagement database within the Firebase project's Firestore
+                              e.g. "engagement_databases/test_database"
+        :type database_path: str
+        """
+        self.credentials_file_url = credentials_file_url
+        self.database_path = database_path
 
     def init_engagement_db_client(self, google_cloud_credentials_file_path):
+        """
+        Initialises an EngagementDatabase client from this configuration.
+
+        :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
+                                                   access the credentials bucket.
+        :type google_cloud_credentials_file_path: str
+        :rtype: engagement_database.EngagementDatabase
+        """
         log.info("Initialising engagement database client...")
         credentials = json.loads(google_cloud_utils.download_blob_to_string(
             google_cloud_credentials_file_path,
@@ -33,14 +49,31 @@ class EngagementDatabaseClientConfiguration:
         return engagement_db
 
 
-@dataclass
-# TODO: Convert from data-class once design is better tested
 class UUIDTableClientConfiguration:
-    credentials_file_url: str
-    table_name: str
-    uuid_prefix: str
+    def __init__(self, credentials_file_url, table_name, uuid_prefix):
+        """
+        Configuration for creating a FirestoreUuidTable client.
+
+        :param credentials_file_url: GS URL to the Firebase credentials file to use to initialise the client.
+        :type credentials_file_url: str
+        :param table_name: Name of the table to connect to in the Firestore e.g. "urn_to_uuid_test"
+        :type table_name: str
+        :param uuid_prefix: Prefix to give the generated uuids in the table e.g. "avf-participant-id-"
+        :type uuid_prefix: str
+        """
+        self.credentials_file_url = credentials_file_url
+        self.table_name = table_name
+        self.uuid_prefix = uuid_prefix
 
     def init_uuid_table_client(self, google_cloud_credentials_file_path):
+        """
+        Initialises a FirestoreUuidTable client from this configuration.
+
+        :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
+                                                   access the credentials bucket.
+        :type google_cloud_credentials_file_path: str
+        :rtype: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+        """
         log.info("Initialising uuid table client...")
         credentials = json.loads(google_cloud_utils.download_blob_to_string(
             google_cloud_credentials_file_path,
@@ -57,13 +90,28 @@ class UUIDTableClientConfiguration:
         return uuid_table
 
 
-@dataclass
-# TODO: Convert from data-class once design is better tested
 class RapidProClientConfiguration:
-    domain: str
-    token_file_url: str
+    def __init__(self, domain, token_file_url):
+        """
+        Configuration for creating a RapidProClient.
+
+        :param domain: Server hostname, e.g. 'rapidpro.io'
+        :type domain: str
+        :param token_file_url: GS URL to a file containing the TextIt organization access token.
+        :type token_file_url: str
+        """
+        self.domain = domain
+        self.token_file_url = token_file_url
 
     def init_rapid_pro_client(self, google_cloud_credentials_file_path):
+        """
+        Initialises a RapidProClient from this configuration.
+
+        :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
+                                                   access the credentials bucket.
+        :type google_cloud_credentials_file_path: str
+        :rtype: rapid_pro_tools.rapid_pro_client.RapidProClient
+        """
         log.info(f"Initialising Rapid Pro client for domain {self.domain} and auth url {self.token_file_url}...")
         rapid_pro_token = google_cloud_utils.download_blob_to_string(
             google_cloud_credentials_file_path, self.token_file_url).strip()
@@ -73,12 +121,25 @@ class RapidProClientConfiguration:
         return rapid_pro_client
 
 
-@dataclass
-# TODO: Convert from data-class once design is better tested
 class CodaClientConfiguration:
-    credentials_file_url: str
+    def __init__(self, credentials_file_url):
+        """
+        Configuration for creating a CodaV2Client.
+
+        :param credentials_file_url: GS URL to the Firebase credentials file to use to initialise the client.
+        :type credentials_file_url: str
+        """
+        self.credentials_file_url = credentials_file_url
 
     def init_coda_client(self, google_cloud_credentials_file_path):
+        """
+        Initialises a CodeV2Client from this configuration.
+
+        :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
+                                                   access the credentials bucket.
+        :type google_cloud_credentials_file_path: str
+        :rtype: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
+        """
         log.info("Initialising Coda client...")
         credentials = json.loads(google_cloud_utils.download_blob_to_string(
             google_cloud_credentials_file_path,
