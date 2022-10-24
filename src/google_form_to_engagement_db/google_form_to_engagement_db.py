@@ -183,31 +183,26 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
     )
 
 
-def _all_equal(iterable):
-    """Checks if all elements in an iterable are identical"""
-    iterator = iter(iterable)
-    try:
-        first_item = next(iterator)
-    except StopIteration:
-        return True
-    return all(first_item == x for x in iterator)
+def _merge_engagement_db_messages(messages_with_origin_details, answers_delimeter):
+    assert len(messages_with_origin_details) > 1
 
+    participant_uuid, dataset = None, None
+    texts, timestamps, origin_id, messages_origin_details = [], [], [], []
+    for index, message_with_origin_details in enumerate(messages_with_origin_details):
+        msg, origin_details = message_with_origin_details
 
-def _merge_engagement_db_messages(messages, messages_origin_details, answers_delimeter):
-    assert len(messages) > 1
+        texts.append(msg.text); timestamps.append(msg.timestamp)
+        origin_id.append(msg.origin.origin_id)
+        messages_origin_details.append(origin_details)
 
-    messages_participant_uuids = [msg.participant_uuid for msg in messages]
-    assert _all_equal(messages_participant_uuids)
-    participant_uuid=messages_participant_uuids[0]
+        if index == 0:
+            participant_uuid, dataset = msg.participant_uuid, msg.dataset
+            continue
+        
+        assert msg.participant_uuid == participant_uuid and not None
+        assert msg.dataset == dataset and not None
 
-    messages_datasets = [msg.dataset for msg in messages]
-    assert _all_equal(messages_datasets)
-    dataset=messages_datasets[0]
-
-    text = f"{answers_delimeter}".join([msg.text for msg in messages])
-    timestamp = sorted([msg.timestamp for msg in messages])[-1]
-    origin_id=[msg.origin.origin_id for msg in messages]
-
+    text, timestamp = answers_delimeter.join(texts), sorted(timestamps)[-1]
     message = Message(
         participant_uuid=participant_uuid,
         text=text,
@@ -249,7 +244,7 @@ def _engagement_db_has_message(engagement_db, message):
     return len(matching_messages) > 0
 
 
-def _ensure_engagement_db_has_message(engagement_db, message, message_origin_details, dry_run):
+def _ensure_engagement_db_has_message(engagement_db, message_with_origin_details, dry_run):
     """
     Ensures that the given message exists in an engagement database.
 
@@ -267,6 +262,7 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     :return: Sync event.
     :rtype: str
     """
+    message, message_origin_details = message_with_origin_details
     if _engagement_db_has_message(engagement_db, message):
         log.debug(f"Message already in engagement database")
         return GoogleFormSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
@@ -370,15 +366,16 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
             sync_stats.add_event(GoogleFormSyncEvents.READ_ANSWER_FROM_RESPONSE)
             if answer["questionId"] not in question_id_to_engagement_db_dataset:
                 log.info(f"This answer is to question {answer['questionId']}, which isn't configured in this sync")
-                continue 
+                continue
 
-            question_id_to_engagement_db_message[answer["questionId"]] = _form_answer_to_engagement_db_message(
+            engagement_db_message = _form_answer_to_engagement_db_message(
                 answer, form_config.form_id, response, participant_uuid, question_id_to_engagement_db_dataset
             )
-            question_id_to_message_origin_details[answer["questionId"]] = {
+            engagement_db_message_origin_details = {
                 "formId": form_config.form_id,
                 "answer": answer,
             }
+            question_id_to_engagement_db_message[answer["questionId"]] = (engagement_db_message, engagement_db_message_origin_details)
 
         for question_config in form_config.question_configurations:
             assert len(question_config.question_titles) > 0
@@ -386,25 +383,23 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                 question_id = question_title_to_question_id[question_config.question_titles[0]]
                 if question_id not in question_id_to_engagement_db_message:
                     continue
-                message = question_id_to_engagement_db_message[question_id]
-                message_origin_details = question_id_to_message_origin_details[question_id]
+                message_with_origin_details = question_id_to_engagement_db_message[question_id]
             else:
-                messages = []
-                messages_origin_details = []
+                list_of_messages_with_origin_details = []
                 for question_title in question_config.question_titles:
                     question_id = question_title_to_question_id[question_title]
                     if question_id not in question_id_to_engagement_db_message:
                         continue
-                    messages.append(question_id_to_engagement_db_message[question_id])
-                    messages_origin_details.append(question_id_to_message_origin_details[question_id])
-                if len(messages) == 0:
-                    continue
-                elif len(messages) == 1:
-                    [message], [message_origin_details] = messages, messages_origin_details
-                else:
-                    message, message_origin_details = _merge_engagement_db_messages(messages, messages_origin_details, question_config.answers_delimeter)
+                    list_of_messages_with_origin_details.append(question_id_to_engagement_db_message[question_id])
 
-            sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details, dry_run)
+                if len(list_of_messages_with_origin_details) == 0:
+                    continue
+                elif len(list_of_messages_with_origin_details) == 1:
+                    message_with_origin_details = list_of_messages_with_origin_details[0]
+                else:
+                    message_with_origin_details = _merge_engagement_db_messages(list_of_messages_with_origin_details, question_config.answers_delimeter)
+
+            sync_event = _ensure_engagement_db_has_message(engagement_db, message_with_origin_details, dry_run)
             sync_stats.add_event(sync_event)
 
         if not dry_run and cache is not None:
