@@ -255,10 +255,9 @@ def _ensure_engagement_db_has_message(engagement_db, message_with_origin_details
 
     :param engagement_db: Engagement database to use.
     :type engagement_db: engagement_database.EngagementDatabase
-    :param message: Message to make sure exists in the engagement database.
-    :type message: engagement_database.data_models.Message
-    :param message_origin_details: Message origin details, to be logged in the HistoryEntryOrigin.details.
-    :type message_origin_details: dict
+    :param message_with_origin_details: Tuple of message to make sure exists in the engagement database and message origin details, 
+                                        to be logged in the HistoryEntryOrigin.details.
+    :type message_with_origin_details: (engagement_database.data_models.Message, dict)
     :return: Sync event.
     :rtype: str
     """
