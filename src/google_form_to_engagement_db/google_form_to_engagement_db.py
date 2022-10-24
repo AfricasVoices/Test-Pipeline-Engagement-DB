@@ -362,15 +362,16 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
             sync_stats.add_event(GoogleFormSyncEvents.READ_ANSWER_FROM_RESPONSE)
             if answer["questionId"] not in question_id_to_engagement_db_dataset:
                 log.info(f"This answer is to question {answer['questionId']}, which isn't configured in this sync")
-                continue 
+                continue
 
-            question_id_to_engagement_db_message[answer["questionId"]] = _form_answer_to_engagement_db_message(
+            engagement_db_message = _form_answer_to_engagement_db_message(
                 answer, form_config.form_id, response, participant_uuid, question_id_to_engagement_db_dataset
             )
-            question_id_to_message_origin_details[answer["questionId"]] = {
+            engagement_db_message_origin_details = {
                 "formId": form_config.form_id,
                 "answer": answer,
             }
+            question_id_to_engagement_db_message[answer["questionId"]] = (engagement_db_message, engagement_db_message_origin_details)
 
         for question_config in form_config.question_configurations:
             assert len(question_config.question_titles) > 0
@@ -378,23 +379,21 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                 question_id = question_title_to_question_id[question_config.question_titles[0]]
                 if question_id not in question_id_to_engagement_db_message:
                     continue
-                message = question_id_to_engagement_db_message[question_id]
-                message_origin_details = question_id_to_message_origin_details[question_id]
+                message_with_origin_details = question_id_to_engagement_db_message[question_id]
             else:
-                messages = []
-                messages_origin_details = []
+                list_of_messages_with_origin_details = []
                 for question_title in question_config.question_titles:
                     question_id = question_title_to_question_id[question_title]
                     if question_id not in question_id_to_engagement_db_message:
                         continue
-                    messages.append(question_id_to_engagement_db_message[question_id])
-                    messages_origin_details.append(question_id_to_message_origin_details[question_id])
-                if len(messages) == 0:
+                    list_of_messages_with_origin_details.append(question_id_to_engagement_db_message[question_id])
+
+                if len(list_of_messages_with_origin_details) == 0:
                     continue
-                elif len(messages) == 1:
-                    [message], [message_origin_details] = messages, messages_origin_details
+                elif len(list_of_messages_with_origin_details) == 1:
+                    message_with_origin_details = list_of_messages_with_origin_details[0]
                 else:
-                    message, message_origin_details = _merge_engagement_db_messages(messages, messages_origin_details, question_config.answers_delimeter)
+                    message_with_origin_details = _merge_engagement_db_messages(list_of_messages_with_origin_details, question_config.answers_delimeter)
 
             sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
             sync_stats.add_event(sync_event)
