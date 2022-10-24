@@ -246,7 +246,7 @@ def _engagement_db_has_message(engagement_db, message):
     return len(matching_messages) > 0
 
 
-def _ensure_engagement_db_has_message(engagement_db, message, message_origin_details):
+def _ensure_engagement_db_has_message(engagement_db, message_with_origin_details):
     """
     Ensures that the given message exists in an engagement database.
 
@@ -262,6 +262,7 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     :return: Sync event.
     :rtype: str
     """
+    message, message_origin_details = message_with_origin_details
     if _engagement_db_has_message(engagement_db, message):
         log.debug(f"Message already in engagement database")
         return GoogleFormSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
@@ -395,7 +396,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
                 else:
                     message_with_origin_details = _merge_engagement_db_messages(list_of_messages_with_origin_details, question_config.answers_delimeter)
 
-            sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
+            sync_event = _ensure_engagement_db_has_message(engagement_db, message_with_origin_details)
             sync_stats.add_event(sync_event)
 
         if cache is not None:
