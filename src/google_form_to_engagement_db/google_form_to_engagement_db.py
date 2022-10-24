@@ -186,7 +186,7 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
 def _merge_engagement_db_messages(messages_with_origin_details, answers_delimeter):
     assert len(messages_with_origin_details) > 1
 
-    participant_uuid, dataset = "", ""
+    participant_uuid, dataset = None, None
     texts, timestamps, origin_id, messages_origin_details = [], [], [], []
     for index, message_with_origin_details in enumerate(messages_with_origin_details):
         msg, origin_details = message_with_origin_details
@@ -199,8 +199,8 @@ def _merge_engagement_db_messages(messages_with_origin_details, answers_delimete
             participant_uuid, dataset = msg.participant_uuid, msg.dataset
             continue
         
-        assert msg.participant_uuid == participant_uuid
-        assert msg.dataset == dataset
+        assert msg.participant_uuid == participant_uuid and not None
+        assert msg.dataset == dataset and not None
 
     text, timestamp = answers_delimeter.join(texts), sorted(timestamps)[-1]
     message = Message(
