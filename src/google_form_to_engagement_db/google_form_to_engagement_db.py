@@ -183,28 +183,26 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
     )
 
 
-def _all_equal(iterable):
-    """Checks if all elements in an iterable are identical"""
-    iterable = list(iterable)
-    return all(x == iterable[0] for i, x in enumerate(iterable) if i != 0)
+def _merge_engagement_db_messages(messages_with_origin_details, answers_delimeter):
+    assert len(messages_with_origin_details) > 1
 
+    participant_uuid, dataset = "", ""
+    texts, timestamps, origin_id, messages_origin_details = [], [], [], []
+    for index, message_with_origin_details in enumerate(messages_with_origin_details):
+        msg, origin_details = message_with_origin_details
 
-def _merge_engagement_db_messages(messages, messages_origin_details, answers_delimeter):
-    assert len(messages) > 1 and len(messages_origin_details) > 1
-    assert len(messages) == len(messages_origin_details)
+        texts.append(msg.text); timestamps.append(msg.timestamp)
+        origin_id.append(msg.origin.origin_id)
+        messages_origin_details.append(origin_details)
 
-    messages_participant_uuids = [msg.participant_uuid for msg in messages]
-    assert _all_equal(messages_participant_uuids)
-    participant_uuid=messages_participant_uuids[0]
+        if index == 0:
+            participant_uuid, dataset = msg.participant_uuid, msg.dataset
+            continue
+        
+        assert msg.participant_uuid == participant_uuid
+        assert msg.dataset == dataset
 
-    messages_datasets = [msg.dataset for msg in messages]
-    assert _all_equal(messages_datasets)
-    dataset=messages_datasets[0]
-
-    text = answers_delimeter.join([msg.text for msg in messages])
-    timestamp = sorted([msg.timestamp for msg in messages])[-1]
-    origin_id=[msg.origin.origin_id for msg in messages]
-
+    text, timestamp = answers_delimeter.join(texts), sorted(timestamps)[-1]
     message = Message(
         participant_uuid=participant_uuid,
         text=text,
