@@ -135,6 +135,19 @@ class CodaSyncConfiguration:
         self.default_ws_dataset = default_ws_dataset
         self.project_users_file_url = project_users_file_url
 
+        self.validate()
+
+    def validate(self):
+        # Ensure that all the ws_code_match_values match a code in the ws_correct_dataset_code_scheme.
+        for dataset in self.dataset_configurations:
+            try:
+                self.ws_correct_dataset_code_scheme.get_code_with_match_value(dataset.ws_code_match_value)
+            except KeyError as e:
+                raise KeyError(f"A dataset_configuration in the CodaSyncConfiguration had a ws_code_match_value "
+                               f"'{dataset.ws_code_match_value}', but this does not match any code in the "
+                               f"ws_correct_dataset_code_scheme. Add this code to the ws_correct_dataset_code_scheme "
+                               f"or remove this dataset_configuration") from e
+
     def get_dataset_config_by_engagement_db_dataset(self, dataset):
         for config in self.dataset_configurations:
             if config.engagement_db_dataset == dataset:
