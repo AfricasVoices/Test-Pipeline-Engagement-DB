@@ -24,5 +24,5 @@ RUN pipenv sync
 # Copy the rest of the project
 ADD .git /app/.git
 ADD src /app/src
-ADD *.py /app
+ADD *.py /app/
 
