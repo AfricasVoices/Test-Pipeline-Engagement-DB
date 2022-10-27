@@ -1,5 +1,4 @@
 import json
-from dataclasses import dataclass
 
 from core_data_modules.data_models import CodeScheme
 from core_data_modules.analysis.traffic_analysis import TrafficLabel
@@ -87,7 +86,6 @@ class RapidProTarget:
         self.sync_config = sync_config
 
 
-@dataclass
 class PipelineConfiguration:
     def __init__(self, pipeline_name, engagement_database, uuid_table, operations_dashboard, archive_configuration,
                  description=None, project_start_date=None, project_end_date=None, test_participant_uuids=None,
