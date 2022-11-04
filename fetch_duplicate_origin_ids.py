@@ -93,6 +93,7 @@ if __name__ == "__main__":
     duplicate_origin_ids = get_duplicate_origin_ids_in_datasets(engagement_db, list(engagement_db_datasets), cache, dry_run)
 
     fields = ["origin_id", "engagement_db_datasets", "duplicate_origin_id_count"]
+    log.info(f"Exporting duplicate origin ids to {duplicate_origin_ids_output_path}")
     with open(duplicate_origin_ids_output_path, "w") as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(fields) 
