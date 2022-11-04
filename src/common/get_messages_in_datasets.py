@@ -26,7 +26,7 @@ def filter_latest_message_snapshots(messages):
     return latest_messages
 
 
-def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, dry_run=False):
+def _get_raw_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, dry_run=False):
     """
     Gets messages in the specified datasets.
 
