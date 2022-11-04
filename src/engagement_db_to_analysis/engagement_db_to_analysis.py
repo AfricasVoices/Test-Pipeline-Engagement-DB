@@ -3,7 +3,7 @@ from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO
 from core_data_modules.util import TimeUtils
 
-from src.common.get_messages_in_datasets import get_messages_in_datasets
+from src.common.get_messages_in_datasets import get_relevant_messages_in_datasets
 from src.engagement_db_to_analysis import google_drive_upload
 from src.engagement_db_to_analysis.analysis_files import export_production_file, export_analysis_file
 from src.engagement_db_to_analysis.automated_analysis import run_automated_analysis
@@ -67,7 +67,7 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     engagement_db_datasets = []
     for config in analysis_dataset_configurations:
         engagement_db_datasets.extend(config.engagement_db_datasets)
-    messages_map = get_messages_in_datasets(engagement_db, engagement_db_datasets, cache, dry_run)
+    messages_map = get_relevant_messages_in_datasets(engagement_db, engagement_db_datasets, cache, dry_run)
 
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 

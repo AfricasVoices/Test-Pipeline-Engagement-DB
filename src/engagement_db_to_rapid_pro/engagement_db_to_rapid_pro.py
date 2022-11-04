@@ -7,7 +7,7 @@ from core_data_modules.data_models import CodeScheme
 from core_data_modules.logging import Logger
 
 from src.common.cache import Cache
-from src.common.get_messages_in_datasets import get_messages_in_datasets
+from src.common.get_messages_in_datasets import get_relevant_messages_in_datasets
 from src.engagement_db_to_rapid_pro.configuration import WriteModes
 
 log = Logger(__name__)
@@ -50,7 +50,7 @@ def _get_all_messages(engagement_db, sync_config, cache=None):
     :rtype: list of engagement_database.data_models.Message
     """
     engagement_db_datasets = _engagement_db_datasets_in_sync_config(sync_config)
-    messages_by_dataset = get_messages_in_datasets(engagement_db, engagement_db_datasets, cache)
+    messages_by_dataset = get_relevant_messages_in_datasets(engagement_db, engagement_db_datasets, cache)
 
     messages = []
     for msgs in messages_by_dataset.values():
