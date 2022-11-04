@@ -153,6 +153,11 @@ def _get_raw_messages_in_datasets(engagement_db, engagement_db_datasets, cache=N
     log.info(f"Filtered for latest message snapshots across all datasets: "
              f"{len(all_latest_messages)}/{len(all_messages)} snapshots remain")
 
+    return engagement_db_messages_map
+
+
+def get_relevant_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, dry_run=False):
+    engagement_db_messages_map = _get_raw_messages_in_datasets(engagement_db, engagement_db_datasets, cache, dry_run)
     # Ensure that origin_ids in the exported messages are all unique. If we have multiple messages with the same
     # origin_id, that means there is a problem with the database or with the cache.
     # (Most likely we added the same message twice or we deleted a message and forgot to delete the analysis cache).
