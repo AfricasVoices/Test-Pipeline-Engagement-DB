@@ -195,3 +195,31 @@ def get_relevant_messages_in_datasets(engagement_db, engagement_db_datasets, cac
         engagement_db_messages_map[engagement_db_dataset] = active_messages
 
     return engagement_db_messages_map
+
+
+def get_duplicate_origin_ids_in_datasets(engagement_db, engagement_db_datasets, cache=None, dry_run=False):
+    engagement_db_messages_map = _get_raw_messages_in_datasets(engagement_db, engagement_db_datasets, cache, dry_run)
+
+    all_message_origins = set()
+    duplicate_origins_count, duplicate_origins_datasets = defaultdict(int), defaultdict(set)
+    for messages in engagement_db_messages_map.values():
+        for msg in messages:
+            origin_id = msg.origin.origin_id
+            if type(origin_id) == list:
+                origin_id = tuple(origin_id)
+
+            if origin_id in all_message_origins:
+                origin_id = str(origin_id)
+                duplicate_origins_count[origin_id] += 1
+                duplicate_origins_datasets[origin_id].add(msg.dataset)
+                continue
+
+            all_message_origins.add(origin_id)
+
+    duplicate_origins = []
+    for origin_id, duplicate_msg_datasets in duplicate_origins_datasets.items():
+        row = [origin_id, ", ".join(duplicate_msg_datasets), duplicate_origins_count[origin_id]]
+        duplicate_origins.append(row)
+
+    log.info(f"Found {len(duplicate_origins)} duplicate origins")
+    return duplicate_origins

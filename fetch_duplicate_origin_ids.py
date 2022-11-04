@@ -5,7 +5,7 @@ import importlib
 from core_data_modules.logging import Logger
 
 from src.common.cache import Cache
-from src.common.get_messages_in_datasets import get_duplicate_messages_in_datasets
+from src.common.get_messages_in_datasets import get_duplicate_origin_ids_in_datasets
 
 
 def get_engagement_db_datasets(pipeline_config):
