@@ -79,9 +79,11 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
         pipeline_config.analysis.ws_correct_dataset_code_scheme
     )
 
+    target_uuids = []
     for message_td in messages_traced_data:
         message_dict = dict(message_td)
-        print(message_dict)
-        exit()
+        if message_dict['CodeID'] in ["code-d44c52b4", "code-fe358835", "code-7e60db65", "code-be7e288b","code-afcb698a"]:
+            print(f'adding uuid {message_dict["participant_uuid"]}')
+            target_uuids.append(message_dict['participant_uuid'])
 
     export_traced_data(messages_traced_data, f"{output_dir}/messages.jsonl")
