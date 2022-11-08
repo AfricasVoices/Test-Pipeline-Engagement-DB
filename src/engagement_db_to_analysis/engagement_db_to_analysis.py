@@ -70,14 +70,6 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
 
     messages_map = get_messages_in_datasets(engagement_db, ["location"], cache, dry_run)
 
-    print(len(messages_map))
-
-    first2vals = [messages_map[k] for k in sorted(messages_map.keys())[:2]]
-
-    print(first2vals)
-
-    exit()
-
     messages_traced_data = _convert_messages_to_traced_data(user, messages_map)
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
@@ -88,6 +80,8 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     )
 
     messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis)
+    
+    '''
     participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
 
     log.info(f"Imputing messages column-view traced data...")
@@ -112,10 +106,12 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
 
     export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/messages.csv", export_timestamps=True)
     export_analysis_file(participants_by_column, pipeline_config, f"{output_dir}/participants.csv")
-
+    '''
     export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
-    export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
 
+    '''
+    export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
+    
     run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated-analysis")
 
     dry_run_text = "(dry run)" if dry_run else ""
@@ -144,3 +140,4 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
             participants_by_column, uuid_table, pipeline_config, rapid_pro,
             google_cloud_credentials_file_path, membership_group_dir_path, cache_path, dry_run
         )
+    '''
