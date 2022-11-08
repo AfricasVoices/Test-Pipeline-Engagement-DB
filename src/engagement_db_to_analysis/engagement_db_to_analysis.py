@@ -100,6 +100,8 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
 
     log.info(f"Converted {len(uuids)} to {len(urns)}")
 
+    print(urns)
+
     # Export contacts CSV
     log.warning(f"Exporting {len(urns)} urns to {output_dir}...")
     with open(f'{output_dir}/giz_initial.csv', "w") as f:
