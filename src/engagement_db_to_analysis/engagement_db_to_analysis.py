@@ -3,6 +3,8 @@ from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO
 from core_data_modules.util import TimeUtils
 
+import csv
+
 from src.common.get_messages_in_datasets import get_messages_in_datasets
 from src.engagement_db_to_analysis import google_drive_upload
 from src.engagement_db_to_analysis.analysis_files import export_production_file, export_analysis_file
@@ -52,7 +54,7 @@ def export_traced_data(traced_data, export_path):
 
 
 def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, uuid_table, engagement_db, rapid_pro,
-                            membership_group_dir_path,output_dir, cache_path=None, dry_run=False):
+                            membership_group_dir_path, output_dir, cache_path=None, dry_run=False):
 
     analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
     # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
@@ -79,14 +81,33 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
         pipeline_config.analysis.ws_correct_dataset_code_scheme
     )
 
-    target_uuids = []
+    uuids = []
     for message_td in messages_traced_data:
         message_dict = dict(message_td)
         print(message_dict['labels'][-1]['CodeID'])
         if message_dict['labels'][-1]['CodeID'] in ["code-d44c52b4", "code-fe358835", "code-7e60db65", "code-be7e288b","code-afcb698a"]:
             log.info(f'adding uuid {message_dict["participant_uuid"]}')
-            target_uuids.append(message_dict['participant_uuid'])
-    
-    log.info(f'Found {len(target_uuids)}')
+            uuids.append(message_dict['participant_uuid'])
 
-    export_traced_data(messages_traced_data, f"{output_dir}/messages.jsonl")
+    log.info(f"Converting {len(uuids)} uuids to urns...")
+    urn_lut = uuid_table.uuid_to_data_batch(uuids)
+    urns = {urn_lut[uuid] for uuid in uuids}
+    log.info(f"Converted {len(uuids)} to {len(urns)}")
+
+    # Export contacts CSV
+    log.warning(f"Exporting {len(urns)} urns to {output_dir}...")
+    with open(f'{output_dir}/giz_initial.csv', "w") as f:
+        urn_namespaces = {urn.split(":")[0] for urn in urns}
+        headers = [f"URN:{namespace}" for namespace in urn_namespaces]
+
+        writer = csv.DictWriter(f, fieldnames=headers, lineterminator="\n")
+        writer.writeheader()
+        for urn in urns:
+            namespace = urn.split(":")[0]
+            value = urn.split(":")[1]
+            writer.writerow({
+                f"URN:{namespace}": value
+            })
+        log.info(f"Wrote {len(urns)} urns")
+
+    
