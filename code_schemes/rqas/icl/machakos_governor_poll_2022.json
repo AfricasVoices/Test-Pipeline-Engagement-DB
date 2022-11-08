@@ -1,62 +1,22 @@
 {
-  "SchemeID": "Scheme-153d7280",
-  "Name": "S01E02",
-  "Version": "0.0.0.1",
+  "SchemeID": "Scheme-135fbf1e",
+  "Name": "Machakos Governor Poll 2022",
+  "Version": "0.0.0.6",
   "Codes": [
     {
-      "CodeID": "code-6fdf668e",
+      "CodeID": "code-43380111",
       "CodeType": "Normal",
-      "DisplayText": "economic hardships",
+      "DisplayText": "1. francis maliti",
       "NumericValue": 1,
-      "StringValue": "economic_hardships",
+      "StringValue": "1_francis_maliti",
       "VisibleInCoda": true
     },
     {
-      "CodeID": "code-93910823",
+      "CodeID": "code-3b85fd97",
       "CodeType": "Normal",
-      "DisplayText": "struggling economy",
+      "DisplayText": "2. joseph musyoka",
       "NumericValue": 2,
-      "StringValue": "struggling_economy",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-6a664f46",
-      "CodeType": "Normal",
-      "DisplayText": "inability to access loans/raise loan contributions",
-      "NumericValue": 3,
-      "StringValue": "inability to access loans and raise loan contributions",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-37a1fd44",
-      "CodeType": "Normal",
-      "DisplayText": "domestic conflicts/moral decadence among the youth",
-      "NumericValue": 4,
-      "StringValue": "domestic_conflicts_and_moral_decadence_among_the_youth",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-f1e3fccd",
-      "CodeType": "Normal",
-      "DisplayText": "development challenges due to covid19",
-      "NumericValue": 5,
-      "StringValue": "development_challenges_due_to_covid19",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-d1f3b4f6",
-      "CodeType": "Normal",
-      "DisplayText": "loss of life",
-      "NumericValue": 6,
-      "StringValue": "loss_of_life",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-8bdba7de",
-      "CodeType": "Normal",
-      "DisplayText": "other theme",
-      "NumericValue": 7,
-      "StringValue": "other_theme",
+      "StringValue": "2_joseph_musyoka",
       "VisibleInCoda": true
     },
     {
@@ -103,6 +63,15 @@
       "NumericValue": -50,
       "StringValue": "NIC",
       "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-NOC-4eb70633",
+      "ControlCode": "NOC",
+      "StringValue": "NOC",
+      "DisplayText": "Noise (Other Channel)",
+      "VisibleInCoda": true,
+      "NumericValue": -60,
+      "CodeType": "Control"
     },
     {
       "CodeID": "code-STOP-08b832a8",
@@ -170,7 +139,7 @@
     {
       "CodeID": "code-OI-c5f1d054",
       "CodeType": "Meta",
-      "MetaCode": "opt_in",
+      "MetaCode": "opt-in",
       "DisplayText": "meta: opt-in",
       "NumericValue": -100040,
       "StringValue": "opt_in",
@@ -202,6 +171,42 @@
       "NumericValue": -100070,
       "StringValue": "exclusion_complaint",
       "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-GR-e6de1b7e",
+      "CodeType": "Meta",
+      "MetaCode": "gratitude",
+      "DisplayText": "meta: gratitude",
+      "NumericValue": -100100,
+      "StringValue": "gratitude",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-AC-9ed22631",
+      "CodeType": "Meta",
+      "MetaCode": "about_conversation",
+      "DisplayText": "meta: about conversation",
+      "NumericValue": -100120,
+      "StringValue": "about_conversation",
+      "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-CR-8e99616b",
+      "CodeType": "Meta",
+      "MetaCode": "chasing_reply",
+      "DisplayText": "meta: chasing reply",
+      "NumericValue": -100130,
+      "StringValue": "chasing_reply",
+      "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-I-b13a41f6",
+      "CodeType": "Meta",
+      "MetaCode": "impact",
+      "DisplayText": "meta: impact",
+      "StringValue": "impact",
+      "NumericValue": -100140,
+      "VisibleInCoda": false
     }
   ]
 }

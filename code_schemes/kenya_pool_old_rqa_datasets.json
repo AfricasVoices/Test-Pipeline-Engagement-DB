@@ -1,120 +1,8 @@
 {
-  "SchemeID": "Scheme-d26d0a6f",
-  "Name": "S01E01",
-  "Version": "0.0.0.1",
+  "SchemeID": "Scheme-06456bgf",
+  "Name": "Kenya Pool Old Rqa Datasets",
+  "Version": "0.0.0.6",
   "Codes": [
-    {
-      "CodeID": "code-beef6b48",
-      "CodeType": "Normal",
-      "DisplayText": "follow government guidelines",
-      "NumericValue": 1,
-      "StringValue": "follow_government_guidelines",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-239f5e23",
-      "CodeType": "Normal",
-      "DisplayText": "handwashing/sanitising",
-      "NumericValue": 2,
-      "StringValue": "handwashing_sanitising",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-947f7f37",
-      "CodeType": "Normal",
-      "DisplayText": "staying home",
-      "NumericValue": 3,
-      "StringValue": "staying_home",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-45db6891",
-      "CodeType": "Normal",
-      "DisplayText": "wearing masks",
-      "NumericValue": 4,
-      "StringValue": "wearing_masks",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-09a1ea60",
-      "CodeType": "Normal",
-      "DisplayText": "social distancing",
-      "NumericValue": 5,
-      "StringValue": "social_distancing",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-78aea506",
-      "CodeType": "Normal",
-      "DisplayText": "need provision of preventative items",
-      "NumericValue": 6,
-      "StringValue": "need_provision_of_preventative_items",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-6f58fc44",
-      "CodeType": "Normal",
-      "DisplayText": "misinformation/rumour/stigma/denial",
-      "NumericValue": 7,
-      "StringValue": "misinformation_rumour_stigma_denial",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-7f3c6384",
-      "CodeType": "Normal",
-      "DisplayText": "what is coronavirus",
-      "NumericValue": 8,
-      "StringValue": "what_is_coronavirus",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-3724733c",
-      "CodeType": "Normal",
-      "DisplayText": "how to treat",
-      "NumericValue": 9,
-      "StringValue": "how_to_treat",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-3b6d543c",
-      "CodeType": "Normal",
-      "DisplayText": "how to prevent",
-      "NumericValue": 10,
-      "StringValue": "how_to_prevent",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-de859950",
-      "CodeType": "Normal",
-      "DisplayText": "how spread",
-      "NumericValue": 11,
-      "StringValue": "how_spread",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-b68f37f8",
-      "CodeType": "Normal",
-      "DisplayText": "supporting community members",
-      "NumericValue": 12,
-      "StringValue": "supporting_community_members",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-5dfce5a1",
-      "CodeType": "Normal",
-      "DisplayText": "negative impact of coronavirus",
-      "NumericValue": 13,
-      "StringValue": "negative_impact_of_coronavirus",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-88a1af06",
-      "CodeType": "Normal",
-      "DisplayText": "other",
-      "NumericValue": 14,
-      "StringValue": "other",
-      "VisibleInCoda": true
-    },
     {
       "CodeID": "code-NA-f93d3eb7",
       "CodeType": "Control",
@@ -159,6 +47,15 @@
       "NumericValue": -50,
       "StringValue": "NIC",
       "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-NOC-4eb70633",
+      "ControlCode": "NOC",
+      "StringValue": "NOC",
+      "DisplayText": "Noise (Other Channel)",
+      "VisibleInCoda": true,
+      "NumericValue": -60,
+      "CodeType": "Control"
     },
     {
       "CodeID": "code-STOP-08b832a8",
@@ -226,7 +123,7 @@
     {
       "CodeID": "code-OI-c5f1d054",
       "CodeType": "Meta",
-      "MetaCode": "opt_in",
+      "MetaCode": "opt-in",
       "DisplayText": "meta: opt-in",
       "NumericValue": -100040,
       "StringValue": "opt_in",
@@ -258,6 +155,42 @@
       "NumericValue": -100070,
       "StringValue": "exclusion_complaint",
       "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-GR-e6de1b7e",
+      "CodeType": "Meta",
+      "MetaCode": "gratitude",
+      "DisplayText": "meta: gratitude",
+      "NumericValue": -100100,
+      "StringValue": "gratitude",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-AC-9ed22631",
+      "CodeType": "Meta",
+      "MetaCode": "about_conversation",
+      "DisplayText": "meta: about conversation",
+      "NumericValue": -100120,
+      "StringValue": "about_conversation",
+      "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-CR-8e99616b",
+      "CodeType": "Meta",
+      "MetaCode": "chasing_reply",
+      "DisplayText": "meta: chasing reply",
+      "NumericValue": -100130,
+      "StringValue": "chasing_reply",
+      "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-I-b13a41f6",
+      "CodeType": "Meta",
+      "MetaCode": "impact",
+      "DisplayText": "meta: impact",
+      "StringValue": "impact",
+      "NumericValue": -100140,
+      "VisibleInCoda": false
     }
   ]
 }

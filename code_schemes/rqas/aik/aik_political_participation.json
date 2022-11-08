@@ -1,0 +1,342 @@
+{
+    "SchemeID": "Scheme-7b473686",
+    "Name": "Political Participation",
+    "Version": "0.0.0.1",
+    "Codes": [
+        {
+            "CodeID": "code-E-720cdb66",
+            "CodeType": "Meta",
+            "MetaCode": "escalate",
+            "DisplayText": "meta: ESCALATE",
+            "NumericValue": -100080,
+            "StringValue": "escalate",
+            "VisibleInCoda": true,
+            "Shortcut": "e"
+        },
+        {
+            "CodeID": "code-01069ffe",
+            "CodeType": "Normal",
+            "DisplayText": "do not share",
+            "NumericValue": 0,
+            "StringValue": "do_not_share",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-4f76dcad",
+            "CodeType": "Normal",
+            "DisplayText": "yes, no reason",
+            "NumericValue": 1,
+            "StringValue": "yes_no_reason",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-e3a5cbac",
+            "CodeType": "Normal",
+            "DisplayText": "yes, civic duty or democratic right",
+            "NumericValue": 2,
+            "StringValue": "yes_civic_duty_or_democratic_right",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-2e3ab664",
+            "CodeType": "Normal",
+            "DisplayText": "yes, assured of peace or security",
+            "NumericValue": 3,
+            "StringValue": "yes_assured_of_peace_or_security",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-6146d21c",
+            "CodeType": "Normal",
+            "DisplayText": "yes, to change leadership",
+            "NumericValue": 4,
+            "StringValue": "yes_to_change_leadership",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-df40be57",
+            "CodeType": "Normal",
+            "DisplayText": "yes, love for politics",
+            "NumericValue": 5,
+            "StringValue": "yes_love_for_politics",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-48a36cda",
+            "CodeType": "Normal",
+            "DisplayText": "yes, politics has money",
+            "NumericValue": 6,
+            "StringValue": "yes_politics_has_money",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-d72a2ac1",
+            "CodeType": "Normal",
+            "DisplayText": "Yes, due to personal interest",
+            "NumericValue": 7,
+            "StringValue": "yes_due_to_personal_interest",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-9b74bd5a",
+            "CodeType": "Normal",
+            "DisplayText": "no, no reason",
+            "NumericValue": 8,
+            "StringValue": "no_no_reason",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-412e8a89",
+            "CodeType": "Normal",
+            "DisplayText": "no, distrust for politics or politicians",
+            "NumericValue": 9,
+            "StringValue": "no_distrust_for_politics_or_politicians",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-06df1701",
+            "CodeType": "Normal",
+            "DisplayText": "no, busy at work",
+            "NumericValue": 10,
+            "StringValue": "no_busy_at_work",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-8eb58c57",
+            "CodeType": "Normal",
+            "DisplayText": "no, health constraints",
+            "NumericValue": 11,
+            "StringValue": "no_health_constraints",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-2cf5e03c",
+            "CodeType": "Normal",
+            "DisplayText": "no, fear of insecurity or violence",
+            "NumericValue": 12,
+            "StringValue": "no_fear_of_insecurity_or_violence",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-066ef3e1",
+            "CodeType": "Normal",
+            "DisplayText": "no or not interested",
+            "NumericValue": 13,
+            "StringValue": "no_or_not_interested",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-1427d73a",
+            "CodeType": "Normal",
+            "DisplayText": "maybe",
+            "NumericValue": 14,
+            "StringValue": "maybe",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-d87251ac",
+            "CodeType": "Normal",
+            "DisplayText": "i do not know",
+            "NumericValue": 15,
+            "StringValue": "i_do_not_know",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-6a42d742",
+            "CodeType": "Normal",
+            "DisplayText": "other theme",
+            "NumericValue": 16,
+            "StringValue": "other_theme",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-NA-f93d3eb7",
+            "CodeType": "Control",
+            "ControlCode": "NA",
+            "DisplayText": "NA (missing)",
+            "NumericValue": -10,
+            "StringValue": "NA",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NS-2c11b7c9",
+            "CodeType": "Control",
+            "ControlCode": "NS",
+            "DisplayText": "NS (skip)",
+            "NumericValue": -20,
+            "StringValue": "NS",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NC-42f1d983",
+            "CodeType": "Control",
+            "ControlCode": "NC",
+            "DisplayText": "NC (not coded)",
+            "NumericValue": -30,
+            "StringValue": "NC",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-NR-5e3eee23",
+            "CodeType": "Control",
+            "ControlCode": "NR",
+            "DisplayText": "NR (not reviewed)",
+            "NumericValue": -40,
+            "StringValue": "NR",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NIC-99631cb8",
+            "CodeType": "Control",
+            "ControlCode": "NIC",
+            "DisplayText": "NIC (not internally consistent)",
+            "NumericValue": -50,
+            "StringValue": "NIC",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NOC-4eb70633",
+            "ControlCode": "NOC",
+            "StringValue": "NOC",
+            "DisplayText": "Noise (Other Channel)",
+            "VisibleInCoda": true,
+            "NumericValue": -60,
+            "CodeType": "Control"
+        },
+        {
+            "CodeID": "code-STOP-08b832a8",
+            "CodeType": "Control",
+            "ControlCode": "STOP",
+            "DisplayText": "STOP",
+            "NumericValue": -90,
+            "StringValue": "STOP",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-WS-adb25603b7af",
+            "CodeType": "Control",
+            "ControlCode": "WS",
+            "DisplayText": "WS (wrong scheme)",
+            "NumericValue": -100,
+            "StringValue": "WS",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-CE-016c1e22",
+            "CodeType": "Control",
+            "ControlCode": "CE",
+            "DisplayText": "CE (coding error)",
+            "NumericValue": -110,
+            "StringValue": "CE",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-PB-a434a800",
+            "CodeType": "Meta",
+            "MetaCode": "push_back",
+            "DisplayText": "meta: push back",
+            "NumericValue": -100000,
+            "StringValue": "push_back",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-SQ-5e8f0122",
+            "CodeType": "Meta",
+            "MetaCode": "showtime_question",
+            "DisplayText": "meta: showtime question",
+            "NumericValue": -100030,
+            "StringValue": "showtime_question",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-Q-a5d3700d",
+            "CodeType": "Meta",
+            "MetaCode": "question",
+            "DisplayText": "meta: question",
+            "NumericValue": -100010,
+            "StringValue": "question",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-G-97cb3199",
+            "CodeType": "Meta",
+            "MetaCode": "greeting",
+            "DisplayText": "meta: greeting",
+            "NumericValue": -100020,
+            "StringValue": "greeting",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-OI-c5f1d054",
+            "CodeType": "Meta",
+            "MetaCode": "opt-in",
+            "DisplayText": "meta: opt-in",
+            "NumericValue": -100040,
+            "StringValue": "opt_in",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-SC-a3a065bc",
+            "CodeType": "Meta",
+            "MetaCode": "similar_content",
+            "DisplayText": "meta: similar content",
+            "NumericValue": -100050,
+            "StringValue": "similar_content",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-PI-83b90d32",
+            "CodeType": "Meta",
+            "MetaCode": "participation_incentive",
+            "DisplayText": "meta: participation incentive",
+            "NumericValue": -100060,
+            "StringValue": "participation_incentive",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-EC-3a704f5b",
+            "CodeType": "Meta",
+            "MetaCode": "exclusion_complaint",
+            "DisplayText": "meta: exclusion complaint",
+            "NumericValue": -100070,
+            "StringValue": "exclusion_complaint",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-GR-e6de1b7e",
+            "CodeType": "Meta",
+            "MetaCode": "gratitude",
+            "DisplayText": "meta: gratitude",
+            "NumericValue": -100100,
+            "StringValue": "gratitude",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-AC-9ed22631",
+            "CodeType": "Meta",
+            "MetaCode": "about_conversation",
+            "DisplayText": "meta: about conversation",
+            "NumericValue": -100120,
+            "StringValue": "about_conversation",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-CR-8e99616b",
+            "CodeType": "Meta",
+            "MetaCode": "chasing_reply",
+            "DisplayText": "meta: chasing reply",
+            "NumericValue": -100130,
+            "StringValue": "chasing_reply",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-I-b13a41f6",
+            "CodeType": "Meta",
+            "MetaCode": "impact",
+            "DisplayText": "meta: impact",
+            "StringValue": "impact",
+            "NumericValue": -100140,
+            "VisibleInCoda": false
+        }
+    ]
+}

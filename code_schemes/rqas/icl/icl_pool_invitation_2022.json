@@ -1,8 +1,35 @@
 {
-  "SchemeID": "Scheme-38e8f576",
-  "Name": "Telegram S01E02",
-  "Version": "0.0.0.1",
+  "SchemeID": "Scheme-21b4ab58",
+  "Name": "ICL Pool Invitation 2022",
+  "Version": "0.0.0.6",
   "Codes": [
+    {
+      "CodeID": "code-OI-c5f1d054",
+      "CodeType": "Meta",
+      "MetaCode": "opt-in",
+      "DisplayText": "meta: opt-in",
+      "NumericValue": -100040,
+      "StringValue": "opt_in",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-STOP-08b832a8",
+      "CodeType": "Control",
+      "ControlCode": "STOP",
+      "DisplayText": "STOP",
+      "NumericValue": -90,
+      "StringValue": "STOP",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-WS-adb25603b7af",
+      "CodeType": "Control",
+      "ControlCode": "WS",
+      "DisplayText": "WS (wrong scheme)",
+      "NumericValue": -100,
+      "StringValue": "WS",
+      "VisibleInCoda": true
+    },
     {
       "CodeID": "code-NA-f93d3eb7",
       "CodeType": "Control",
@@ -49,23 +76,15 @@
       "VisibleInCoda": false
     },
     {
-      "CodeID": "code-STOP-08b832a8",
-      "CodeType": "Control",
-      "ControlCode": "STOP",
-      "DisplayText": "STOP",
-      "NumericValue": -90,
-      "StringValue": "STOP",
-      "VisibleInCoda": true
+      "CodeID": "code-NOC-4eb70633",
+      "ControlCode": "NOC",
+      "StringValue": "NOC",
+      "DisplayText": "Noise (Other Channel)",
+      "VisibleInCoda": true,
+      "NumericValue": -60,
+      "CodeType": "Control"
     },
-    {
-      "CodeID": "code-WS-adb25603b7af",
-      "CodeType": "Control",
-      "ControlCode": "WS",
-      "DisplayText": "WS (wrong scheme)",
-      "NumericValue": -100,
-      "StringValue": "WS",
-      "VisibleInCoda": true
-    },
+
     {
       "CodeID": "code-CE-016c1e22",
       "CodeType": "Control",
@@ -94,6 +113,15 @@
       "VisibleInCoda": true
     },
     {
+      "CodeID": "code-Q-a5d3700d",
+      "CodeType": "Meta",
+      "MetaCode": "question",
+      "DisplayText": "meta: question",
+      "NumericValue": -100010,
+      "StringValue": "question",
+      "VisibleInCoda": true
+    },
+    {
       "CodeID": "code-G-97cb3199",
       "CodeType": "Meta",
       "MetaCode": "greeting",
@@ -102,15 +130,7 @@
       "StringValue": "greeting",
       "VisibleInCoda": true
     },
-    {
-      "CodeID": "code-OI-c5f1d054",
-      "CodeType": "Meta",
-      "MetaCode": "opt-in",
-      "DisplayText": "meta: opt-in",
-      "NumericValue": -100040,
-      "StringValue": "opt_in",
-      "VisibleInCoda": true
-    },
+
     {
       "CodeID": "code-SC-a3a065bc",
       "CodeType": "Meta",
@@ -139,12 +159,12 @@
       "VisibleInCoda": true
     },
     {
-      "CodeID": "code-O-7ce0d2a7",
+      "CodeID": "code-GR-e6de1b7e",
       "CodeType": "Meta",
-      "MetaCode": "other",
-      "DisplayText": "meta: other",
-      "NumericValue": -100110,
-      "StringValue": "other",
+      "MetaCode": "gratitude",
+      "DisplayText": "meta: gratitude",
+      "NumericValue": -100100,
+      "StringValue": "gratitude",
       "VisibleInCoda": true
     },
     {
@@ -154,7 +174,7 @@
       "DisplayText": "meta: about conversation",
       "NumericValue": -100120,
       "StringValue": "about_conversation",
-      "VisibleInCoda": true
+      "VisibleInCoda": false
     },
     {
       "CodeID": "code-CR-8e99616b",
@@ -163,16 +183,16 @@
       "DisplayText": "meta: chasing reply",
       "NumericValue": -100130,
       "StringValue": "chasing_reply",
-      "VisibleInCoda": true
+      "VisibleInCoda": false
     },
     {
       "CodeID": "code-I-b13a41f6",
       "CodeType": "Meta",
       "MetaCode": "impact",
       "DisplayText": "meta: impact",
-      "NumericValue": -100140,
       "StringValue": "impact",
-      "VisibleInCoda": true
+      "NumericValue": -100140,
+      "VisibleInCoda": false
     }
   ]
 }

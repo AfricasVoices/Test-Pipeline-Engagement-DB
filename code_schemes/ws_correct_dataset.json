@@ -1,78 +1,1204 @@
 {
-  "SchemeID": "Scheme-fffffbfc",
-  "Name": "WS - Correct Dataset",
-  "Version": "0.0.0.1",
-  "Codes": [
-    {
-      "StringValue": "location",
-      "NumericValue": 1,
-      "DisplayText": "location",
-      "CodeType": "Normal",
-      "VisibleInCoda": true,
-      "MatchValues": [
-        "location"
-      ],
-      "CodeID": "code-02d4450d"
-    },
-    {
-      "CodeType": "Normal",
-      "MatchValues": [
-        "age"
-      ],
-      "StringValue": "age",
-      "DisplayText": "age",
-      "CodeID": "code-c473f7bb",
-      "VisibleInCoda": true,
-      "NumericValue": 2
-    },
-    {
-      "MatchValues": [
-        "gender"
-      ],
-      "VisibleInCoda": true,
-      "DisplayText": "gender",
-      "NumericValue": 3,
-      "CodeType": "Normal",
-      "CodeID": "code-80edd5c3",
-      "StringValue": "gender"
-    },
-    {
-      "StringValue": "s01e01",
-      "DisplayText": "s01e01",
-      "CodeType": "Normal",
-      "NumericValue": 4,
-      "MatchValues": [
-        "s01e01"
-      ],
-      "CodeID": "code-c8ef44db",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeType": "Control",
-      "VisibleInCoda": true,
-      "ControlCode": "NC",
-      "CodeID": "code-NC-42f1d983",
-      "DisplayText": "NC (not coded)",
-      "StringValue": "NC",
-      "NumericValue": -30
-    },
-    {
-      "CodeType": "Control",
-      "DisplayText": "NR (not reviewed)",
-      "NumericValue": -40,
-      "VisibleInCoda": false,
-      "ControlCode": "NR",
-      "CodeID": "code-NR-5e3eee23",
-      "StringValue": "NR"
-    },
-    {
-      "DisplayText": "CE (coding error)",
-      "NumericValue": -110,
-      "CodeType": "Control",
-      "StringValue": "CE",
-      "ControlCode": "CE",
-      "CodeID": "code-CE-016c1e22",
-      "VisibleInCoda": false
-    }
-  ]
+    "SchemeID": "Scheme-fffffbfc",
+    "Name": "WS - Correct Dataset",
+    "Version": "0.0.0.1",
+    "Codes": [
+        {
+            "CodeID": "code-02d4450d",
+            "CodeType": "Normal",
+            "DisplayText": "location",
+            "StringValue": "location",
+            "NumericValue": 1,
+            "VisibleInCoda": true,
+            "MatchValues": ["location"]
+        },
+        {
+            "CodeID": "code-c473f7bb",
+            "CodeType": "Normal",
+            "DisplayText": "age",
+            "StringValue": "age",
+            "NumericValue": 2,
+            "VisibleInCoda": true,
+            "MatchValues": ["age"]
+        },
+        {
+            "CodeID": "code-80edd5c3",
+            "CodeType": "Normal",
+            "DisplayText": "gender",
+            "StringValue": "gender",
+            "NumericValue": 3,
+            "VisibleInCoda": true,
+            "MatchValues": ["gender"]
+        },
+        {
+            "CodeID": "code-2b7a12a0",
+            "CodeType": "Normal",
+            "DisplayText": "disabled",
+            "StringValue": "disabled",
+            "NumericValue": 7,
+            "VisibleInCoda": true,
+            "MatchValues": ["disabled"]
+        },
+        {
+            "CodeID": "code-ge0d191c",
+            "CodeType": "Normal",
+            "DisplayText": "giz s01e01",
+            "StringValue": "giz_s01e01",
+            "NumericValue": 494,
+            "VisibleInCoda": true,
+            "MatchValues": ["giz_s01e01"]
+        },
+        {
+            "CodeID": "code-3f0c3558",
+            "CodeType": "Normal",
+            "DisplayText": "aik political participation",
+            "StringValue": "aik_political_participation",
+            "NumericValue": 471,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_political_participation"]
+        },
+        {
+            "CodeID": "code-64c8a605",
+            "CodeType": "Normal",
+            "DisplayText": "aik election conversations",
+            "StringValue": "aik_election_conversations",
+            "NumericValue": 472,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_election_conversations"]
+        },
+        {
+            "CodeID": "code-5bbb4c2c",
+            "CodeType": "Normal",
+            "DisplayText": "aik influence on voting choices",
+            "StringValue": "aik_influence_on_voting_choices",
+            "NumericValue": 473,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_influence_on_voting_choices"]
+        },
+        {
+            "CodeID": "code-6b525239",
+            "CodeType": "Normal",
+            "DisplayText": "aik concern about safety and security",
+            "StringValue": "aik_concern_about_safety_and_security",
+            "NumericValue": 474,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_concern_about_safety_and_security"]
+        },
+        {
+            "CodeID": "code-8c5a70da",
+            "CodeType": "Normal",
+            "DisplayText": "aik incidents of violence and polarisation",
+            "StringValue": "aik_incidents_of_violence_and_polarisation",
+            "NumericValue": 475,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_incidents_of_violence_and_polarisation"]
+        },
+        {
+            "CodeID": "code-a8b3a0af",
+            "CodeType": "Normal",
+            "DisplayText": "aik electoral sexual gender based violence",
+            "StringValue": "aik_electoral_sexual_gender_based_violence",
+            "NumericValue": 476,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_electoral_sexual_gender_based_violence"]
+        },
+        {
+            "CodeID": "code-37cb7f93",
+            "CodeType": "Normal",
+            "DisplayText": "aik response to electoral related insecurity",
+            "StringValue": "aik_response_to_electoral_related_insecurity",
+            "NumericValue": 477,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_response_to_electoral_related_insecurity"]
+        },
+        {
+            "CodeID": "code-af66ed7d",
+            "CodeType": "Normal",
+            "DisplayText": "aik iebc effectiveness",
+            "StringValue": "aik_iebc_effectiveness",
+            "NumericValue": 478,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_iebc_effectiveness"]
+        },
+        {
+            "CodeID": "code-16ba528e",
+            "CodeType": "Normal",
+            "DisplayText": "aik nps effectiveness",
+            "StringValue": "aik_nps_effectiveness",
+            "NumericValue": 479,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_nps_effectiveness"]
+        },
+        {
+            "CodeID": "code-eba2af6b",
+            "CodeType": "Normal",
+            "DisplayText": "aik ncic effectiveness",
+            "StringValue": "aik_ncic_effectiveness",
+            "NumericValue": 480,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_ncic_effectiveness"]
+        },
+        {
+            "CodeID": "code-eeeb5063",
+            "CodeType": "Normal",
+            "DisplayText": "aik dpp effectiveness",
+            "StringValue": "aik_dpp_effectiveness",
+            "NumericValue": 481,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_dpp_effectiveness"]
+        },
+        {
+            "CodeID": "code-a170d08f",
+            "CodeType": "Normal",
+            "DisplayText": "aik ipoa effectiveness",
+            "StringValue": "aik_ipoa_effectiveness",
+            "NumericValue": 482,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_ipoa_effectiveness"]
+        },
+        {
+            "CodeID": "code-35af7167",
+            "CodeType": "Normal",
+            "DisplayText": "aik judiciary effectiveness",
+            "StringValue": "aik_judiciary_effectiveness",
+            "NumericValue": 483,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_judiciary_effectiveness"]
+        },
+        {
+            "CodeID": "code-d0c9381d",
+            "CodeType": "Normal",
+            "DisplayText": "aik knchr effectiveness",
+            "StringValue": "aik_knchr_effectiveness",
+            "NumericValue": 484,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_knchr_effectiveness"]
+        },
+        {
+            "CodeID": "code-763fe466",
+            "CodeType": "Normal",
+            "DisplayText": "aik other institutions effectiveness",
+            "StringValue": "aik_other_institutions_effectiveness",
+            "NumericValue": 485,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_other_institutions_effectiveness"]
+        },
+        {
+            "CodeID": "code-41ce38e7",
+            "CodeType": "Normal",
+            "DisplayText": "machakos poll registration 2022",
+            "StringValue": "machakos_poll_registration_2022",
+            "NumericValue": 493,
+            "VisibleInCoda": true,
+            "MatchValues": ["machakos_poll_registration_2022"]
+        },
+        {
+            "CodeID": "code-8cec7e7a",
+            "CodeType": "Normal",
+            "DisplayText": "aik political participation 2",
+            "StringValue": "aik_political_participation_2",
+            "NumericValue": 486,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_political_participation_2"]
+        },
+        {
+            "CodeID": "code-1bd67adc",
+            "CodeType": "Normal",
+            "DisplayText": "aik election conversations 2",
+            "StringValue": "aik_election_conversations_2",
+            "NumericValue": 487,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_election_conversations_2"]
+        },
+        {
+            "CodeID": "code-1318b5bd",
+            "CodeType": "Normal",
+            "DisplayText": "aik influence on voting choices 2",
+            "StringValue": "aik_influence_on_voting_choices_2",
+            "NumericValue": 488,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_influence_on_voting_choices_2"]
+        },
+        {
+            "CodeID": "code-45334473",
+            "CodeType": "Normal",
+            "DisplayText": "aik concern about safety and security 2",
+            "StringValue": "aik_concern_about_safety_and_security_2",
+            "NumericValue": 489,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_concern_about_safety_and_security_2"]
+        },
+        {
+            "CodeID": "code-792990aa",
+            "CodeType": "Normal",
+            "DisplayText": "aik incidents of violence and polarisation 2",
+            "StringValue": "aik_incidents_of_violence_and_polarisation_2",
+            "NumericValue": 490,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_incidents_of_violence_and_polarisation_2"]
+        },
+        {
+            "CodeID": "code-c1358c0a",
+            "CodeType": "Normal",
+            "DisplayText": "aik electoral sexual gender based violence 2",
+            "StringValue": "aik_electoral_sexual_gender_based_violence_2",
+            "NumericValue": 491,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_electoral_sexual_gender_based_violence_2"]
+        },
+        {
+            "CodeID": "code-dc0d191c",
+            "CodeType": "Normal",
+            "DisplayText": "aik response to electoral related insecurity 2",
+            "StringValue": "aik_response_to_electoral_related_insecurity_2",
+            "NumericValue": 492,
+            "VisibleInCoda": true,
+            "MatchValues": ["aik_response_to_electoral_related_insecurity_2"]
+        },
+        {
+            "CodeID": "code-180095d9",
+            "CodeType": "Normal",
+            "DisplayText": "machakos county priorities 2022",
+            "StringValue": "machakos_county_priorities_2022",
+            "NumericValue": 466,
+            "VisibleInCoda": true,
+            "MatchValues": ["machakos_county_priorities_2022"]
+        },
+        {
+            "CodeID": "code-2d23e497",
+            "CodeType": "Normal",
+            "DisplayText": "icl machakos womenrep poll 2022",
+            "StringValue": "icl_machakos_womenrep_poll_2022",
+            "NumericValue": 467,
+            "VisibleInCoda": true,
+            "MatchValues": ["icl_machakos_womenrep_poll_2022"]
+        },
+        {
+            "CodeID": "code-4efc0969",
+            "CodeType": "Normal",
+            "DisplayText": "icl machakos senator poll 2022",
+            "StringValue": "icl_machakos_senator_poll_2022",
+            "NumericValue": 468,
+            "VisibleInCoda": true,
+            "MatchValues": ["icl_machakos_senator_poll_2022"]
+        },
+        {
+            "CodeID": "code-5e2890fb",
+            "CodeType": "Normal",
+            "DisplayText": "icl machakos governor poll 2022",
+            "StringValue": "icl_machakos_governor_poll_2022",
+            "NumericValue": 469,
+            "VisibleInCoda": true,
+            "MatchValues": ["icl_machakos_governor_poll_2022"]
+        },
+        {
+            "CodeID": "code-6e5870fb",
+            "CodeType": "Normal",
+            "DisplayText": "icl pool invitation 2022",
+            "StringValue": "icl_pool_invitation_2022",
+            "NumericValue": 470,
+            "VisibleInCoda": true,
+            "MatchValues": ["icl_pool_invitation_2022"]
+        },
+        {
+            "CodeID": "code-eef95368",
+            "CodeType": "Normal",
+            "DisplayText": "KE_Engagement_poll_chatting_apps",
+            "StringValue": "ke_engagement_poll_chatting_apps",
+            "NumericValue": 361,
+            "VisibleInCoda": true,
+            "MatchValues": ["KE_Engagement_poll_chatting_apps"]
+        },
+        {
+            "CodeID": "code-b9598d6c",
+            "CodeType": "Normal",
+            "DisplayText": "KE_Engagement_poll_access_to_internet",
+            "StringValue": "KE_Engagement_poll_access_to_internet",
+            "NumericValue": 362,
+            "VisibleInCoda": true,
+            "MatchValues": ["KE_Engagement_poll_access_to_internet"]
+        },
+        {
+            "CodeID": "code-62c232c7",
+            "CodeType": "Normal",
+            "DisplayText": "KE_Engagement_poll_facebook_usage",
+            "StringValue": "ke_engagement_poll_facebook_usage",
+            "NumericValue": 363,
+            "VisibleInCoda": true,
+            "MatchValues": ["KE_Engagement_poll_facebook_usage"]
+        },
+        {
+            "CodeID": "code-89381e52",
+            "CodeType": "Normal",
+            "DisplayText": "KE_Engagement_poll_radio_stations",
+            "StringValue": "ke_engagement_poll_radio_stations",
+            "NumericValue": 364,
+            "VisibleInCoda": true,
+            "MatchValues": ["KE_Engagement_poll_radio_stations"]
+        },
+        {
+            "CodeID": "code-c8cb1c57",
+            "CodeType": "Normal",
+            "DisplayText": "KE_Engagement_poll_other_messages",
+            "StringValue": "ke_engagement_poll_other_messages",
+            "NumericValue": 365,
+            "VisibleInCoda": true,
+            "MatchValues": ["KE_Engagement_poll_other_messages"]
+        },
+        {
+            "CodeID": "code-09e0ec5c",
+            "CodeType": "Normal",
+            "DisplayText": "ke_constitution_review_appointment_views",
+            "StringValue": "ke_constitution_review_appointment_views",
+            "NumericValue": 461,
+            "VisibleInCoda": true,
+            "MatchValues": ["ke_constitution_review_appointment_views"]
+        },
+        {
+            "CodeID": "code-e0aa39e0",
+            "CodeType": "Normal",
+            "DisplayText": "ke_constitution_review_appointment_benefits",
+            "StringValue": "ke_constitution_review_appointment_benefits",
+            "NumericValue": 462,
+            "VisibleInCoda": true,
+            "MatchValues": ["ke_constitution_review_appointment_benefits"]
+        },
+        {
+            "CodeID": "code-81684045",
+            "CodeType": "Normal",
+            "DisplayText": "ke_constitution_review_appointment_challenges",
+            "StringValue": "ke_constitution_review_appointment_challenges",
+            "NumericValue": 463,
+            "VisibleInCoda": true,
+            "MatchValues": ["ke_constitution_review_appointment_challenges"]
+        },
+        {
+            "CodeID": "code-b74b3a23",
+            "CodeType": "Normal",
+            "DisplayText": "ke_constitution_review_other_messages",
+            "StringValue": "ke_constitution_review_other_messages",
+            "NumericValue": 464,
+            "VisibleInCoda": true,
+            "MatchValues": ["ke_constitution_review_other_messages"]
+        },
+        {
+            "CodeID": "code-503c0dbb",
+            "CodeType": "Normal",
+            "DisplayText": "kenya pool old rqa datasets",
+            "StringValue": "kenya_pool_old_rqa_datasets",
+            "NumericValue": 465,
+            "VisibleInCoda": true,
+            "MatchValues": ["kenya_pool_old_rqa_datasets"]
+        },
+        {
+            "CodeID": "code-aec91680",
+            "CodeType": "Normal",
+            "DisplayText": "OXFAM-WASH s01e01",
+            "StringValue": "oxfam_wash_s01e01",
+            "NumericValue": 4,
+            "VisibleInCoda": true,
+            "MatchValues": ["OXFAM-WASH s01e01"]
+        },
+        {
+            "CodeID": "code-d6d8acd5",
+            "CodeType": "Normal",
+            "DisplayText": "OXFAM-WASH s01e02",
+            "StringValue": "oxfam_wash_s01e02",
+            "NumericValue": 5,
+            "VisibleInCoda": true,
+            "MatchValues": ["OXFAM-WASH s01e02"]
+        },
+        {
+            "CodeID": "code-7934d45b",
+            "CodeType": "Normal",
+            "DisplayText": "OXFAM-WASH s01e03",
+            "StringValue": "oxfam_wash_s01e03",
+            "NumericValue": 6,
+            "VisibleInCoda": true,
+            "MatchValues": ["OXFAM-WASH s01e03"]
+        },
+        {
+            "CodeID": "code-5ca601dc",
+            "CodeType": "Normal",
+            "DisplayText": "OXFAM WASH Beneficiary Consent",
+            "StringValue": "oxfam_wash_beneficiary_consent",
+            "NumericValue": 8,
+            "VisibleInCoda": true,
+            "MatchValues": ["OXFAM WASH Beneficiary Consent"]
+        },
+        {
+            "CodeID": "code-314f1554",
+            "CodeType": "Normal",
+            "DisplayText": "OXFAM WASH s01e03 noise handler",
+            "StringValue": "oxfam_wash_s01e03_noise_handler",
+            "NumericValue": 9,
+            "VisibleInCoda": true,
+            "MatchValues": ["OXFAM WASH s01e03 Noise Handler"]
+        },
+        {
+            "CodeID": "code-9d692d92",
+            "CodeType": "Normal",
+            "DisplayText": "OXFAM WASH s01 programme evaluation",
+            "StringValue": "oxfam_wash_s01_programme_evaluation",
+            "NumericValue": 10,
+            "VisibleInCoda": true,
+            "MatchValues": ["OXFAM WASH s01 Programme Evaluation"]
+        },
+        {
+            "CodeID": "code-5c365ea9",
+            "CodeType": "Normal",
+            "DisplayText": "OXFAM WASH s01 Accountability",
+            "StringValue": "oxfam_wash_s01_accountability",
+            "NumericValue": 11,
+            "VisibleInCoda": true,
+            "MatchValues": ["OXFAM WASH s01 Accountability"]
+        },
+        {
+            "CodeID": "code-382603bc",
+            "CodeType": "Normal",
+            "DisplayText": "OXFAM WASH S01 Close Out",
+            "StringValue": "oxfam_wash_s01_close_out",
+            "NumericValue": 12,
+            "VisibleInCoda": true,
+            "MatchValues": ["OXFAM WASH S01 Close Out"]
+        },
+        {
+            "CodeID": "code-eb71f375",
+            "CodeType": "Normal",
+            "DisplayText": "WorldVision s01e01",
+            "StringValue": "worldvision_s01e01",
+            "NumericValue": 104,
+            "VisibleInCoda": true,
+            "MatchValues": ["WorldVision s01e01"]
+        },
+        {
+            "CodeID": "code-21b6b981",
+            "CodeType": "Normal",
+            "DisplayText": "WorldVision s01e02",
+            "StringValue": "worldvision_s01e02",
+            "NumericValue": 105,
+            "VisibleInCoda": true,
+            "MatchValues": ["WorldVision s01e02"]
+        },
+        {
+            "CodeID": "code-a0ec4383",
+            "CodeType": "Normal",
+            "DisplayText": "WorldVision s01e03",
+            "StringValue": "worldvision_s01e03",
+            "NumericValue": 106,
+            "VisibleInCoda": true,
+            "MatchValues": ["WorldVision s01e03"]
+        },
+        {
+            "CodeID": "code-42b1a456",
+            "CodeType": "Normal",
+            "DisplayText": "WorldVision s01 close-out",
+            "StringValue": "world_vision_s01_close_out",
+            "NumericValue": 107,
+            "VisibleInCoda": true,
+            "MatchValues": ["WorldVision s01 close-out"]
+        },
+        {
+            "CodeID": "code-f1791199",
+            "CodeType": "Normal",
+            "DisplayText": "UNDP-Kenya s01e01",
+            "StringValue": "undp_kenya_s01e01",
+            "NumericValue": 201,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNDP-Kenya s01e01"]
+        },
+        {
+            "CodeID": "code-652b4fe8",
+            "CodeType": "Normal",
+            "DisplayText": "UNDP-Kenya s01e02",
+            "StringValue": "undp_kenya_s01e02",
+            "NumericValue": 202,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNDP-Kenya s01e02"]
+        },
+        {
+            "CodeID": "code-64decee7",
+            "CodeType": "Normal",
+            "DisplayText": "UNDP-Kenya s01e03",
+            "StringValue": "undp_kenya_s01e03",
+            "NumericValue": 203,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNDP-Kenya s01e03"]
+        },
+        {
+            "CodeID": "code-9ee88d2e",
+            "CodeType": "Normal",
+            "DisplayText": "UNDP-Kenya s01e04",
+            "StringValue": "undp_kenya_s01e04",
+            "NumericValue": 204,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNDP-Kenya s01e04"]
+        },
+        {
+            "CodeID": "code-f5ac097b",
+            "CodeType": "Normal",
+            "DisplayText": "UNDP-Kenya s01e05",
+            "StringValue": "undp_kenya_s01e05",
+            "NumericValue": 205,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNDP-Kenya s01e05"]
+        },
+        {
+            "CodeID": "code-3ffde4f3",
+            "CodeType": "Normal",
+            "DisplayText": "UNDP-Kenya s01e06",
+            "StringValue": "undp_kenya_s01e06",
+            "NumericValue": 206,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNDP-Kenya s01e06"]
+        },
+        {
+            "CodeID": "code-a7874fc3",
+            "CodeType": "Normal",
+            "DisplayText": "UNDP-Kenya s01e07",
+            "StringValue": "undp_kenya_s01e07",
+            "NumericValue": 207,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNDP-Kenya s01e07"]
+        },
+        {
+            "CodeID": "code-57077ba9",
+            "CodeType": "Normal",
+            "DisplayText": "UNDP-Kenya s01e08",
+            "StringValue": "undp_kenya_s01e08",
+            "NumericValue": 208,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNDP-Kenya s01e08"]
+        },
+        {
+            "CodeID": "code-e442c27b",
+            "CodeType": "Normal",
+            "DisplayText": "UNDP-Kenya s01 close out",
+            "StringValue": "undp_kenya_s01_close_out",
+            "NumericValue": 209,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNDP-Kenya s01 close out"]
+        },
+        {
+            "CodeID": "code-9bd0f2b1",
+            "CodeType": "Normal",
+            "DisplayText": "COVID19 s01e01",
+            "StringValue": "covid19_s01e01",
+            "NumericValue": 210,
+            "VisibleInCoda": true,
+            "MatchValues": ["COVID19 s01e01"]
+        },
+        {
+            "CodeID": "code-61f91d7c",
+            "CodeType": "Normal",
+            "DisplayText": "COVID19 s01e02",
+            "StringValue": "covid19_s01e02",
+            "NumericValue": 211,
+            "VisibleInCoda": true,
+            "MatchValues": ["COVID19 s01e02"]
+        },
+        {
+            "CodeID": "code-4dc81f3b",
+            "CodeType": "Normal",
+            "DisplayText": "COVID19-KE-Urban s01e01",
+            "StringValue": "covid19_ke_urban_s01e01",
+            "NumericValue": 212,
+            "VisibleInCoda": true,
+            "MatchValues": ["COVID19-KE-Urban s01e01"]
+        },
+        {
+            "CodeID": "code-44371d98",
+            "CodeType": "Normal",
+            "DisplayText": "COVID19-KE-Urban s01e02",
+            "StringValue": "covid19_ke_urban_s01e02",
+            "NumericValue": 213,
+            "VisibleInCoda": true,
+            "MatchValues": ["COVID19-KE-Urban s01e02"]
+        },
+        {
+            "CodeID": "code-9113887d",
+            "CodeType": "Normal",
+            "DisplayText": "COVID19-KE-Urban s01e03",
+            "StringValue": "covid19_ke_urban_s01e03",
+            "NumericValue": 214,
+            "VisibleInCoda": true,
+            "MatchValues": ["COVID19-KE-Urban s01e03"]
+        },
+        {
+            "CodeID": "code-eaaec5b8",
+            "CodeType": "Normal",
+            "DisplayText": "COVID19-KE-Urban s01e04",
+            "StringValue": "covid19_ke_urban_s01e04",
+            "NumericValue": 215,
+            "VisibleInCoda": true,
+            "MatchValues": ["COVID19-KE-Urban s01e04"]
+        },
+        {
+            "CodeID": "code-bf7e7e9f",
+            "CodeType": "Normal",
+            "DisplayText": "COVID19-KE-Urban s01e05",
+            "StringValue": "covid19_ke_urban_s01e05",
+            "NumericValue": 216,
+            "VisibleInCoda": true,
+            "MatchValues": ["COVID19-KE-Urban s01e05"]
+        },
+        {
+            "CodeID": "code-1770ab02",
+            "CodeType": "Normal",
+            "DisplayText": "COVID19-KE-Urban s01e06",
+            "StringValue": "covid19_ke_urban_s01e06",
+            "NumericValue": 217,
+            "VisibleInCoda": true,
+            "MatchValues": ["COVID19-KE-Urban s01e06"]
+        },
+        {
+            "CodeID": "code-be80a219",
+            "CodeType": "Normal",
+            "DisplayText": "UNICEF-COVID19-KE s01e01",
+            "StringValue": "unicef_covid19_ke_s01e01",
+            "NumericValue": 301,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNICEF-COVID19-KE s01e01"]
+        },
+        {
+            "CodeID": "code-501501c6",
+            "CodeType": "Normal",
+            "DisplayText": "UNICEF-COVID19-KE s01e02",
+            "StringValue": "unicef_covid19_ke_s01e02",
+            "NumericValue": 302,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNICEF-COVID19-KE s01e02"]
+        },
+        {
+            "CodeID": "code-33462fdd",
+            "CodeType": "Normal",
+            "DisplayText": "UNICEF-COVID19-KE s01e03",
+            "StringValue": "unicef_covid19_ke_s01e03",
+            "NumericValue": 303,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNICEF-COVID19-KE s01e03"]
+        },
+        {
+            "CodeID": "code-f244ec46",
+            "CodeType": "Normal",
+            "DisplayText": "UNICEF-COVID19-KE s01e04",
+            "StringValue": "unicef_covid19_ke_s01e04",
+            "NumericValue": 304,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNICEF-COVID19-KE s01e04"]
+        },
+        {
+            "CodeID": "code-7ca47153",
+            "CodeType": "Normal",
+            "DisplayText": "UNICEF-COVID19-KE s01e05",
+            "StringValue": "unicef_covid19_ke_s01e05",
+            "NumericValue": 305,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNICEF-COVID19-KE s01e05"]
+        },
+        {
+            "CodeID": "code-f947ea68",
+            "CodeType": "Normal",
+            "DisplayText": "UNICEF-COVID19-KE s01e06",
+            "StringValue": "unicef_covid19_ke_s01e06",
+            "NumericValue": 306,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNICEF-COVID19-KE s01e06"]
+        },
+        {
+            "CodeID": "code-1b1ee235",
+            "CodeType": "Normal",
+            "DisplayText": "UNICEF-COVID19-KE s01e07",
+            "StringValue": "unicef_covid19_ke_s01e07",
+            "NumericValue": 307,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNICEF-COVID19-KE s01e07"]
+        },
+        {
+            "CodeID": "code-2ad25486",
+            "CodeType": "Normal",
+            "DisplayText": "UNICEF-COVID19-KE s01e08",
+            "StringValue": "unicef_covid19_ke_s01e08",
+            "NumericValue": 308,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNICEF-COVID19-KE s01e08"]
+        },
+        {
+            "CodeID": "code-b62ffd3c",
+            "CodeType": "Normal",
+            "DisplayText": "UNICEF-COVID19-KE s01e09",
+            "StringValue": "unicef_covid19_ke_s01e09",
+            "NumericValue": 309,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNICEF-COVID19-KE s01e09"]
+        },
+        {
+            "CodeID": "code-51167ad3",
+            "CodeType": "Normal",
+            "DisplayText": "UNICEF-COVID19-KE s01e10",
+            "StringValue": "unicef_covid19_ke_s01e10",
+            "NumericValue": 310,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNICEF-COVID19-KE s01e10"]
+        },
+        {
+            "CodeID": "code-dbd4fbf3",
+            "CodeType": "Normal",
+            "DisplayText": "UNICEF-COVID19-KE s01 close out",
+            "StringValue": "unicef_covid19_ke_s01_close_out",
+            "NumericValue": 311,
+            "VisibleInCoda": true,
+            "MatchValues": ["UNICEF-COVID19-KE s01 close out"]
+        },
+        {
+            "CodeID": "code-a30edd73",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01e01",
+            "StringValue": "gpsdd_kilifi_s01e01",
+            "NumericValue": 312,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI s01e01"]
+        },
+        {
+            "CodeID": "code-ce99f0e3",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01e02",
+            "StringValue": "gpsdd_kilifi_s01e02",
+            "NumericValue": 313,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI s01e02"]
+        },
+        {
+            "CodeID": "code-d6757dc4",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01e03",
+            "StringValue": "gpsdd_kilifi_s01e03",
+            "NumericValue": 314,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI s01e03"]
+        },
+        {
+            "CodeID": "code-1feb7755",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01e04",
+            "StringValue": "gpsdd_kilifi_s01e04",
+            "NumericValue": 315,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI s01e04"]
+        },
+        {
+            "CodeID": "code-2a901d22",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01e05",
+            "StringValue": "gpsdd_kilifi_s01e05",
+            "NumericValue": 316,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI s01e05"]
+        },
+        {
+            "CodeID": "code-e73b24bf",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01e06",
+            "StringValue": "gpsdd_kilifi_s01e06",
+            "NumericValue": 317,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI s01e06"]
+        },
+        {
+            "CodeID": "code-494f7df5",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01e07",
+            "StringValue": "gpsdd_kilifi_s01e07",
+            "NumericValue": 318,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI s01e07"]
+        },
+        {
+            "CodeID": "code-df88c3d6",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01e08",
+            "StringValue": "gpsdd_kilifi_s01e08",
+            "NumericValue": 319,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI s01e08"]
+        },
+        {
+            "CodeID": "code-a074767c",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01e09",
+            "StringValue": "gpsdd_kilifi_s01e09",
+            "NumericValue": 320,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI s01e09"]
+        },
+        {
+            "CodeID": "code-3663e206",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01e10",
+            "StringValue": "gpsdd_kilifi_s01e10",
+            "NumericValue": 321,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI s01e10"]
+        },
+        {
+            "CodeID": "code-8898f152",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01_noise_handler",
+            "StringValue": "gpsdd_kilifi_s01_noise_handler",
+            "NumericValue": 322,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI s01_noise_handler"]
+        },
+        {
+            "CodeID": "code-fcb95c7f",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KILIFI s01 closeout",
+            "StringValue": "gpsdd_kilifi_s01 closeout",
+            "NumericValue": 323,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KILIFI S01 closeout"]
+        },
+        {
+            "CodeID": "code-59ce7a3e",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KIAMBU s01e01",
+            "StringValue": "gpsdd_kiambu_s01e01",
+            "NumericValue": 324,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU s01e01"]
+        },
+        {
+            "CodeID": "code-27e9f829",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KIAMBU s01e02",
+            "StringValue": "gpsdd_kiambu_s01e02",
+            "NumericValue": 325,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU s01e02"]
+        },
+        {
+            "CodeID": "code-566a5181",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KIAMBU s01e03",
+            "StringValue": "gpsdd_kiambu_s01e03",
+            "NumericValue": 326,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU s01e03"]
+        },
+        {
+            "CodeID": "code-4da7c5d5",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KIAMBU s01e04",
+            "StringValue": "gpsdd_kiambu_s01e04",
+            "NumericValue": 327,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU s01e04"]
+        },
+        {
+            "CodeID": "code-06d2df3a",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KIAMBU s01e05",
+            "StringValue": "gpsdd_kiambu_s01e05",
+            "NumericValue": 328,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU s01e05"]
+        },
+        {
+            "CodeID": "code-314143b5",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KIAMBU s01e06",
+            "StringValue": "gpsdd_kiambu_s01e06",
+            "NumericValue": 329,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU s01e06"]
+        },
+        {
+            "CodeID": "code-b95d6200",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KIAMBU s01e07",
+            "StringValue": "gpsdd_kiambu_s01e07",
+            "NumericValue": 330,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU s01e07"]
+        },
+        {
+            "CodeID": "code-9fc19767",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KIAMBU s01e08",
+            "StringValue": "gpsdd_kiambu_s01e08",
+            "NumericValue": 331,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU s01e08"]
+        },
+        {
+            "CodeID": "code-af87135f",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KIAMBU s01e09",
+            "StringValue": "gpsdd_kiambu_s01e09",
+            "NumericValue": 334,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU s01e09"]
+        },
+        {
+            "CodeID": "code-9734d094",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KIAMBU s01e10",
+            "StringValue": "gpsdd_kiambu_s01e10",
+            "NumericValue": 335,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU s01e10"]
+        },
+        {
+            "CodeID": "code-0ec5e335",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD KIAMBU s01 closeout",
+            "StringValue": "gpsdd_kiambu_s01 closeout",
+            "NumericValue": 336,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU S01 closeout"]
+        },
+        {
+            "CodeID": "code-54b4fc0a",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD BUNGOMA s01e01",
+            "StringValue": "gpsdd_bungoma_s01e01",
+            "NumericValue": 337,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD BUNGOMA s01e01"]
+        },
+        {
+            "CodeID": "code-68545a4f",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD BUNGOMA s01e02",
+            "StringValue": "gpsdd_bungoma_s01e02",
+            "NumericValue": 338,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD BUNGOMA s01e02"]
+        },
+        {
+            "CodeID": "code-7de3484c",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD BUNGOMA s01e03",
+            "StringValue": "gpsdd_bungoma_s01e03",
+            "NumericValue": 339,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD BUNGOMA s01e03"]
+        },
+        {
+            "CodeID": "code-37894212",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD BUNGOMA s01e04",
+            "StringValue": "gpsdd_bungoma_s01e04",
+            "NumericValue": 340,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD BUNGOMA s01e04"]
+        },
+        {
+            "CodeID": "code-9c977972",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD BUNGOMA s01e05",
+            "StringValue": "gpsdd_bungoma_s01e05",
+            "NumericValue": 341,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD BUNGOMA s01e05"]
+        },
+        {
+            "CodeID": "code-35ab827f",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD BUNGOMA s01e06",
+            "StringValue": "gpsdd_bungoma_s01e06",
+            "NumericValue": 342,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD BUNGOMA s01e06"]
+        },
+        {
+            "CodeID": "code-fdb29d70",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD BUNGOMA s01e07",
+            "StringValue": "gpsdd_bungoma_s01e07",
+            "NumericValue": 343,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD BUNGOMA s01e07"]
+        },
+        {
+            "CodeID": "code-9ada4b7c",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD BUNGOMA s01e08",
+            "StringValue": "gpsdd_bungoma_s01e08",
+            "NumericValue": 344,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD BUNGOMA s01e08"]
+        },
+        {
+            "CodeID": "code-15b724da",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD BUNGOMA s01e09",
+            "StringValue": "gpsdd_bungoma_s01e09",
+            "NumericValue": 345,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD BUNGOMA s01e09"]
+        },
+        {
+            "CodeID": "code-6f9731b9",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD BUNGOMA s01e10",
+            "StringValue": "gpsdd_bungoma_s01e10",
+            "NumericValue": 346,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD BUNGOMA s01e10"]
+        },
+        {
+            "CodeID": "code-a4101f08",
+            "CodeType": "Normal",
+            "DisplayText": "GPSDD BUNGOMA s01 closeout",
+            "StringValue": "gpsdd_bungoma_s01 closeout",
+            "NumericValue": 347,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD BUNGOMA S01 closeout"]
+        },
+        {
+            "CodeID": "code-44d586f1",
+            "CodeType": "Normal",
+            "DisplayText": "kiambu baseline community awareness",
+            "StringValue": "kiambu_baseline_community_awareness",
+            "NumericValue": 348,
+            "VisibleInCoda": true,
+            "MatchValues": ["kiambu baseline community awareness"]
+        },
+        {
+            "CodeID": "code-803a759e",
+            "CodeType": "Normal",
+            "DisplayText": "kiambu baseline government role",
+            "StringValue": "kiambu_baseline_government_role",
+            "NumericValue": 349,
+            "VisibleInCoda": true,
+            "MatchValues": ["kiambu baseline government role"]
+        },
+        {
+            "CodeID": "code-cb5a298b",
+            "CodeType": "Normal",
+            "DisplayText": "gpsdd kiambu icraf consent",
+            "StringValue": "gpsdd_kiambu_icraf_consent",
+            "NumericValue": 350,
+            "VisibleInCoda": true,
+            "MatchValues": ["GPSDD KIAMBU Icraf Consent"]
+        },
+        {
+            "CodeID": "code-0a526eb8",
+            "CodeType": "Normal",
+            "DisplayText": "kiambu endline community awareness",
+            "StringValue": "kiambu_endline_community_awareness",
+            "NumericValue": 351,
+            "VisibleInCoda": true,
+            "MatchValues": ["kiambu endline community awareness"]
+        },
+        {
+            "CodeID": "code-a3f526a0",
+            "CodeType": "Normal",
+            "DisplayText": "kiambu endline government role",
+            "StringValue": "kiambu_endline_government_role",
+            "NumericValue": 352,
+            "VisibleInCoda": true,
+            "MatchValues": ["kiambu endline government role"]
+        },
+        {
+            "CodeID": "code-51174478",
+            "CodeType": "Normal",
+            "DisplayText": "kilifi baseline community awareness",
+            "StringValue": "kilifi_baseline_community_awareness",
+            "NumericValue": 353,
+            "VisibleInCoda": true,
+            "MatchValues": ["kilifi baseline community awareness"]
+        },
+        {
+            "CodeID": "code-0c45dd85",
+            "CodeType": "Normal",
+            "DisplayText": "kilifi baseline government role",
+            "StringValue": "kilifi_baseline_government_role",
+            "NumericValue": 354,
+            "VisibleInCoda": true,
+            "MatchValues": ["kilifi baseline government role"]
+        },
+        {
+            "CodeID": "code-900fadec",
+            "CodeType": "Normal",
+            "DisplayText": "kilifi endline community awareness",
+            "StringValue": "kilifi_endline_community_awareness",
+            "NumericValue": 355,
+            "VisibleInCoda": true,
+            "MatchValues": ["kilifi endline community awareness"]
+        },
+        {
+            "CodeID": "code-d94d96dd",
+            "CodeType": "Normal",
+            "DisplayText": "kilifi endline government role",
+            "StringValue": "kilifi_endline_government_role",
+            "NumericValue": 356,
+            "VisibleInCoda": true,
+            "MatchValues": ["kilifi endline government role"]
+        },
+        {
+            "CodeID": "code-3dfee167",
+            "CodeType": "Normal",
+            "DisplayText": "bungoma baseline community awareness",
+            "StringValue": "bungoma_baseline_community_awareness",
+            "NumericValue": 357,
+            "VisibleInCoda": true,
+            "MatchValues": ["bungoma baseline community awareness"]
+        },
+        {
+            "CodeID": "code-dd5883db",
+            "CodeType": "Normal",
+            "DisplayText": "bungoma baseline government role",
+            "StringValue": "bungoma_baseline_government_role",
+            "NumericValue": 358,
+            "VisibleInCoda": true,
+            "MatchValues": ["bungoma baseline government role"]
+        },
+        {
+            "CodeID": "code-f4842f5b",
+            "CodeType": "Normal",
+            "DisplayText": "bungoma endline community awareness",
+            "StringValue": "bungoma_endline_community_awareness",
+            "NumericValue": 359,
+            "VisibleInCoda": true,
+            "MatchValues": ["bungoma endline community awareness"]
+        },
+        {
+            "CodeID": "code-ff30f702",
+            "CodeType": "Normal",
+            "DisplayText": "bungoma endline government role",
+            "StringValue": "bungoma_endline_government_role",
+            "NumericValue": 360,
+            "VisibleInCoda": true,
+            "MatchValues": ["bungoma endline government role"]
+        },
+        {
+            "CodeID": "code-NC-42f1d983",
+            "CodeType": "Control",
+            "ControlCode": "NC",
+            "DisplayText": "NC (not coded)",
+            "NumericValue": -30,
+            "StringValue": "NC",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-NR-5e3eee23",
+            "CodeType": "Control",
+            "ControlCode": "NR",
+            "DisplayText": "NR (not reviewed)",
+            "NumericValue": -40,
+            "StringValue": "NR",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-CE-016c1e22",
+            "CodeType": "Control",
+            "ControlCode": "CE",
+            "DisplayText": "CE (coding error)",
+            "NumericValue": -110,
+            "StringValue": "CE",
+            "VisibleInCoda": false
+        }
+    ]
 }

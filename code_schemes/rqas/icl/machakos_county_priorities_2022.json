@@ -1,8 +1,88 @@
 {
-  "SchemeID": "Scheme-45e8f576",
-  "Name": "Telegram S01E01",
-  "Version": "0.0.0.1",
+  "SchemeID": "Scheme-43c881d7",
+  "Name": "Machakos County Priorities 2022",
+  "Version": "0.0.0.6",
   "Codes": [
+    {
+      "CodeID": "code-bf0d4184",
+      "CodeType": "Normal",
+      "DisplayText": "road, water and education",
+      "NumericValue": 1,
+      "StringValue": "road_water_and_education",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-edeefe49",
+      "CodeType": "Normal",
+      "DisplayText": "job creation",
+      "NumericValue": 2,
+      "StringValue": "job_creation",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-cfd8b479",
+      "CodeType": "Normal",
+      "DisplayText": "improve hospital quality",
+      "NumericValue": 3,
+      "StringValue": "improve_hospital_quality",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-f4e55429",
+      "CodeType": "Normal",
+      "DisplayText": "electricity",
+      "NumericValue": 4,
+      "StringValue": "electricity",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-a01dd9fd",
+      "CodeType": "Normal",
+      "DisplayText": "security",
+      "NumericValue": 5,
+      "StringValue": "security",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-e2a7588e",
+      "CodeType": "Normal",
+      "DisplayText": "improve agriculture",
+      "NumericValue": 6,
+      "StringValue": "improve_agriculture",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-eebd7955",
+      "CodeType": "Normal",
+      "DisplayText": "lower food prices",
+      "NumericValue": 7,
+      "StringValue": "lower_food_prices",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-af703a4e",
+      "CodeType": "Normal",
+      "DisplayText": "just leadership",
+      "NumericValue": 8,
+      "StringValue": "just_leadership",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-2a957753",
+      "CodeType": "Normal",
+      "DisplayText": "improve the economy",
+      "NumericValue": 9,
+      "StringValue": "improve_the_economy",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-64e78d57",
+      "CodeType": "Normal",
+      "DisplayText": "other theme",
+      "NumericValue": 10,
+      "StringValue": "other_theme",
+      "VisibleInCoda": true
+   },
     {
       "CodeID": "code-NA-f93d3eb7",
       "CodeType": "Control",
@@ -49,6 +129,15 @@
       "VisibleInCoda": false
     },
     {
+      "CodeID": "code-NOC-4eb70633",
+      "ControlCode": "NOC",
+      "StringValue": "NOC",
+      "DisplayText": "Noise (Other Channel)",
+      "VisibleInCoda": true,
+      "NumericValue": -60,
+      "CodeType": "Control"
+    },
+    {
       "CodeID": "code-STOP-08b832a8",
       "CodeType": "Control",
       "ControlCode": "STOP",
@@ -91,6 +180,15 @@
       "DisplayText": "meta: showtime question",
       "NumericValue": -100030,
       "StringValue": "showtime_question",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-Q-a5d3700d",
+      "CodeType": "Meta",
+      "MetaCode": "question",
+      "DisplayText": "meta: question",
+      "NumericValue": -100010,
+      "StringValue": "question",
       "VisibleInCoda": true
     },
     {
@@ -139,12 +237,12 @@
       "VisibleInCoda": true
     },
     {
-      "CodeID": "code-O-7ce0d2a7",
+      "CodeID": "code-GR-e6de1b7e",
       "CodeType": "Meta",
-      "MetaCode": "other",
-      "DisplayText": "meta: other",
-      "NumericValue": -100110,
-      "StringValue": "other",
+      "MetaCode": "gratitude",
+      "DisplayText": "meta: gratitude",
+      "NumericValue": -100100,
+      "StringValue": "gratitude",
       "VisibleInCoda": true
     },
     {
@@ -154,7 +252,7 @@
       "DisplayText": "meta: about conversation",
       "NumericValue": -100120,
       "StringValue": "about_conversation",
-      "VisibleInCoda": true
+      "VisibleInCoda": false
     },
     {
       "CodeID": "code-CR-8e99616b",
@@ -163,16 +261,16 @@
       "DisplayText": "meta: chasing reply",
       "NumericValue": -100130,
       "StringValue": "chasing_reply",
-      "VisibleInCoda": true
+      "VisibleInCoda": false
     },
     {
       "CodeID": "code-I-b13a41f6",
       "CodeType": "Meta",
       "MetaCode": "impact",
       "DisplayText": "meta: impact",
-      "NumericValue": -100140,
       "StringValue": "impact",
-      "VisibleInCoda": true
+      "NumericValue": -100140,
+      "VisibleInCoda": false
     }
   ]
 }

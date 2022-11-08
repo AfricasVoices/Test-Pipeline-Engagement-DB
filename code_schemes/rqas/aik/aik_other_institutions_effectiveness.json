@@ -1,0 +1,350 @@
+{
+    "SchemeID": "Scheme-9fef237f",
+    "Name": "Other Institutions Effectiveness",
+    "Version": "0.0.0.1",
+    "Codes": [
+        {
+            "CodeID": "code-E-720cdb66",
+            "CodeType": "Meta",
+            "MetaCode": "escalate",
+            "DisplayText": "meta: ESCALATE",
+            "NumericValue": -100080,
+            "StringValue": "escalate",
+            "VisibleInCoda": true,
+            "Shortcut": "e"
+        },
+        {
+            "CodeID": "code-01069ffe",
+            "CodeType": "Normal",
+            "DisplayText": "do not share",
+            "NumericValue": 0,
+            "StringValue": "do_not_share",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-fce00cb6",
+            "CodeType": "Normal",
+            "DisplayText": "kenya red cross",
+            "NumericValue": 1,
+            "StringValue": "kenya_red_cross",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-25e666d9",
+            "CodeType": "Normal",
+            "DisplayText": "civil societies",
+            "NumericValue": 2,
+            "StringValue": "civil_societies",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-702f9797",
+            "CodeType": "Normal",
+            "DisplayText": "NGOs and CBOs",
+            "NumericValue": 3,
+            "StringValue": "ngos_and_cbos",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-991b1b66",
+            "CodeType": "Normal",
+            "DisplayText": "office of registrar political parties",
+            "NumericValue": 4,
+            "StringValue": "office_of_registrar_political_parties",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-7938e2cb",
+            "CodeType": "Normal",
+            "DisplayText": "ministry of interior",
+            "NumericValue": 5,
+            "StringValue": "ministry_of_interior",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-05c66f6a",
+            "CodeType": "Normal",
+            "DisplayText": "social justice center",
+            "NumericValue": 6,
+            "StringValue": "social_justice_center",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-440e9859",
+            "CodeType": "Normal",
+            "DisplayText": "church",
+            "NumericValue": 7,
+            "StringValue": "church",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-153b7c6f",
+            "CodeType": "Normal",
+            "DisplayText": "tana peace initiative",
+            "NumericValue": 8,
+            "StringValue": "tana_peace_initiative",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-1e4dcdd2",
+            "CodeType": "Normal",
+            "DisplayText": "kenya revenue authority",
+            "NumericValue": 9,
+            "StringValue": "kenya_revenue_authority",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-f5f408db",
+            "CodeType": "Normal",
+            "DisplayText": "office of president",
+            "NumericValue": 10,
+            "StringValue": "office_of_president",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-af6101b9",
+            "CodeType": "Normal",
+            "DisplayText": "immigration department",
+            "NumericValue": 11,
+            "StringValue": "immigration_department",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-52dfa6f2",
+            "CodeType": "Normal",
+            "DisplayText": "EACC",
+            "NumericValue": 12,
+            "StringValue": "eacc",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-4951585e",
+            "CodeType": "Normal",
+            "DisplayText": "parliament",
+            "NumericValue": 13,
+            "StringValue": "parliament",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-590aae89",
+            "CodeType": "Normal",
+            "DisplayText": "MUHURI",
+            "NumericValue": 14,
+            "StringValue": "MUHURI",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-6a12bf8c",
+            "CodeType": "Normal",
+            "DisplayText": "village elders",
+            "NumericValue": 15,
+            "StringValue": "village_elders",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-5422b75e",
+            "CodeType": "Normal",
+            "DisplayText": "chiefs",
+            "NumericValue": 16,
+            "StringValue": "chiefs",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-8a704a02",
+            "CodeType": "Normal",
+            "DisplayText": "other theme",
+            "NumericValue": 17,
+            "StringValue": "other_theme",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-NA-f93d3eb7",
+            "CodeType": "Control",
+            "ControlCode": "NA",
+            "DisplayText": "NA (missing)",
+            "NumericValue": -10,
+            "StringValue": "NA",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NS-2c11b7c9",
+            "CodeType": "Control",
+            "ControlCode": "NS",
+            "DisplayText": "NS (skip)",
+            "NumericValue": -20,
+            "StringValue": "NS",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NC-42f1d983",
+            "CodeType": "Control",
+            "ControlCode": "NC",
+            "DisplayText": "NC (not coded)",
+            "NumericValue": -30,
+            "StringValue": "NC",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-NR-5e3eee23",
+            "CodeType": "Control",
+            "ControlCode": "NR",
+            "DisplayText": "NR (not reviewed)",
+            "NumericValue": -40,
+            "StringValue": "NR",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NIC-99631cb8",
+            "CodeType": "Control",
+            "ControlCode": "NIC",
+            "DisplayText": "NIC (not internally consistent)",
+            "NumericValue": -50,
+            "StringValue": "NIC",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NOC-4eb70633",
+            "ControlCode": "NOC",
+            "StringValue": "NOC",
+            "DisplayText": "Noise (Other Channel)",
+            "VisibleInCoda": true,
+            "NumericValue": -60,
+            "CodeType": "Control"
+        },
+        {
+            "CodeID": "code-STOP-08b832a8",
+            "CodeType": "Control",
+            "ControlCode": "STOP",
+            "DisplayText": "STOP",
+            "NumericValue": -90,
+            "StringValue": "STOP",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-WS-adb25603b7af",
+            "CodeType": "Control",
+            "ControlCode": "WS",
+            "DisplayText": "WS (wrong scheme)",
+            "NumericValue": -100,
+            "StringValue": "WS",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-CE-016c1e22",
+            "CodeType": "Control",
+            "ControlCode": "CE",
+            "DisplayText": "CE (coding error)",
+            "NumericValue": -110,
+            "StringValue": "CE",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-PB-a434a800",
+            "CodeType": "Meta",
+            "MetaCode": "push_back",
+            "DisplayText": "meta: push back",
+            "NumericValue": -100000,
+            "StringValue": "push_back",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-SQ-5e8f0122",
+            "CodeType": "Meta",
+            "MetaCode": "showtime_question",
+            "DisplayText": "meta: showtime question",
+            "NumericValue": -100030,
+            "StringValue": "showtime_question",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-Q-a5d3700d",
+            "CodeType": "Meta",
+            "MetaCode": "question",
+            "DisplayText": "meta: question",
+            "NumericValue": -100010,
+            "StringValue": "question",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-G-97cb3199",
+            "CodeType": "Meta",
+            "MetaCode": "greeting",
+            "DisplayText": "meta: greeting",
+            "NumericValue": -100020,
+            "StringValue": "greeting",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-OI-c5f1d054",
+            "CodeType": "Meta",
+            "MetaCode": "opt-in",
+            "DisplayText": "meta: opt-in",
+            "NumericValue": -100040,
+            "StringValue": "opt_in",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-SC-a3a065bc",
+            "CodeType": "Meta",
+            "MetaCode": "similar_content",
+            "DisplayText": "meta: similar content",
+            "NumericValue": -100050,
+            "StringValue": "similar_content",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-PI-83b90d32",
+            "CodeType": "Meta",
+            "MetaCode": "participation_incentive",
+            "DisplayText": "meta: participation incentive",
+            "NumericValue": -100060,
+            "StringValue": "participation_incentive",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-EC-3a704f5b",
+            "CodeType": "Meta",
+            "MetaCode": "exclusion_complaint",
+            "DisplayText": "meta: exclusion complaint",
+            "NumericValue": -100070,
+            "StringValue": "exclusion_complaint",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-GR-e6de1b7e",
+            "CodeType": "Meta",
+            "MetaCode": "gratitude",
+            "DisplayText": "meta: gratitude",
+            "NumericValue": -100100,
+            "StringValue": "gratitude",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-AC-9ed22631",
+            "CodeType": "Meta",
+            "MetaCode": "about_conversation",
+            "DisplayText": "meta: about conversation",
+            "NumericValue": -100120,
+            "StringValue": "about_conversation",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-CR-8e99616b",
+            "CodeType": "Meta",
+            "MetaCode": "chasing_reply",
+            "DisplayText": "meta: chasing reply",
+            "NumericValue": -100130,
+            "StringValue": "chasing_reply",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-I-b13a41f6",
+            "CodeType": "Meta",
+            "MetaCode": "impact",
+            "DisplayText": "meta: impact",
+            "StringValue": "impact",
+            "NumericValue": -100140,
+            "VisibleInCoda": false
+        }
+    ]
+}

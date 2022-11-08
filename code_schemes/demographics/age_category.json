@@ -1,8 +1,73 @@
 {
-  "SchemeID": "Scheme-48e8f576",
-  "Name": "Facebook S01E02",
+  "SchemeID": "Scheme-eea1ce89",
+  "Name": "Age Category",
   "Version": "0.0.0.1",
   "Codes": [
+    {
+      "CodeID": "code-E-720cdb66",
+      "CodeType": "Meta",
+      "MetaCode": "escalate",
+      "DisplayText": "meta: ESCALATE",
+      "NumericValue": -100080,
+      "StringValue": "escalate",
+      "VisibleInCoda": true,
+      "Shortcut": "e"
+    },
+    {
+      "CodeID": "code-aa2640e7",
+      "CodeType": "Normal",
+      "DisplayText": "10 to 14",
+      "NumericValue": 1,
+      "StringValue": "10_to_14",
+      "VisibleInCoda": true,
+      "MatchValues": [
+        "10 to 14"
+      ]
+    },
+    {
+      "CodeID": "code-57391e8f",
+      "CodeType": "Normal",
+      "DisplayText": "15 to 17",
+      "NumericValue": 2,
+      "StringValue": "15_to_17",
+      "VisibleInCoda": true,
+      "MatchValues": [
+        "15 to 17"
+      ]
+    },
+    {
+      "CodeID": "code-ef3c9330",
+      "CodeType": "Normal",
+      "DisplayText": "18 to 35",
+      "NumericValue": 3,
+      "StringValue": "18_to_35",
+      "VisibleInCoda": true,
+      "MatchValues": [
+        "18 to 35"
+      ]
+    },
+    {
+      "CodeID": "code-494d7659",
+      "CodeType": "Normal",
+      "DisplayText": "36 to 54",
+      "NumericValue": 4,
+      "StringValue": "36_to_54",
+      "VisibleInCoda": true,
+      "MatchValues": [
+        "36 to 54"
+      ]
+    },
+    {
+      "CodeID": "code-968879ef",
+      "CodeType": "Normal",
+      "DisplayText": "55 to 99",
+      "NumericValue": 5,
+      "StringValue": "55_to_99",
+      "VisibleInCoda": true,
+      "MatchValues": [
+        "55 to 99"
+      ]
+    },
     {
       "CodeID": "code-NA-f93d3eb7",
       "CodeType": "Control",
@@ -94,6 +159,15 @@
       "VisibleInCoda": true
     },
     {
+      "CodeID": "code-Q-a5d3700d",
+      "CodeType": "Meta",
+      "MetaCode": "question",
+      "DisplayText": "meta: question",
+      "NumericValue": -100010,
+      "StringValue": "question",
+      "VisibleInCoda": true
+    },
+    {
       "CodeID": "code-G-97cb3199",
       "CodeType": "Meta",
       "MetaCode": "greeting",
@@ -105,7 +179,7 @@
     {
       "CodeID": "code-OI-c5f1d054",
       "CodeType": "Meta",
-      "MetaCode": "opt-in",
+      "MetaCode": "opt_in",
       "DisplayText": "meta: opt-in",
       "NumericValue": -100040,
       "StringValue": "opt_in",
@@ -136,42 +210,6 @@
       "DisplayText": "meta: exclusion complaint",
       "NumericValue": -100070,
       "StringValue": "exclusion_complaint",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-O-7ce0d2a7",
-      "CodeType": "Meta",
-      "MetaCode": "other",
-      "DisplayText": "meta: other",
-      "NumericValue": -100110,
-      "StringValue": "other",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-AC-9ed22631",
-      "CodeType": "Meta",
-      "MetaCode": "about_conversation",
-      "DisplayText": "meta: about conversation",
-      "NumericValue": -100120,
-      "StringValue": "about_conversation",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-CR-8e99616b",
-      "CodeType": "Meta",
-      "MetaCode": "chasing_reply",
-      "DisplayText": "meta: chasing reply",
-      "NumericValue": -100130,
-      "StringValue": "chasing_reply",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-I-b13a41f6",
-      "CodeType": "Meta",
-      "MetaCode": "impact",
-      "DisplayText": "meta: impact",
-      "NumericValue": -100140,
-      "StringValue": "impact",
       "VisibleInCoda": true
     }
   ]

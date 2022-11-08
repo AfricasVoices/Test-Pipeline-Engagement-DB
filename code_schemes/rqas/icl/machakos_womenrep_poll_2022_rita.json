@@ -1,70 +1,22 @@
 {
-  "SchemeID": "Scheme-21a1c0bb",
-  "Name": "S01E03",
-  "Version": "0.0.0.1",
+  "SchemeID": "Scheme-31b3ab58",
+  "Name": "Machakos Women Rep Poll 2022",
+  "Version": "0.0.0.6",
   "Codes": [
     {
-      "CodeID": "code-fbbc3182",
+      "CodeID": "code-f0c2d3f9",
       "CodeType": "Normal",
-      "DisplayText": "education must continue",
-      "NumericValue": 1,
-      "StringValue": "education_must_continue",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-b90b35a7",
-      "CodeType": "Normal",
-      "DisplayText": "interrupted learning",
-      "NumericValue": 2,
-      "StringValue": "interrupted_learning",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-433d7bdb",
-      "CodeType": "Normal",
-      "DisplayText": "more delinquency and increased drop-outs",
-      "NumericValue": 3,
-      "StringValue": "more_delinquency_and_increased_drop-outs",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-d0901eee",
-      "CodeType": "Normal",
-      "DisplayText": "risk of further spread of covid19 after reopening schools",
-      "NumericValue": 4,
-      "StringValue": "risk_of_further_spread_of_covid_after_reopening_schools",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-5150d5e7",
-      "CodeType": "Normal",
-      "DisplayText": "financial challenges for parents",
+      "DisplayText": "1. yes",
       "NumericValue": 5,
-      "StringValue": "financial_challenges_for_parents",
+      "StringValue": "1_yes",
       "VisibleInCoda": true
     },
     {
-      "CodeID": "code-59f56f63",
+      "CodeID": "code-37cbc4e2",
       "CodeType": "Normal",
-      "DisplayText": "adoption of covid19 preventive guidelines in schools",
+      "DisplayText": "2. no",
       "NumericValue": 6,
-      "StringValue": "adoption_of_covid_preventive_guidelines_in_schools",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-ac8051a7",
-      "CodeType": "Normal",
-      "DisplayText": "recommendations to make education in schools safe",
-      "NumericValue": 7,
-      "StringValue": "recommendations_to_make_education_in_schools_safe",
-      "VisibleInCoda": true
-    },
-    {
-      "CodeID": "code-d236d489",
-      "CodeType": "Normal",
-      "DisplayText": "other theme",
-      "NumericValue": 8,
-      "StringValue": "other_theme",
+      "StringValue": "2_no",
       "VisibleInCoda": true
     },
     {
@@ -111,6 +63,15 @@
       "NumericValue": -50,
       "StringValue": "NIC",
       "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-NOC-4eb70633",
+      "ControlCode": "NOC",
+      "StringValue": "NOC",
+      "DisplayText": "Noise (Other Channel)",
+      "VisibleInCoda": true,
+      "NumericValue": -60,
+      "CodeType": "Control"
     },
     {
       "CodeID": "code-STOP-08b832a8",
@@ -178,7 +139,7 @@
     {
       "CodeID": "code-OI-c5f1d054",
       "CodeType": "Meta",
-      "MetaCode": "opt_in",
+      "MetaCode": "opt-in",
       "DisplayText": "meta: opt-in",
       "NumericValue": -100040,
       "StringValue": "opt_in",
@@ -210,6 +171,42 @@
       "NumericValue": -100070,
       "StringValue": "exclusion_complaint",
       "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-GR-e6de1b7e",
+      "CodeType": "Meta",
+      "MetaCode": "gratitude",
+      "DisplayText": "meta: gratitude",
+      "NumericValue": -100100,
+      "StringValue": "gratitude",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-AC-9ed22631",
+      "CodeType": "Meta",
+      "MetaCode": "about_conversation",
+      "DisplayText": "meta: about conversation",
+      "NumericValue": -100120,
+      "StringValue": "about_conversation",
+      "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-CR-8e99616b",
+      "CodeType": "Meta",
+      "MetaCode": "chasing_reply",
+      "DisplayText": "meta: chasing reply",
+      "NumericValue": -100130,
+      "StringValue": "chasing_reply",
+      "VisibleInCoda": false
+    },
+    {
+      "CodeID": "code-I-b13a41f6",
+      "CodeType": "Meta",
+      "MetaCode": "impact",
+      "DisplayText": "meta: impact",
+      "StringValue": "impact",
+      "NumericValue": -100140,
+      "VisibleInCoda": false
     }
   ]
 }

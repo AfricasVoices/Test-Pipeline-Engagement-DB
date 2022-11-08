@@ -1,43 +1,31 @@
 {
-  "SchemeID": "Scheme-12cb6f95",
-  "Name": "Gender",
+  "SchemeID": "Scheme-f25eb061",
+  "Name": "Machakos Senator Poll 2022",
   "Version": "0.0.0.6",
   "Codes": [
     {
-      "CodeID": "code-E-720cdb66",
-      "CodeType": "Meta",
-      "MetaCode": "escalate",
-      "DisplayText": "meta: ESCALATE",
-      "NumericValue": -100080,
-      "StringValue": "escalate",
-      "VisibleInCoda": true,
-      "Shortcut": "e"
-    },
-    {
-      "CodeID": "code-63dcde9a",
+      "CodeID": "code-d88f1122",
       "CodeType": "Normal",
-      "DisplayText": "man",
+      "DisplayText": "1. bernard mungata",
       "NumericValue": 1,
-      "StringValue": "man",
-      "Shortcut": "m",
-      "VisibleInCoda": true,
-      "MatchValues" : [
-        "male",
-        "man"
-      ]
+      "StringValue": "1_bernard_mungata",
+      "VisibleInCoda": true
     },
     {
-      "CodeID": "code-86a4602c",
+      "CodeID": "code-2ed681d4",
       "CodeType": "Normal",
-      "DisplayText": "woman",
+      "DisplayText": "2. dickson kimanthi muli",
       "NumericValue": 2,
-      "StringValue" : "woman",
-      "Shortcut": "f",
-      "VisibleInCoda": true,
-      "MatchValues" : [
-        "female",
-        "woman"
-      ]
+      "StringValue": "2_dickson_kimanthi_muli",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-bf3f9ef0",
+      "CodeType": "Normal",
+      "DisplayText": "3. maureen ndunga mwikya",
+      "NumericValue": 3,
+      "StringValue": "3_maureen_ndunga_mwikya",
+      "VisibleInCoda": true
     },
     {
       "CodeID": "code-NA-f93d3eb7",
@@ -84,7 +72,7 @@
       "StringValue": "NIC",
       "VisibleInCoda": false
     },
-     {
+    {
       "CodeID": "code-NOC-4eb70633",
       "ControlCode": "NOC",
       "StringValue": "NOC",

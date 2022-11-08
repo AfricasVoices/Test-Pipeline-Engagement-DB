@@ -1,8 +1,24 @@
 {
-  "SchemeID": "Scheme-38e8f576",
-  "Name": "Facebook S01E01",
-  "Version": "0.0.0.1",
+  "SchemeID": "Scheme-31b3ab58",
+  "Name": "Machakos Women Rep Poll 2022",
+  "Version": "0.0.0.6",
   "Codes": [
+    {
+      "CodeID": "code-f0c2d3f9",
+      "CodeType": "Normal",
+      "DisplayText": "1. yes",
+      "NumericValue": 5,
+      "StringValue": "1_yes",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-37cbc4e2",
+      "CodeType": "Normal",
+      "DisplayText": "2. no",
+      "NumericValue": 6,
+      "StringValue": "2_no",
+      "VisibleInCoda": true
+    },
     {
       "CodeID": "code-NA-f93d3eb7",
       "CodeType": "Control",
@@ -49,6 +65,15 @@
       "VisibleInCoda": false
     },
     {
+      "CodeID": "code-NOC-4eb70633",
+      "ControlCode": "NOC",
+      "StringValue": "NOC",
+      "DisplayText": "Noise (Other Channel)",
+      "VisibleInCoda": true,
+      "NumericValue": -60,
+      "CodeType": "Control"
+    },
+    {
       "CodeID": "code-STOP-08b832a8",
       "CodeType": "Control",
       "ControlCode": "STOP",
@@ -91,6 +116,15 @@
       "DisplayText": "meta: showtime question",
       "NumericValue": -100030,
       "StringValue": "showtime_question",
+      "VisibleInCoda": true
+    },
+    {
+      "CodeID": "code-Q-a5d3700d",
+      "CodeType": "Meta",
+      "MetaCode": "question",
+      "DisplayText": "meta: question",
+      "NumericValue": -100010,
+      "StringValue": "question",
       "VisibleInCoda": true
     },
     {
@@ -139,12 +173,12 @@
       "VisibleInCoda": true
     },
     {
-      "CodeID": "code-O-7ce0d2a7",
+      "CodeID": "code-GR-e6de1b7e",
       "CodeType": "Meta",
-      "MetaCode": "other",
-      "DisplayText": "meta: other",
-      "NumericValue": -100110,
-      "StringValue": "other",
+      "MetaCode": "gratitude",
+      "DisplayText": "meta: gratitude",
+      "NumericValue": -100100,
+      "StringValue": "gratitude",
       "VisibleInCoda": true
     },
     {
@@ -154,7 +188,7 @@
       "DisplayText": "meta: about conversation",
       "NumericValue": -100120,
       "StringValue": "about_conversation",
-      "VisibleInCoda": true
+      "VisibleInCoda": false
     },
     {
       "CodeID": "code-CR-8e99616b",
@@ -163,16 +197,16 @@
       "DisplayText": "meta: chasing reply",
       "NumericValue": -100130,
       "StringValue": "chasing_reply",
-      "VisibleInCoda": true
+      "VisibleInCoda": false
     },
     {
       "CodeID": "code-I-b13a41f6",
       "CodeType": "Meta",
       "MetaCode": "impact",
       "DisplayText": "meta: impact",
-      "NumericValue": -100140,
       "StringValue": "impact",
-      "VisibleInCoda": true
+      "NumericValue": -100140,
+      "VisibleInCoda": false
     }
   ]
 }

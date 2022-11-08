@@ -1,0 +1,390 @@
+{
+    "SchemeID": "Scheme-0bdb86ae",
+    "Name": "Communities",
+    "Version": "0.0.0.1",
+    "Codes": [
+        {
+            "CodeID": "code-E-720cdb66",
+            "CodeType": "Meta",
+            "MetaCode": "escalate",
+            "DisplayText": "meta: ESCALATE",
+            "NumericValue": -100080,
+            "StringValue": "escalate",
+            "VisibleInCoda": true,
+            "Shortcut": "e"
+        },
+        {
+            "CodeID": "code-01069ffe",
+            "CodeType": "Normal",
+            "DisplayText": "do not share",
+            "NumericValue": 0,
+            "StringValue": "do_not_share",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-cfef155a",
+            "CodeType": "Normal",
+            "DisplayText": "abagusii",
+            "NumericValue": 1,
+            "StringValue": "abagusii",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-08dbada6",
+            "CodeType": "Normal",
+            "DisplayText": "agikuyu",
+            "NumericValue": 2,
+            "StringValue": "agikuyu",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-7a0c27c8",
+            "CodeType": "Normal",
+            "DisplayText": "akamba",
+            "NumericValue": 3,
+            "StringValue": "akamba",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-5f3ef1ef",
+            "CodeType": "Normal",
+            "DisplayText": "ameru",
+            "NumericValue": 4,
+            "StringValue": "ameru",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-b193a782",
+            "CodeType": "Normal",
+            "DisplayText": "arab",
+            "NumericValue": 5,
+            "StringValue": "arab",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-d8d81d63",
+            "CodeType": "Normal",
+            "DisplayText": "borana",
+            "NumericValue": 6,
+            "StringValue": "borana",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-6cb14b42",
+            "CodeType": "Normal",
+            "DisplayText": "hindu",
+            "NumericValue": 7,
+            "StringValue": "hindu",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-0cbdb835",
+            "CodeType": "Normal",
+            "DisplayText": "kalenjin",
+            "NumericValue": 8,
+            "StringValue": "kalenjin",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-3277fd7a",
+            "CodeType": "Normal",
+            "DisplayText": "luhya",
+            "NumericValue": 9,
+            "StringValue": "luhya",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-3c014447",
+            "CodeType": "Normal",
+            "DisplayText": "luo",
+            "NumericValue": 10,
+            "StringValue": "luo",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-7a32f3d3",
+            "CodeType": "Normal",
+            "DisplayText": "mijikenda",
+            "NumericValue": 11,
+            "StringValue": "mijikenda",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-7b56d015",
+            "CodeType": "Normal",
+            "DisplayText": "nubian",
+            "NumericValue": 12,
+            "StringValue": "nubian",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-ea256ab7",
+            "CodeType": "Normal",
+            "DisplayText": "ogiek",
+            "NumericValue": 13,
+            "StringValue": "ogiek",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-75a1b314",
+            "CodeType": "Normal",
+            "DisplayText": "orma",
+            "NumericValue": 14,
+            "StringValue": "orma",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-198c28a4",
+            "CodeType": "Normal",
+            "DisplayText": "pokomo",
+            "NumericValue": 15,
+            "StringValue": "pokomo",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-62a4ea20",
+            "CodeType": "Normal",
+            "DisplayText": "somali",
+            "NumericValue": 16,
+            "StringValue": "somali",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-9bcbc606",
+            "CodeType": "Normal",
+            "DisplayText": "swahili",
+            "NumericValue": 17,
+            "StringValue": "swahili",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-3e76980a",
+            "CodeType": "Normal",
+            "DisplayText": "taita",
+            "NumericValue": 18,
+            "StringValue": "taita",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-adaae26c",
+            "CodeType": "Normal",
+            "DisplayText": "teso",
+            "NumericValue": 19,
+            "StringValue": "teso",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-d78bd59d",
+            "CodeType": "Normal",
+            "DisplayText": "turkana",
+            "NumericValue": 20,
+            "StringValue": "turkana",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-400e14ca",
+            "CodeType": "Normal",
+            "DisplayText": "wardei",
+            "NumericValue": 21,
+            "StringValue": "wardei",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-72c8b70a",
+            "CodeType": "Normal",
+            "DisplayText": "other theme",
+            "NumericValue": 22,
+            "StringValue": "other_theme",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-NA-f93d3eb7",
+            "CodeType": "Control",
+            "ControlCode": "NA",
+            "DisplayText": "NA (missing)",
+            "NumericValue": -10,
+            "StringValue": "NA",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NS-2c11b7c9",
+            "CodeType": "Control",
+            "ControlCode": "NS",
+            "DisplayText": "NS (skip)",
+            "NumericValue": -20,
+            "StringValue": "NS",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NC-42f1d983",
+            "CodeType": "Control",
+            "ControlCode": "NC",
+            "DisplayText": "NC (not coded)",
+            "NumericValue": -30,
+            "StringValue": "NC",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-NR-5e3eee23",
+            "CodeType": "Control",
+            "ControlCode": "NR",
+            "DisplayText": "NR (not reviewed)",
+            "NumericValue": -40,
+            "StringValue": "NR",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NIC-99631cb8",
+            "CodeType": "Control",
+            "ControlCode": "NIC",
+            "DisplayText": "NIC (not internally consistent)",
+            "NumericValue": -50,
+            "StringValue": "NIC",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-NOC-4eb70633",
+            "ControlCode": "NOC",
+            "StringValue": "NOC",
+            "DisplayText": "Noise (Other Channel)",
+            "VisibleInCoda": true,
+            "NumericValue": -60,
+            "CodeType": "Control"
+        },
+        {
+            "CodeID": "code-STOP-08b832a8",
+            "CodeType": "Control",
+            "ControlCode": "STOP",
+            "DisplayText": "STOP",
+            "NumericValue": -90,
+            "StringValue": "STOP",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-WS-adb25603b7af",
+            "CodeType": "Control",
+            "ControlCode": "WS",
+            "DisplayText": "WS (wrong scheme)",
+            "NumericValue": -100,
+            "StringValue": "WS",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-CE-016c1e22",
+            "CodeType": "Control",
+            "ControlCode": "CE",
+            "DisplayText": "CE (coding error)",
+            "NumericValue": -110,
+            "StringValue": "CE",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-PB-a434a800",
+            "CodeType": "Meta",
+            "MetaCode": "push_back",
+            "DisplayText": "meta: push back",
+            "NumericValue": -100000,
+            "StringValue": "push_back",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-SQ-5e8f0122",
+            "CodeType": "Meta",
+            "MetaCode": "showtime_question",
+            "DisplayText": "meta: showtime question",
+            "NumericValue": -100030,
+            "StringValue": "showtime_question",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-Q-a5d3700d",
+            "CodeType": "Meta",
+            "MetaCode": "question",
+            "DisplayText": "meta: question",
+            "NumericValue": -100010,
+            "StringValue": "question",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-G-97cb3199",
+            "CodeType": "Meta",
+            "MetaCode": "greeting",
+            "DisplayText": "meta: greeting",
+            "NumericValue": -100020,
+            "StringValue": "greeting",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-OI-c5f1d054",
+            "CodeType": "Meta",
+            "MetaCode": "opt-in",
+            "DisplayText": "meta: opt-in",
+            "NumericValue": -100040,
+            "StringValue": "opt_in",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-SC-a3a065bc",
+            "CodeType": "Meta",
+            "MetaCode": "similar_content",
+            "DisplayText": "meta: similar content",
+            "NumericValue": -100050,
+            "StringValue": "similar_content",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-PI-83b90d32",
+            "CodeType": "Meta",
+            "MetaCode": "participation_incentive",
+            "DisplayText": "meta: participation incentive",
+            "NumericValue": -100060,
+            "StringValue": "participation_incentive",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-EC-3a704f5b",
+            "CodeType": "Meta",
+            "MetaCode": "exclusion_complaint",
+            "DisplayText": "meta: exclusion complaint",
+            "NumericValue": -100070,
+            "StringValue": "exclusion_complaint",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-GR-e6de1b7e",
+            "CodeType": "Meta",
+            "MetaCode": "gratitude",
+            "DisplayText": "meta: gratitude",
+            "NumericValue": -100100,
+            "StringValue": "gratitude",
+            "VisibleInCoda": true
+        },
+        {
+            "CodeID": "code-AC-9ed22631",
+            "CodeType": "Meta",
+            "MetaCode": "about_conversation",
+            "DisplayText": "meta: about conversation",
+            "NumericValue": -100120,
+            "StringValue": "about_conversation",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-CR-8e99616b",
+            "CodeType": "Meta",
+            "MetaCode": "chasing_reply",
+            "DisplayText": "meta: chasing reply",
+            "NumericValue": -100130,
+            "StringValue": "chasing_reply",
+            "VisibleInCoda": false
+        },
+        {
+            "CodeID": "code-I-b13a41f6",
+            "CodeType": "Meta",
+            "MetaCode": "impact",
+            "DisplayText": "meta: impact",
+            "StringValue": "impact",
+            "NumericValue": -100140,
+            "VisibleInCoda": false
+        }
+    ]
+}
