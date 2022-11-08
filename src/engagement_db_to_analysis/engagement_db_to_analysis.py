@@ -79,4 +79,10 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
         pipeline_config.analysis.ws_correct_dataset_code_scheme
     )
 
+    for message_td in messages_traced_data:
+        message_dict = message_td.to_dict()
+        print(message_dict)
+
+    exit()
+
     export_traced_data(messages_traced_data, f"{output_dir}/messages.jsonl")
