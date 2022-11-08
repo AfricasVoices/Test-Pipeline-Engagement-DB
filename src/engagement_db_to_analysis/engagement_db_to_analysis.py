@@ -84,14 +84,20 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     uuids = []
     for message_td in messages_traced_data:
         message_dict = dict(message_td)
-        print(message_dict['labels'][-1]['CodeID'])
         if message_dict['labels'][-1]['CodeID'] in ["code-d44c52b4", "code-fe358835", "code-7e60db65", "code-be7e288b","code-afcb698a"]:
             log.info(f'adding uuid {message_dict["participant_uuid"]}')
             uuids.append(message_dict['participant_uuid'])
 
     log.info(f"Converting {len(uuids)} uuids to urns...")
     urn_lut = uuid_table.uuid_to_data_batch(uuids)
-    urns = {urn_lut[uuid] for uuid in uuids}
+    urns = []
+    for uuid in uuids:
+        if uuid.startswith('avf'):
+            urn = urn_lut[uuid]
+            urns.append(urn)
+        else:
+            print(uuid)
+
     log.info(f"Converted {len(uuids)} to {len(urns)}")
 
     # Export contacts CSV
