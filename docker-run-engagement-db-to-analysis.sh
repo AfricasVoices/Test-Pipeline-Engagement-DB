@@ -2,7 +2,8 @@
 
 set -e
 
-IMAGE_NAME="$(<configurations/docker_image_name.txt)"
+PROJECT_NAME="$(<configurations/docker_image_project_name.txt)"
+IMAGE_NAME=$PROJECT_NAME-engagement-db-to-analysis
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -24,8 +25,8 @@ done
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 5 ]]; then
     echo "Usage: $0 
-    [--incremental-cache-volume <incremental-cache-volume>]
-    <user> <google-cloud-credentials-file-path> <configuration-file> <code-schemes-dir> <data-dir>"
+    [--dry-run] [--incremental-cache-volume <incremental-cache-volume>] 
+    <user> <google-cloud-credentials-file-path> <configuration-module> <code-schemes-dir> <data-dir>"
     exit
 fi
 
@@ -36,7 +37,11 @@ CONFIGURATION_FILE=$3
 CODE_SCHEMES_DIR=$4
 DATA_DIR=$5
 
-CMD="pipenv run python -u engagement_db_to_analysis.py ${INCREMENTAL_ARG} ${USER} \
+# Build an image for this pipeline stage.
+docker build -t "$IMAGE_NAME" .
+
+# Create a container from the image that was just built.
+CMD="pipenv run python -u engagement_db_to_analysis.py ${DRY_RUN} ${INCREMENTAL_ARG} ${USER} \
     /credentials/google-cloud-credentials.json configuration /data/membership-groups /data/analysis-outputs"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
