@@ -306,7 +306,7 @@ def convert_to_messages_column_format(user, messages_traced_data, analysis_confi
     """
     log.info(f"Converting {len(messages_traced_data)} messages traced data objects to column-view format by "
              f"message...")
-    messages_traced_data = _filter_out_demogs_only(messages_traced_data, analysis_config.dataset_configurations)
+    #messages_traced_data = _filter_out_demogs_only(messages_traced_data, analysis_config.dataset_configurations)
 
     messages_by_column = dict()  # of participant_uuid -> list of rqa messages in column view
 
@@ -316,8 +316,6 @@ def convert_to_messages_column_format(user, messages_traced_data, analysis_confi
         # Skip this message if it's not an RQA
         message = Message.from_dict(dict(msg_td))
         analysis_dataset_config = analysis_dataset_config_for_message(analysis_config.dataset_configurations, message)
-        if analysis_dataset_config.dataset_type != DatasetTypes.RESEARCH_QUESTION_ANSWER:
-            continue
 
         # Convert to column-view TracedData
         column_td = TracedData(
@@ -335,19 +333,6 @@ def convert_to_messages_column_format(user, messages_traced_data, analysis_confi
         if message.participant_uuid not in messages_by_column:
             messages_by_column[message.participant_uuid] = []
         messages_by_column[message.participant_uuid].append(column_td)
-
-    # Pass 2: Update each converted rqa message with the demographic messages
-    for msg_td in messages_traced_data:
-        # Skip this message if it's not a demographic.
-        message = Message.from_dict(dict(msg_td))
-        analysis_dataset_config = analysis_dataset_config_for_message(analysis_config.dataset_configurations, message)
-        if analysis_dataset_config.dataset_type != DatasetTypes.DEMOGRAPHIC:
-            continue
-
-        # Add this demographic to each of the column-view rqa message TracedData for this participant.
-        # (Use messages_by_column.get() because we might have demographics for people who never sent an RQA message).
-        for column_td in messages_by_column.get(message.participant_uuid, []):
-            _add_message_to_column_td(user, msg_td, column_td, analysis_config.dataset_configurations)
 
     flattened_messages = []
     for msgs in messages_by_column.values():
