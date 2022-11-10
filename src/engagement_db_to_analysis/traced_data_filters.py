@@ -55,7 +55,7 @@ def rqa_time_range_filter(user, messages_traced_data, pipeline_config):
                 continue
             if end_time_inclusive is not None and isoparse(td["timestamp"]) > end_time_inclusive:
                 continue
-            td.append_data(td, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
+            td.append_data({}, Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string()))
             filtered.append(td)
         else:
             filtered.append(td)
