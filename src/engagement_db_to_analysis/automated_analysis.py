@@ -100,7 +100,8 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
             )
     else:
         log.debug("Not running any traffic analysis because analysis_configuration.traffic_labels is None")
-
+    
+    '''
     log.info(f"Exporting participation maps for each location dataset...")
     mappers = {
         AnalysisLocations.KENYA_COUNTY: kenya_mapper.export_kenya_counties_map,
@@ -126,3 +127,4 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
                     mappers[coding_config.analysis_location],
                     f"{export_dir_path}/maps/{location_column_config.dataset_name}/{location_column_config.dataset_name}_"
                 )
+    '''
