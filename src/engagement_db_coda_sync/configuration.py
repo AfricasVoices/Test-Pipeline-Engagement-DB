@@ -87,7 +87,13 @@ class CodaSyncConfiguration:
                                                  `ws_code_match_value` properties of the `dataset_configurations` to
                                                  find the Coda dataset the message should be moved to.
                                                  If it can't find any match in the `dataset_configurations`, then
-                                                 the default behaviour is to crash because 
+                                                 the default behaviour is to crash because it means there was a WS
+                                                 code found that wasn't explicitly configured. However, if this
+                                                 argument is True, then instead of crashing on an unseen ws code, the
+                                                 sync stage will instead change the message's dataset to the ws code's
+                                                 `string_value`. This can be useful (e.g. if migrating an old project to
+                                                 the engagement database), but should be used with caution as it means
+                                                 messages can be moved to a dataset that has no configuration.
         :type set_dataset_from_ws_string_value: bool
         :param default_ws_dataset: Engagement db dataset to move messages to if there is no dataset configuration for
                                    a particular ws_code_match_value.
