@@ -75,6 +75,27 @@ class CodaSyncConfiguration:
         """
         Configuration for bidirectional sync between an engagement database and a Coda instance.
 
+        Coda sync stages copy messages and their labels between an engagement database and Coda.
+
+        When a message is added to an engagement database, the engagement db -> coda sync stage:
+         - Sets the coda_id on the message, such that messages with the same text are given the same coda_id and
+           so only appear once in Coda.
+         - If the message doesn't exist in Coda, then adds the message to Coda, possibly with some automatically
+           suggested labels.
+         - If the message does exist in Coda, then copies the labels from Coda to the engagement db message.
+
+         When a message is changed in Coda, the coda -> engagement db sync stage updates all the matching messages
+         in the engagement db to have the same labels.
+
+         When updating the labels on a message in the engagement db, if a WS - Correct Dataset code (ws_code) is found
+         in the new labels then the message's dataset property will be changed appropriately. To determine which new
+         dataset to use, the following strategies are tried, in this order:
+          1. Search the other dataset configurations for a match for this `ws_code`. If there is no match:
+          2. If `set_dataset_from_ws_string_value` has been set, move the message to the dataset
+            `ws_code.string_value`. Otherwise:
+          3. If the `default_ws_dataset` has been specified, move the message to this default dataset.
+          4. Crash with a ValueError.
+
         :param dataset_configurations: Configurations for each of the Coda datasets to sync.
         :type dataset_configurations: list of CodaDatasetConfiguration
         :param ws_correct_dataset_code_scheme: WS - Correct Dataset code scheme.
