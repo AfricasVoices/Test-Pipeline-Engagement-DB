@@ -133,7 +133,7 @@ class CodaClientConfiguration:
 
     def init_coda_client(self, google_cloud_credentials_file_path):
         """
-        Initialises a CodeV2Client from this configuration.
+        Initialises a CodaV2Client from this configuration.
 
         :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
                                                    access the credentials bucket.
