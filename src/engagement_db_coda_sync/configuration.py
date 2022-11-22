@@ -70,8 +70,8 @@ class CodaDatasetConfiguration:
 
 
 class CodaSyncConfiguration:
-    def __init__(self, dataset_configurations, ws_correct_dataset_code_scheme, project_users_file_url=None,
-                 set_dataset_from_ws_string_value=False, default_ws_dataset=None):
+    def __init__(self, dataset_configurations, ws_correct_dataset_code_scheme, set_dataset_from_ws_string_value=False,
+                 default_ws_dataset=None, project_users_file_url=None):
         """
         Configuration for bidirectional sync between an engagement database and a Coda instance.
 
@@ -83,12 +83,6 @@ class CodaSyncConfiguration:
                                                correct one. To configure this redirection, set the `ws_code_match_value`
                                                properties in each `CodaDatasetConfiguration`.
         :type ws_correct_dataset_code_scheme: core_data_modules.data_models.CodeScheme
-        :param project_users_file_url: GS URL to a json file containing a list of user ids, which each user id is a
-                                       string containing the email address of a user who should have permission to
-                                       access all the Coda datasets configured here.
-                                       If a dataset_configuration has its `dataset_users_file_url` property set,
-                                       the users will be updated from that file instead of the one referenced here.
-        :type project_users_file_url: str | None
         :param set_dataset_from_ws_string_value: If a message is labelled as "WS", the Coda sync tool will use the
                                                  `ws_code_match_value` properties of the `dataset_configurations` to
                                                  find the Coda dataset the message should be moved to.
@@ -101,12 +95,18 @@ class CodaSyncConfiguration:
                                    dataset_configurations. In most circumstances, this should be None as matching
                                    cases where there are no datasets usually indicates a missing piece of configuration.
         :type default_ws_dataset: str | None
+        :param project_users_file_url: GS URL to a json file containing a list of user ids, which each user id is a
+                                       string containing the email address of a user who should have permission to
+                                       access all the Coda datasets configured here.
+                                       If a dataset_configuration has its `dataset_users_file_url` property set,
+                                       the users will be updated from that file instead of the one referenced here.
+        :type project_users_file_url: str | None
         """
         self.dataset_configurations = dataset_configurations
         self.ws_correct_dataset_code_scheme = ws_correct_dataset_code_scheme
-        self.project_users_file_url = project_users_file_url
         self.set_dataset_from_ws_string_value = set_dataset_from_ws_string_value
         self.default_ws_dataset = default_ws_dataset
+        self.project_users_file_url = project_users_file_url
 
     def get_dataset_config_by_engagement_db_dataset(self, dataset):
         for config in self.dataset_configurations:
