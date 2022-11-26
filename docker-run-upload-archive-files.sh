@@ -2,7 +2,8 @@
 
 set -e
 
-IMAGE_NAME="$(<configurations/docker_image_name.txt)"
+PROJECT_NAME="$(<configurations/docker_image_project_name.txt)"
+IMAGE_NAME=$PROJECT_NAME-upload-archive-files
 
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 5 ]]; then
