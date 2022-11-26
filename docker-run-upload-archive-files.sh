@@ -3,7 +3,7 @@
 set -e
 
 PROJECT_NAME="$(<configurations/docker_image_project_name.txt)"
-IMAGE_NAME=$PROJECT_NAME-upload-archive-files
+IMAGE_NAME=$PROJECT_NAME-sync-engagement-db-to-coda
 
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 5 ]]; then
