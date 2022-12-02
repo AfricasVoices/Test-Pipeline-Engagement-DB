@@ -68,21 +68,25 @@ def _update_cache_with_changes_in_flow_result_configs(cache, rapid_pro, flow_res
 
 def _get_earliest_created_after_date(flow_configs):
     """
-    Returns the earliest `created_after_date` in the given `flow_configs`, or None if there is no such date.
+    Returns the earliest `created_after_date` in the given `flow_configs`.
+    If any of the `created_after_date`s are None, or there are no `flow_configs`, returns None.
 
     :param flow_configs: Flow configurations to search for the earliest `created_after_inclusive` date.
     :type flow_configs: list of src.rapid_pro_to_engagement_db.configuration.FlowResultConfiguration
-    :return: Earliest `created_after_inclusive` date in the given `flow_configs` if one exists, otherwise None.
+    :return: Earliest `created_after_inclusive` date in the given `flow_configs`, or None if not all the
+             `flow_configs` define a `created_after_inclusive` date.
     :rtype: datetime.datetime | None
     """
+    for config in flow_configs:
+        if config.created_after_inclusive is None:
+            return None
+
     created_after_dates = [config.created_after_inclusive for config in flow_configs]
-    defined_created_after_dates = [date for date in created_after_dates if date is not None]
+    created_after_dates.sort()
 
-    if len(defined_created_after_dates) == 0:
+    if len(created_after_dates) == 0:
         return None
-
-    defined_created_after_dates.sort()
-    return defined_created_after_dates[0]
+    return created_after_dates[0]
 
 
 def _get_new_runs(rapid_pro, flow_id, created_after_inclusive=None, cache=None):
