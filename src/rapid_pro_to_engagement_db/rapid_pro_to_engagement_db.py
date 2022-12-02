@@ -1,8 +1,7 @@
 import json
 from collections import defaultdict
-from datetime import timedelta, datetime
+from datetime import timedelta
 
-import pytz
 from core_data_modules.cleaners import URNCleaner
 from core_data_modules.logging import Logger
 from engagement_database.data_models import (Message, MessageDirections, MessageStatuses, HistoryEntryOrigin,
