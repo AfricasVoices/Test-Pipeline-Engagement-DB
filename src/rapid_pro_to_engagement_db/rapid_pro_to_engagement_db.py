@@ -1,7 +1,8 @@
 import json
 from collections import defaultdict
-from datetime import timedelta
+from datetime import timedelta, datetime
 
+import pytz
 from core_data_modules.cleaners import URNCleaner
 from core_data_modules.logging import Logger
 from engagement_database.data_models import (Message, MessageDirections, MessageStatuses, HistoryEntryOrigin,
@@ -66,7 +67,26 @@ def _update_cache_with_changes_in_flow_result_configs(cache, rapid_pro, flow_res
             cache.set_flow_result_configs(flow_result_configurations)
 
 
-def _get_new_runs(rapid_pro, flow_id, cache=None):
+def _get_earliest_created_after_date(flow_configs):
+    """
+    Returns the earliest `created_after_date` in the given `flow_configs`, or None if there is no such date.
+
+    :param flow_configs: Flow configurations to search for the earliest `created_after_inclusive` date.
+    :type flow_configs: list of src.rapid_pro_to_engagement_db.configuration.FlowResultConfiguration
+    :return: Earliest `created_after_inclusive` date in the given `flow_configs` if one exists, otherwise None.
+    :rtype: datetime.datetime | None
+    """
+    created_after_dates = [config.created_after_inclusive for config in flow_configs]
+    defined_created_after_dates = [date for date in created_after_dates if date is not None]
+
+    if len(defined_created_after_dates) == 0:
+        return None
+
+    defined_created_after_dates.sort()
+    return defined_created_after_dates[0]
+
+
+def _get_new_runs(rapid_pro, flow_id, created_after_inclusive=None, cache=None):
     """
     Gets new runs from Rapid Pro for the given flow.
 
@@ -77,6 +97,8 @@ def _get_new_runs(rapid_pro, flow_id, cache=None):
     :type rapid_pro: rapid_pro_tools.rapid_pro_client.RapidProClient
     :param flow_id: Flow id to download runs for.
     :type flow_id: str
+    :param created_after_inclusive: Only runs created on or after this date will be downloaded.
+    :type created_after_inclusive: datetime.datetime | None
     :param cache: Cache to check for a timestamp of a previous export. If None, downloads all runs.
     :type cache: src.rapid_pro_to_engagement_db.cache.RapidProSyncCache | None
     :return: Runs modified for the given flow since the cache was last updated, if possible, else from all of time.
@@ -91,6 +113,11 @@ def _get_new_runs(rapid_pro, flow_id, cache=None):
     filter_last_modified_after = None
     if flow_last_updated is not None:
         filter_last_modified_after = flow_last_updated + timedelta(microseconds=1)
+
+    # If a created_after filter was specified, optimise the fetch by only getting messages modified since this date
+    # (because no message created after this date could have been last modified before this date).
+    if created_after_inclusive is not None:
+        filter_last_modified_after = max(filter_last_modified_after, created_after_inclusive)
 
     return rapid_pro.get_raw_runs(flow_id, last_modified_after_inclusive=filter_last_modified_after)
 
@@ -218,10 +245,12 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
     flow_name_to_flow_stats = dict() # of flow_name -> FlowStats
     dataset_to_sync_stats = defaultdict(lambda: FlowResultToEngagementDBSyncStats())  # of '{flow_name}.{flow_result_field}' -> FlowResultToEngagementDBSyncStats
     for flow_name, flow_configs in flow_name_to_flow_configs.items():
+        earliest_created_after_date = _get_earliest_created_after_date(flow_configs)
+
         flow_stats = FlowStats()
         # Get the latest runs for this flow.
         flow_id = rapid_pro.get_flow_id(flow_name)
-        runs = _get_new_runs(rapid_pro, flow_id, cache)
+        runs = _get_new_runs(rapid_pro, flow_id, earliest_created_after_date, cache)
 
         # Get any contacts that have been updated since we last asked, in case any of the downloaded runs are for very
         # new contacts.
