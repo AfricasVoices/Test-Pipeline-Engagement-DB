@@ -35,7 +35,10 @@ def _parse_date_string(date_string, timezone):
         except ValueError:
             pass
     else:
-        raise ValueError(f"Could not parse date {date_string}")
+        try:
+            parsed_raw_date = datetime.fromisoformat(date_string)
+        except ValueError:
+            raise ValueError(f"Could not parse date {date_string}")
     return pytz.timezone(timezone).localize(parsed_raw_date)
 
 
