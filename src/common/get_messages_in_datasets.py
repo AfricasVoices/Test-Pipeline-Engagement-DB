@@ -1,7 +1,29 @@
+from collections import defaultdict
+
 from core_data_modules.logging import Logger
 from engagement_database.data_models import MessageStatuses
 
 log = Logger(__name__)
+
+
+def filter_latest_message_snapshots(messages):
+    """
+    Gets the latest version of each message in the given list.
+
+    :param messages: List of messages to filter for the latest versions of each message.
+    :type messages: list of engagement_database.data_models.Message
+    :return: Filtered messages.
+    :rtype: list of engagement_database.data_models.Message
+    """
+    latest_messages = []
+    seen_message_ids = set()
+    messages.sort(key=lambda msg: msg.last_updated, reverse=True)
+    for msg in messages:
+        if msg.message_id not in seen_message_ids:
+            seen_message_ids.add(msg.message_id)
+            latest_messages.append(msg)
+
+    return latest_messages
 
 
 def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, dry_run=False):
@@ -84,17 +106,11 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
             messages = engagement_db.get_messages(firestore_query_filter=full_download_filter, batch_size=500)
             log.info(f"Downloaded {len(messages)} messages")
 
-        # Filter messages for their latest versions
-        # (Filter by sorting in reverse order of last_updated and keeping the first snapshot we see of each id)
-        latest_messages = []
-        seen_message_ids = set()
-        messages.sort(key=lambda msg: msg.last_updated, reverse=True)
-        for msg in messages:
-            if msg.message_id not in seen_message_ids:
-                seen_message_ids.add(msg.message_id)
-                latest_messages.append(msg)
-
-        log.info(f"Filtered for latest message snapshots: {len(latest_messages)}/{len(messages)} snapshots remain")
+        # Filter messages for their latest versions in this dataset.
+        # Filtering within a dataset keeps the cache small and fast.
+        latest_messages = filter_latest_message_snapshots(messages)
+        log.info(f"Filtered for latest message snapshots in dataset {engagement_db_dataset}: "
+                 f"{len(latest_messages)}/{len(messages)} snapshots remain")
         messages = latest_messages
 
         engagement_db_messages_map[engagement_db_dataset] = messages
@@ -119,6 +135,24 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
             if len(messages) > 0:
                 cache.set_messages(engagement_db_dataset, messages)
 
+    # Filter messages for their latest versions across all datasets.
+    # This allows us to handle messages that moved between datasets while we were fetching them above.
+    # 1. Flatten all the messages in the messages map into a single list.
+    all_messages = []
+    for messages in engagement_db_messages_map.values():
+        all_messages.extend(messages)
+
+    # 2. Keep only the latest versions of each message.
+    all_latest_messages = filter_latest_message_snapshots(all_messages)
+
+    # 3. Reconstruct a new, filtered messages map from the latest snapshots.
+    engagement_db_messages_map = defaultdict(list)
+    for msg in all_latest_messages:
+        engagement_db_messages_map[msg.dataset].append(msg)
+
+    log.info(f"Filtered for latest message snapshots across all datasets: "
+             f"{len(all_latest_messages)}/{len(all_messages)} snapshots remain")
+
     # Ensure that origin_ids in the exported messages are all unique. If we have multiple messages with the same
     # origin_id, that means there is a problem with the database or with the cache.
     # (Most likely we added the same message twice or we deleted a message and forgot to delete the analysis cache).
@@ -130,7 +164,7 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
                 origin_id = tuple(origin_id)
 
             assert origin_id not in all_message_origins, f"Multiple messages had the same origin id: " \
-                                                                    f"'{msg.origin.origin_id}'"
+                                                         f"'{msg.origin.origin_id}'"
             all_message_origins.add(origin_id)
 
     # Filter out messages that don't meet the status conditions

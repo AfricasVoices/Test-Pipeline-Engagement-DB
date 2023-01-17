@@ -63,6 +63,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json"
             ),
             sync_config=GoogleFormToEngagementDBConfiguration(
+                # Copy of Email Questionnaire
+                # https://docs.google.com/forms/d/1TvTklQPQRFjEmUXP4_9sO9uxP9kUEca0RSpyVLYqVaQ
                 form_id="17q1yu1rb-gE9sdXnnRKPIAqGU27-uXm_xGVkfI5rudA",
                 participant_id_configuration=ParticipantIdConfiguration(
                     question_title="Kenyan Mobile Number",
@@ -70,16 +72,103 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 ),
                 question_configurations=[
                     # Multiple choice question with other
-                    QuestionConfiguration(question_title="What is your gender?", engagement_db_dataset="gender"),
+                    QuestionConfiguration(question_titles=["What is your gender?"], engagement_db_dataset="gender"),
 
                     # Short answer
-                    QuestionConfiguration(question_title="What is your age?", engagement_db_dataset="age"),
+                    QuestionConfiguration(question_titles=["What is your age?"], engagement_db_dataset="age"),
 
                     # Long answer
-                    QuestionConfiguration(question_title="Test Question 1", engagement_db_dataset="s01e01"),
+                    QuestionConfiguration(question_titles=["Test Question 1"], engagement_db_dataset="s01e01"),
 
                     # Short answer
-                    QuestionConfiguration(question_title="Test Question 2", engagement_db_dataset="s01e02"),
+                    QuestionConfiguration(question_titles=["Test Question 2"], engagement_db_dataset="s01e02"),
+                ]
+            )
+        ),
+        GoogleFormSource(
+            google_form_client=GoogleFormsClientConfiguration(
+                credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json"
+            ),
+            sync_config=GoogleFormToEngagementDBConfiguration(
+                # Copy of Data Collectors' Questionnaire
+                # https://docs.google.com/forms/d/1L0ax6R4XZJPjHYRbDTvcrEGZXlOzEoshllOxxwqq4M4
+                form_id="1L0ax6R4XZJPjHYRbDTvcrEGZXlOzEoshllOxxwqq4M4",
+                participant_id_configuration=ParticipantIdConfiguration(
+                    question_title="What is your phone number",
+                    id_type=GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER
+                ),
+                ignore_invalid_mobile_numbers=True,
+                question_configurations=[
+                    # Demographic Questions
+                    QuestionConfiguration(engagement_db_dataset="aik_language", question_titles=["We could either do the interview in English or Swahili. Which language would you prefer? "]),
+                    QuestionConfiguration(engagement_db_dataset="age", question_titles=["Do you mind telling me how old you are?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_education", question_titles=["What is the highest level of education attained ? "]),
+                    QuestionConfiguration(engagement_db_dataset="aik_employment_status", question_titles=["What is your employment Status ?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_religion", question_titles=["What is your religion ?"]),
+                    QuestionConfiguration(engagement_db_dataset="gender", question_titles=["What is your sex? "]),
+                    QuestionConfiguration(engagement_db_dataset="aik_household_income", question_titles=["Approximately what is your gross monthly household income? (I.e. This is the combined monthly income of all your household members). This will help us in determining your social-economic class."]),
+                    QuestionConfiguration(engagement_db_dataset="disabled", question_titles=["Do you have any form of disability? (If disability is visible, do not ask, make the judgement)"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_communities", question_titles=["What community do you belong to?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_indigenous_or_minority", question_titles=["Is it considered indigenous or minority?  if yes provide details."]),
+                    QuestionConfiguration(engagement_db_dataset="location", question_titles=["Can I presume that you are currently a resident of; …………… County? [mention name of the target county]", 
+                                                                                                       "Can I presume that you are currently a resident of; …………… Sub-County / Constituency? [mention name of the target sub-county]",
+                                                                                                       "Can I presume that you are currently a resident of; …………… Ward? [mention name of the target ward]"]),
+                    ## GENERAL ELECTORAL ENVIRONMENT
+                    QuestionConfiguration(engagement_db_dataset="aik_voting_participation", question_titles=["Do you plan on voting in the August 9th General Elections?", "If NOT, why are you not planning to vote? "]),
+                    QuestionConfiguration(engagement_db_dataset="aik_political_participation", question_titles=["Do you feel comfortable participating in any political activities in your area of residence?", 
+                                                                                                               "Reasons for your answer on political activities participation."]),
+                    QuestionConfiguration(engagement_db_dataset="aik_political_environment", question_titles=["Do you think the political and security environment is conducive to free and fair elections?"]),
+
+                    ## HATE SPEECH AND INCITEMENT 
+                    # QuestionConfiguration(engagement_db_dataset="aik_election_conversations", question_titles=["In your view, have elections-related conversations become more controversial and conflictual in the past two weeks than the two weeks before?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_hate_speech_and_actions_target", question_titles=["Have you heard comments or seen actions motivated by hatred/negative attitudes regarding a person's identity in the last two weeks?", 
+                                                                                                                      "If YES, What did they target?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_identity_groups_increase", question_titles=["In your view, has there been an increase in groups with strong political identities challenging others with different loyalties?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_political_events_disruption", question_titles=["In your area, has there been an increase in disruption of political events by the opponent's supporters?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_intolerance_incidents", question_titles=["In your area, has there been an increase in bullying, harassment, and general intolerance incidents? ",
+                                                                                                             "If YES, on what grounds?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_unsafe_areas", question_titles=["Are there areas in your community that have become more unsafe in the last two weeks?", 
+                                                                                                    "If YES, where and why are they unsafe?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_electoral_violence_anxiety", question_titles=["Are you or your family/neighbours more worried about electoral violence than two weeks ago?", 
+                                                                                                                  "If YES, why are they worried about electoral violence?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_electoral_sexual_gender_based_violence", question_titles=["Are you or your family/neighbours more worried about electoral gender-based violence than two weeks ago? ", 
+                                                                                                                              "If YES, why are they worried about electoral gender-based violence?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_willingness_to_help_victims", question_titles=["Would you be willing to help a neighbour from a different political view or ethnic background if they were attacked?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_engaging_authorities", question_titles=["Does your household know how to safely and quickly report a crime or seek help from the authorities? "]),
+                    QuestionConfiguration(engagement_db_dataset="aik_incitement_sources", question_titles=["Which sources have you seen or heard hateful/inciteful statements about other communities, identities, and religions in the last two weeks?",
+                                                                                                          "If there are any, what was the nature of the statements?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_vote_buying_incidents", question_titles=["Have you heard or seen incidents of voters being encouraged not to vote or sell their voters cards?", 
+                                                                                                   "If YES, when and where did this incidents of encouragement on not to vote happen?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_source_of_vote_buying", question_titles=["Who encouraged this?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_influence_on_voting_choices", question_titles=["Based on the campaign activities over the past two weeks, what do you think will influence people's voting choices in your area?"]),
+                    
+                    ## RISK OF VIOLENCE & CONFLICT
+                    QuestionConfiguration(engagement_db_dataset="aik_incidents_of_polarisation", question_titles=["In the last two weeks, have some areas become no go areas for political supporters or ethnic groups.", 
+                                                                                                                 "If YES, when and where did this happen, and who is being driven out?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_inability_to_work", question_titles=["Are there community members who have not been able to work in the last two weeks?", 
+                                                                                                         "If YES, why has this happened to those community members?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_incidents_of_violence_and_polarisation", question_titles=["Have violent public protests or communal riots taken place?", 
+                                                                                                                              "If YES, when, where and why did this public riots or communal riots happen?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_police_brutality", question_titles=["Have police officers used excessive force and / or live ammunition to respond to protesters?", 
+                                                                                                        "If YES, when and where did this incident on police brutality happen?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_vandalism_theft_incidents", question_titles=["Have people's homes and assets been vandalized and/or stolen? "]),
+                    QuestionConfiguration(engagement_db_dataset="aik_physical_harm", question_titles=["Have there been injuries and deaths related to elections activities in the last two weeks?", 
+                                                                                                     "If YES, when and where did this election physical harm happen?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_sexual_assault", question_titles=["Have members of your community been sexually assaulted or raped related to elections activities in the last two weeks?", 
+                                                                                                      "If YES, when and where did this sexual assault happen?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_violence_displacement", question_titles=["Has violence displaced members of your community?", 
+                                                                                                             "If YES, when and where did this incidents of displacement happen?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_concern_about_safety_and_security", question_titles=["Based on the current political and security environment, are you concerned about safety and security within your community?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_peace_and_security_initiatives", question_titles=["Have you heard of Initiatives aimed at enhancing peace and security in the last two weeks?", 
+                                                                                                                      "If YES, what were the peace and security initiatives?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_iebc_effectiveness", question_titles=["Independent Electoral and Boundaries Commission (IEBC)", "Add reason for the score on IEBC?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_nps_effectiveness", question_titles=["National Police Service", "Add reason for the score on NPS?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_ncic_effectiveness", question_titles=["National Cohesion and Integration Commission(NCIC)", "Add reason for the score on NCIC?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_dpp_effectiveness", question_titles=["Office of the Director of Public Prosecutions", "Add reason for the score on DPP?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_ipoa_effectiveness", question_titles=["Independent Policing Oversight Authority", "Add reason for the score on IPOA?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_judiciary_effectiveness", question_titles=["The Judiciary", "Add reason for the score on Judiciary?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_knchr_effectiveness", question_titles=["Kenya National Commission on Human Rights", "Add reason for the score on KNCHR?"]),
+                    QuestionConfiguration(engagement_db_dataset="aik_other_institutions_effectiveness", question_titles=["List other institutions and their ratings?"])
                 ]
             )
         )
