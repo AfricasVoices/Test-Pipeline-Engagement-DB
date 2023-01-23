@@ -90,7 +90,7 @@ def _get_new_runs(rapid_pro, flow_id, cache=None):
 
     filter_last_modified_after = None
     if flow_last_updated is None:
-        # There is no last modified timestamp in the cache, so use the
+        # There is no last modified timestamp in the cache, so use the flow's creation date as the start date instead.
         flow = rapid_pro.get_flow(flow_id)
         filter_last_modified_after = flow.created_on
     else:
