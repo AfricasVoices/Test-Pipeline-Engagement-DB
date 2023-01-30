@@ -54,4 +54,7 @@ if __name__ == "__main__":
 
     if not args.skip_updating_coda_users_and_code_schemes:
         ensure_coda_users_and_code_schemes_up_to_date(coda, pipeline_config.coda_sync.sync_config, google_cloud_credentials_file_path, dry_run)
+    else:
+        log.warning("Skipping updating coda users and code schemes...")
+        
     sync_coda_to_engagement_db(coda, engagement_db, pipeline_config.coda_sync.sync_config, incremental_cache_path, dry_run)
