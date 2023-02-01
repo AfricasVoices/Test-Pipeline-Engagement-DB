@@ -187,7 +187,7 @@ def _merge_engagement_db_messages(messages_with_origin_details, answers_delimete
     assert len(messages_with_origin_details) > 1
 
     participant_uuid, dataset = None, None
-    texts, timestamps, origin_id, messages_origin_details = [], [], [], []
+    texts, timestamps, origin_ids, messages_origin_details = [], [], [], []
     for index, message_with_origin_details in enumerate(messages_with_origin_details):
         msg, origin_details = message_with_origin_details
 
