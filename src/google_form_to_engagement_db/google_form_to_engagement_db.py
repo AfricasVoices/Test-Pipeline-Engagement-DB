@@ -200,7 +200,7 @@ def _merge_engagement_db_messages(messages_with_origin_details, answers_delimete
             participant_uuid, dataset = msg.participant_uuid, msg.dataset
             continue
         
-        assert msg.participant_uuid == participant_uuid and not None
+        assert msg.participant_uuid == participant_uuid and participant_uuid not None
         assert msg.dataset == dataset and not None
 
     text, timestamp = answers_delimeter.join(texts), sorted(timestamps)[-1]
