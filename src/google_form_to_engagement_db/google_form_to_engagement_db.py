@@ -191,7 +191,8 @@ def _merge_engagement_db_messages(messages_with_origin_details, answers_delimete
     for index, message_with_origin_details in enumerate(messages_with_origin_details):
         msg, origin_details = message_with_origin_details
 
-        texts.append(msg.text); timestamps.append(msg.timestamp)
+        texts.append(msg.text)
+        timestamps.append(msg.timestamp)
         origin_id.append(msg.origin.origin_id)
         messages_origin_details.append(origin_details)
 
