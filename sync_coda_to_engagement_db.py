@@ -6,7 +6,7 @@ from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
 from src.engagement_db_coda_sync.coda_to_engagement_db import sync_coda_to_engagement_db
-from src.engagement_db_coda_sync.lib import ensure_coda_datasets_up_to_date
+from src.engagement_db_coda_sync.lib import ensure_coda_users_and_code_schemes_up_to_date
 
 log = Logger(__name__)
 
@@ -17,6 +17,8 @@ if __name__ == "__main__":
                         help="Logs the updates that would be made without updating anything.")
     parser.add_argument("--incremental-cache-path",
                         help="Path to a directory to use to cache results needed for incremental operation.")
+    parser.add_argument("-s", "--skip-updating-coda-users-and-code-schemes", action="store_true",
+                        help="Whether to skip updating coda users and code schemes")
     parser.add_argument("user", help="Identifier of the user launching this program")
     parser.add_argument("google_cloud_credentials_file_path", metavar="google-cloud-credentials-file-path",
                         help="Path to a Google Cloud service account credentials file to use to access the "
@@ -50,5 +52,9 @@ if __name__ == "__main__":
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
     coda = pipeline_config.coda_sync.coda.init_coda_client(google_cloud_credentials_file_path)
 
-    ensure_coda_datasets_up_to_date(coda, pipeline_config.coda_sync.sync_config, google_cloud_credentials_file_path, dry_run)
+    if not args.skip_updating_coda_users_and_code_schemes:
+        ensure_coda_users_and_code_schemes_up_to_date(coda, pipeline_config.coda_sync.sync_config, google_cloud_credentials_file_path, dry_run)
+    else:
+        log.warning("Skipping updating coda users and code schemes...")
+        
     sync_coda_to_engagement_db(coda, engagement_db, pipeline_config.coda_sync.sync_config, incremental_cache_path, dry_run)
