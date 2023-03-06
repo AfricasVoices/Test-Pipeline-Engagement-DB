@@ -193,7 +193,7 @@ def _merge_engagement_db_messages(messages_with_origin_details, answers_delimete
 
         texts.append(msg.text)
         timestamps.append(msg.timestamp)
-        origin_id.append(msg.origin.origin_id)
+        origin_ids.append(msg.origin.origin_id)
         messages_origin_details.append(origin_details)
 
         if index == 0:
@@ -214,7 +214,7 @@ def _merge_engagement_db_messages(messages_with_origin_details, answers_delimete
         dataset=dataset,
         labels=[],
         origin=MessageOrigin(
-            origin_id=origin_id,
+            origin_id=origin_ids,
             origin_type="google_form"
         )
     )
