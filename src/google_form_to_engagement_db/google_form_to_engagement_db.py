@@ -186,7 +186,8 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
 
 
 def _merge_engagement_db_messages(messages_with_origin_details, answers_delimeter):
-    assert len(messages_with_origin_details) > 1
+    assert len(messages_with_origin_details) > 1, \
+        f"Expected at least 2 messages with origin details, but found {len(messages_with_origin_details)}."
 
     participant_uuid, dataset = None, None
     texts, timestamps, origin_ids, messages_origin_details = [], [], [], []
@@ -201,9 +202,12 @@ def _merge_engagement_db_messages(messages_with_origin_details, answers_delimete
         if index == 0:
             participant_uuid, dataset = msg.participant_uuid, msg.dataset
             continue
-        
-        assert participant_uuid is not None and msg.participant_uuid == participant_uuid
-        assert dataset is not None and msg.dataset == dataset
+
+        assert participant_uuid is not None and msg.participant_uuid == participant_uuid, \
+            f"Attempted merging messages where the participant uuid is None or the messages are not from the same participant"
+
+        assert dataset is not None and msg.dataset == dataset, \
+            f"Attempted merging messages where the dataset is None or the messages are not from the same dataset"
 
     text, timestamp = answers_delimeter.join(texts), sorted(timestamps)[-1]
     message = Message(
@@ -242,7 +246,7 @@ def _engagement_db_has_message(engagement_db, message):
     """
     matching_messages_filter = lambda q: q.where("origin.origin_id", "==", message.origin.origin_id)
     matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
-    assert len(matching_messages) < 2
+    assert len(matching_messages) < 2, f"Expected at most 1 matching message in database, but found {len(matching_messages)}."
 
     return len(matching_messages) > 0
 
@@ -375,7 +379,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
             question_id_to_engagement_db_message[answer["questionId"]] = (engagement_db_message, engagement_db_message_origin_details)
 
         for question_config in form_config.question_configurations:
-            assert len(question_config.question_titles) > 0
+            assert len(question_config.question_titles) > 0, "No question titles found in the question configuration."
             if len(question_config.question_titles) == 1:
                 question_id = question_title_to_question_id[question_config.question_titles[0]]
                 if question_id not in question_id_to_engagement_db_message:
