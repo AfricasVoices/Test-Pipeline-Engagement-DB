@@ -122,12 +122,14 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
     :return: Participant uuid for this response.
     :rtype: str
     """
-    participant_id_answer = response["answers"].get(participant_id_question_id, None)
-    if participant_id_answer is None:
+    participant_id_answers = response["answers"].get(participant_id_question_id, None)
+    if participant_id_answers is None:
         participant_uuid = response["responseId"]
     else:
-        assert len(participant_id_answer["textAnswers"]["answers"]) == 1
-        participant_id = participant_id_answer["textAnswers"]["answers"][0]["value"]
+        participant_id_answers_count = len(participant_id_answers["textAnswers"]["answers"])
+        assert participant_id_answers_count == 1, f"Expected one answer for participant id, " \
+            f"but found {participant_id_answers_count} answers"
+        participant_id = participant_id_answers["textAnswers"]["answers"][0]["value"]
 
         assert id_type == GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER, \
             f"Participant id type {id_type} not recognised."
