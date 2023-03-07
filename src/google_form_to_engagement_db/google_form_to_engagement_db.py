@@ -209,7 +209,7 @@ def _merge_engagement_db_messages(messages_with_origin_details, answers_delimete
         assert dataset is not None and msg.dataset == dataset, \
             f"Attempted merging messages where the dataset is None or the messages are not from the same dataset"
 
-    text, timestamp = answers_delimeter.join(texts), sorted(timestamps)[-1]
+    text, timestamp = answers_delimeter.join(texts), min(timestamps, key=lambda x: x.timestamp())
     message = Message(
         participant_uuid=participant_uuid,
         text=text,
