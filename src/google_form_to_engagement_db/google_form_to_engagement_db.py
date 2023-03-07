@@ -122,12 +122,14 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
     :return: Participant uuid for this response.
     :rtype: str
     """
-    participant_id_answer = response["answers"].get(participant_id_question_id, None)
-    if participant_id_answer is None:
+    participant_id_answers = response["answers"].get(participant_id_question_id, None)
+    if participant_id_answers is None:
         participant_uuid = response["responseId"]
     else:
-        assert len(participant_id_answer["textAnswers"]["answers"]) == 1
-        participant_id = participant_id_answer["textAnswers"]["answers"][0]["value"]
+        participant_id_answers_count = len(participant_id_answers["textAnswers"]["answers"])
+        assert participant_id_answers_count == 1, f"Expected one answer for participant id, " \
+            f"but found {participant_id_answers_count} answers"
+        participant_id = participant_id_answers["textAnswers"]["answers"][0]["value"]
 
         assert id_type == GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER, \
             f"Participant id type {id_type} not recognised."
@@ -184,25 +186,30 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
 
 
 def _merge_engagement_db_messages(messages_with_origin_details, answers_delimeter):
-    assert len(messages_with_origin_details) > 1
+    assert len(messages_with_origin_details) > 1, \
+        f"Expected at least 2 messages with origin details, but found {len(messages_with_origin_details)}."
 
     participant_uuid, dataset = None, None
-    texts, timestamps, origin_id, messages_origin_details = [], [], [], []
+    texts, timestamps, origin_ids, messages_origin_details = [], [], [], []
     for index, message_with_origin_details in enumerate(messages_with_origin_details):
         msg, origin_details = message_with_origin_details
 
-        texts.append(msg.text); timestamps.append(msg.timestamp)
-        origin_id.append(msg.origin.origin_id)
+        texts.append(msg.text)
+        timestamps.append(msg.timestamp)
+        origin_ids.append(msg.origin.origin_id)
         messages_origin_details.append(origin_details)
 
         if index == 0:
             participant_uuid, dataset = msg.participant_uuid, msg.dataset
             continue
-        
-        assert msg.participant_uuid == participant_uuid and not None
-        assert msg.dataset == dataset and not None
 
-    text, timestamp = answers_delimeter.join(texts), sorted(timestamps)[-1]
+        assert participant_uuid is not None and msg.participant_uuid == participant_uuid, \
+            f"Attempted merging messages where the participant uuid is None or the messages are not from the same participant"
+
+        assert dataset is not None and msg.dataset == dataset, \
+            f"Attempted merging messages where the dataset is None or the messages are not from the same dataset"
+
+    text, timestamp = answers_delimeter.join(texts), min(timestamps, key=lambda x: x.timestamp())
     message = Message(
         participant_uuid=participant_uuid,
         text=text,
@@ -213,7 +220,7 @@ def _merge_engagement_db_messages(messages_with_origin_details, answers_delimete
         dataset=dataset,
         labels=[],
         origin=MessageOrigin(
-            origin_id=origin_id,
+            origin_id=origin_ids,
             origin_type="google_form"
         )
     )
@@ -239,7 +246,7 @@ def _engagement_db_has_message(engagement_db, message):
     """
     matching_messages_filter = lambda q: q.where("origin.origin_id", "==", message.origin.origin_id)
     matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
-    assert len(matching_messages) < 2
+    assert len(matching_messages) < 2, f"Expected at most 1 matching message in database, but found {len(matching_messages)}."
 
     return len(matching_messages) > 0
 
@@ -377,7 +384,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
             question_id_to_engagement_db_message[answer["questionId"]] = (engagement_db_message, engagement_db_message_origin_details)
 
         for question_config in form_config.question_configurations:
-            assert len(question_config.question_titles) > 0
+            assert len(question_config.question_titles) > 0, "No question titles found in the question configuration."
             if len(question_config.question_titles) == 1:
                 question_id = question_title_to_question_id[question_config.question_titles[0]]
                 if question_id not in question_id_to_engagement_db_message:
