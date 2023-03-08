@@ -7,6 +7,10 @@ RUN pip install pipenv
 # ARM support
 RUN apt-get update && apt-get install -y libgeos-dev libgdal-dev build-essential
 
+# R
+RUN apt-get update && apt-get install -y python3-dev r-base cmake
+RUN R -e "install.packages('arm', dependencies=TRUE, repos='https://cran.rstudio.com/')"
+
 # Make a directory for private credentials files
 RUN mkdir /credentials
 

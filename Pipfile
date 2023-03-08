@@ -10,6 +10,7 @@ CodaV2PythonClient = {editable = true,git = "https://www.github.com/AfricasVoice
 PipelineInfrastructure = {editable = true,git = "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",ref = "v0.1.5"}
 SocialMediaTools = {editable = true,git = "https://www.github.com/AfricasVoices/SocialMediaTools",ref = "v0.1.2"}
 telethon = "*"
+rpy2 = "*"
 
 [dev-packages]
 
