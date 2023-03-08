@@ -110,8 +110,12 @@ def _normalise_and_validate_contact_urn(contact_urn):
     :return: Normalised contact urn.
     :rtype: str
     """
+    # if contact_urn.startswith("tel:"):
+    #     assert contact_urn.startswith("tel:+")
+
     if contact_urn.startswith("tel:"):
-        assert contact_urn.startswith("tel:+")
+        if not contact_urn.startswith("tel:+"):
+            return "skip"
 
     if contact_urn.startswith("telegram:"):
         # Sometimes a telegram urn ends with an optional #<username> e.g. telegram:123456#testuser
@@ -259,6 +263,8 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
             contact = contacts_lut[run.contact.uuid]
             assert len(contact.urns) == 1, len(contact.urns)
             contact_urn = _normalise_and_validate_contact_urn(contact.urns[0])
+            if contact_urn == "skip":
+                continue
 
             if rapid_pro_config.uuid_filter is not None:
                 # If a uuid filter exists, then only add this message if the sender's uuid exists in the uuid table
