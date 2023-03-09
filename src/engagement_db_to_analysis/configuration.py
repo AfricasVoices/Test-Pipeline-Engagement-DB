@@ -154,7 +154,8 @@ class MembershipGroupConfiguration:
 
 class AnalysisConfiguration:
     def __init__(self, dataset_configurations, ws_correct_dataset_code_scheme, cross_tabs=None, traffic_labels=None,
-                 google_drive_upload=None, membership_group_configuration=None):
+                 google_drive_upload=None, membership_group_configuration=None,
+                 enable_experimental_regression_analysis=False):
         """
         Configuration for an analysis of data in an engagement database.
 
@@ -181,6 +182,11 @@ class AnalysisConfiguration:
                                                of participants based on participation in provided datasets.
                                                See `MembershipGroupConfiguration` for more details.
         :type membership_group_configuration: MembershipGroupConfiguration
+        :param enable_experimental_regression_analysis: Whether to run the experimental regression analysis.
+                                                        Regression analysis is in beta and therefore not suitable for
+                                                        all pipelines.
+                                                        TODO: Remove this feature flag once stable.
+        :type enable_experimental_regression_analysis: bool
         """
         self.dataset_configurations = dataset_configurations
         self.ws_correct_dataset_code_scheme = ws_correct_dataset_code_scheme
@@ -188,3 +194,4 @@ class AnalysisConfiguration:
         self.traffic_labels = traffic_labels
         self.google_drive_upload = google_drive_upload
         self.membership_group_configuration = membership_group_configuration
+        self.enable_experimental_regression_analysis = enable_experimental_regression_analysis
