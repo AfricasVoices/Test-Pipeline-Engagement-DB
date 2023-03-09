@@ -15,7 +15,7 @@ def convert_dicts_to_r_data_frame(dicts, types):
     :type types: dict of str -> type
     """
     if len(dicts) == 0:
-        return DataFrame([])
+        return DataFrame({})
 
     # Ensure every dict contains the same keys
     keys = set(dicts[0].keys())
