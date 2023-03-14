@@ -251,7 +251,7 @@ def _engagement_db_has_message(engagement_db, message):
     return len(matching_messages) > 0
 
 
-def _ensure_engagement_db_has_message(engagement_db, message_with_origin_details, dry_run):
+def _ensure_engagement_db_has_message(engagement_db, message_with_origin_details, dry_run=False):
     """
     Ensures that the given message exists in an engagement database.
 
