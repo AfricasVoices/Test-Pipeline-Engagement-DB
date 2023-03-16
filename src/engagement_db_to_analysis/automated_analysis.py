@@ -8,8 +8,10 @@ from src.engagement_db_to_analysis.column_view_conversion import (analysis_datas
                                                                   analysis_dataset_configs_to_demog_column_configs,
                                                                   analysis_dataset_configs_to_column_configs)
 from src.engagement_db_to_analysis.configuration import AnalysisLocations
-from src.engagement_db_to_analysis.regression_analysis.complete_case_regression_analysis import (
-    export_all_complete_case_regression_analysis_txt)
+from src.engagement_db_to_analysis.regression_analysis.complete_case_regression_analysis import \
+    export_all_complete_case_regression_analysis_txt
+from src.engagement_db_to_analysis.regression_analysis.multiple_imputation_regression_analysis import \
+    export_all_multiple_imputation_regression_analysis_txt
 
 log = Logger(__name__)
 
@@ -104,9 +106,15 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
         log.debug("Not running any traffic analysis because analysis_configuration.traffic_labels is None")
 
     if analysis_config.enable_experimental_regression_analysis:
-        log.info(f"Running experimental regression analysis...")
+        log.info(f"Running experimental complete-case regression analysis...")
         with open(f"{export_dir_path}/complete_case_regression.txt", "w") as f:
             export_all_complete_case_regression_analysis_txt(
+                participants_by_column, "consent_withdrawn", rqa_column_configs, demog_column_configs, f
+            )
+
+        log.info(f"Running experimental multiple-imputation regression analysis...")
+        with open(f"{export_dir_path}/multiple_imputation_regression.txt", "w") as f:
+            export_all_multiple_imputation_regression_analysis_txt(
                 participants_by_column, "consent_withdrawn", rqa_column_configs, demog_column_configs, f
             )
 
