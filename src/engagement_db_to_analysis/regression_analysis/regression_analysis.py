@@ -71,7 +71,7 @@ def run_all_regression_analysis(participants, consent_withdrawn_field, rqa_analy
     :type consent_withdrawn_field: str
     :param rqa_analysis_configs: Configurations for the RQA datasets to run the regression on.
                                  Each RQA will be analysed independently.
-    :type rqa_analysis_configs: core_data_modules.analysis.AnalysisConfiguration
+    :type rqa_analysis_configs: list of core_data_modules.analysis.AnalysisConfiguration
     :param demog_analysis_configs: Configuration for the demographic datasets to run the regression on.
                                    TODO: The actual demographics are currently a hard-coded subset of what is provided
                                          here. Derive automatically or from configuration in future.
@@ -79,7 +79,7 @@ def run_all_regression_analysis(participants, consent_withdrawn_field, rqa_analy
     """
     all_results = dict()  # of dataset_name -> (dict of theme -> results table as text)
     for rqa_config in rqa_analysis_configs:
-        rqa_results = run_complete_case_regression_analysis(
+        rqa_results = run_multiple_imputation_regression_analysis(
             participants, consent_withdrawn_field, rqa_config, demog_analysis_configs
         )
         all_results[rqa_config.dataset_name] = rqa_results
@@ -98,7 +98,7 @@ def export_all_regression_analysis_txt(participants, consent_withdrawn_field, rq
     :type consent_withdrawn_field: str
     :param rqa_analysis_configs: Configurations for the RQA datasets to run the regression on.
                                  Each RQA will be analysed independently.
-    :type rqa_analysis_configs: core_data_modules.analysis.AnalysisConfiguration
+    :type rqa_analysis_configs: list of core_data_modules.analysis.AnalysisConfiguration
     :param demog_analysis_configs: Configuration for the demographic datasets to run the regression on.
                                    TODO: The actual demographics are currently a hard-coded subset of what is provided
                                          here. Derive automatically or from configuration in future.
