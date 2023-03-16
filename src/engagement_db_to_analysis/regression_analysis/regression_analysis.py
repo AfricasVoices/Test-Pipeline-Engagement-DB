@@ -79,7 +79,7 @@ def run_all_regression_analysis(participants, consent_withdrawn_field, rqa_analy
     """
     all_results = dict()  # of dataset_name -> (dict of theme -> results table as text)
     for rqa_config in rqa_analysis_configs:
-        rqa_results = run_multiple_imputation_regression_analysis(
+        rqa_results = run_complete_case_regression_analysis(
             participants, consent_withdrawn_field, rqa_config, demog_analysis_configs
         )
         all_results[rqa_config.dataset_name] = rqa_results
