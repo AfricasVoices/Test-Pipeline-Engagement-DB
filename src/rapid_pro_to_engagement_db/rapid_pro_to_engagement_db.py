@@ -79,7 +79,8 @@ def _get_new_runs(rapid_pro, flow_id, cache=None):
     :type flow_id: str
     :param cache: Cache to check for a timestamp of a previous export. If None, downloads all runs.
     :type cache: src.rapid_pro_to_engagement_db.cache.RapidProSyncCache | None
-    :return: Runs modified for the given flow since the cache was last updated, if possible, else from all of time.
+    :return: Runs modified for the given flow since the cache was last updated, if possible, else from the flow's
+             creation datetime.
     :rtype: list of temba_client.v2.Run
     """
     # Try to get the last modified timestamp from the cache
@@ -87,9 +88,12 @@ def _get_new_runs(rapid_pro, flow_id, cache=None):
     if cache is not None:
         flow_last_updated = cache.get_latest_run_timestamp(flow_id)
 
-    # If there is a last updated timestamp in the cache, only download and return runs that have been modified since.
-    filter_last_modified_after = None
-    if flow_last_updated is not None:
+    if flow_last_updated is None:
+        # There is no last modified timestamp in the cache, so use the flow's creation date as the start date instead.
+        flow = rapid_pro.get_flow(flow_id)
+        filter_last_modified_after = flow.created_on
+    else:
+        # There is a last updated timestamp in the cache - only download and return runs that have been modified since.
         filter_last_modified_after = flow_last_updated + timedelta(microseconds=1)
 
     return rapid_pro.get_raw_runs(flow_id, last_modified_after_inclusive=filter_last_modified_after)
@@ -107,8 +111,6 @@ def _normalise_and_validate_contact_urn(contact_urn):
     :rtype: str
     """
     if contact_urn.startswith("tel:"):
-        # TODO: This is known to fail for golis numbers via Shaqodoon. Leaving as a fail-safe for now
-        #       until we're ready to test with golis numbers.
         assert contact_urn.startswith("tel:+")
 
     if contact_urn.startswith("telegram:"):

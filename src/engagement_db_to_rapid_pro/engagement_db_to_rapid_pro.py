@@ -159,6 +159,56 @@ def _code_scheme_for_label(label, code_schemes):
             return code_scheme
 
 
+def _merge_code_schemes(code_schemes):
+    """
+    Merges the given `code_schemes` into a single code scheme containing all the codes from the input `code_schemes`.
+
+    Fails if `len(code_schemes) == 0` or if any of the `code_schemes` have differing `scheme_id`s.
+
+    :param code_schemes: Code schemes to merge into one.
+    :type code_schemes: list of core_data_modules.data_models.CodeScheme
+    :return: `code_schemes` merged into a single code scheme containing all the codes.
+    :rtype: core_data_modules.data_models.CodeScheme
+    """
+    assert len(code_schemes) > 0, len(code_schemes)
+
+    merged_code_scheme = code_schemes[0]
+    for code_scheme in code_schemes[1:]:
+        assert code_scheme.scheme_id == merged_code_scheme.scheme_id
+        # For each code in this code scheme, add it to the merged code scheme if it doesn't exist on that scheme yet.
+        # If it does exist, ensure the code is the same as the one that exists already.
+        for code in code_scheme.codes:
+            merged_code_ids = {c.code_id for c in merged_code_scheme.codes}
+            if code.code_id in merged_code_ids:
+                assert code == merged_code_scheme.get_code_with_code_id(code.code_id)
+                continue
+
+            merged_code_scheme.codes.append(code)
+
+    return merged_code_scheme
+
+
+def _merge_code_schemes_by_scheme_id(code_schemes):
+    """
+    Merges the given `code_schemes` such that those that share the same scheme_id are combined into one code scheme
+    that contains all the codes from the merged code schemes. Code schemes which have unique scheme_ids will be
+    included in the results unmodified.
+
+    :param code_schemes: Code schemes to merge by scheme_id.
+    :type code_schemes: list of core_data_modules.data_models.CodeScheme
+    :return: `code_schemes` merged by scheme_ids.
+    :rtype code_schemes: list of core_data_modules.data_models.CodeScheme
+    """
+    code_schemes_by_id = defaultdict(list)
+    for code_scheme in code_schemes:
+        code_schemes_by_id[code_scheme.scheme_id].append(code_scheme)
+
+    merged_code_schemes = []
+    for code_schemes in code_schemes_by_id.values():
+        merged_code_schemes.append(_merge_code_schemes(code_schemes))
+    return merged_code_schemes
+
+
 def _labels_contain_consent_withdrawn(labels, code_schemes):
     """
     :param labels: Labels to check for consent withdrawn code.
@@ -204,6 +254,19 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
         log.info(f"Initialising engagement db -> rapid pro sync cache at '{cache_path}/engagement_db_to_rapid_pro'")
         cache = Cache(f"{cache_path}/engagement_db_to_rapid_pro")
 
+    # Load all the project code schemes, so we can easily scan for STOP messages later.
+    code_schemes = []
+    for path in glob.glob("code_schemes/**/*.json", recursive=True):
+        with open(path) as f:
+            code_schemes.append(CodeScheme.from_firebase_map(json.load(f)))
+
+    # Some RQAs from projects that were run before this Engagement-Data-Pipeline infrastructure was created accidentally
+    # used the same scheme_id for different code_schemes between projects. Since this stage only uses code schemes
+    # to check for consent withdrawn status, handle this by merging impacted code_schemes into one for now.
+    # TODO: Edit the problematic code schemes in affected projects to give them all unique scheme ids, then
+    #       remove this workaround.
+    code_schemes = _merge_code_schemes_by_scheme_id(code_schemes)
+
     # Get all the messages from the datasets we're interested in syncing, and group them by participant
     messages = _get_all_messages(engagement_db, sync_config, cache)
     messages_by_participant = defaultdict(list)  # of participant_uuid -> list of Message
@@ -233,12 +296,6 @@ def sync_engagement_db_to_rapid_pro(engagement_db, rapid_pro, uuid_table, sync_c
     if sync_config.consent_withdrawn_dataset is not None:
         contact_fields_to_sync.append(sync_config.consent_withdrawn_dataset.rapid_pro_contact_field)
     _ensure_rapid_pro_has_contact_fields(rapid_pro, contact_fields_to_sync, dry_run)
-
-    # Load all the project code schemes so we can easily scan for STOP messages later.
-    code_schemes = []
-    for path in glob.glob("code_schemes/**/*.json", recursive=True):
-        with open(path) as f:
-            code_schemes.append(CodeScheme.from_firebase_map(json.load(f)))
 
     # Sync each message to Rapid Pro, by recomputing the state of every participant.
     participants_synced_this_cycle = set()
