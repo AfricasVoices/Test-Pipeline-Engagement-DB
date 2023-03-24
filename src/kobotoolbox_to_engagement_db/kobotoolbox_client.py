@@ -11,6 +11,7 @@ log = Logger(__name__)
 
 BASE_URL = "https://kf.kobotoolbox.org/api/v2/assets"
 
+
 class KoboToolBoxClient:
     def get_authorization_headers(google_cloud_credentials_file_path, token_file_url):
         """

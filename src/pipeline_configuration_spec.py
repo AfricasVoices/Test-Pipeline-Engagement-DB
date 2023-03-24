@@ -28,7 +28,8 @@ from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfigur
 from src.facebook_to_engagement_db.configuration import (FacebookSource, FacebookDataset, FacebookSearch)
 from src.telegram_to_engagement_db.configuration import (TelegramGroupSource, TelegramGroupDataset, TelegramGroupSearch)
 from src.kobotoolbox_to_engagement_db.configuration import (KoboToolBoxSource, KoboToolBoxToEngagementDBConfiguration, 
-                                                            KoboToolBoxParticipantIdTypes, ParticipantIdConfiguration)
+                                                            KoboToolBoxParticipantIdTypes, KoboToolBoxParticipantIdConfiguration, 
+                                                            KoboToolBoxQuestionConfiguration)
 
 
 def load_code_scheme(fname):

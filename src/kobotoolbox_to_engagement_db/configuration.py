@@ -12,7 +12,7 @@ class KoboToolBoxParticipantIdTypes:
     KENYA_MOBILE_NUMBER = "kenya_mobile_number"
 
 
-class ParticipantIdConfiguration:
+class KoboToolBoxParticipantIdConfiguration:
     def __init__(self, data_column_name, id_type):
         """
         Configuration for a participant uuid question.
@@ -27,7 +27,7 @@ class ParticipantIdConfiguration:
         self.id_type = id_type
 
 
-class QuestionConfiguration:
+class KoboToolBoxQuestionConfiguration:
     def __init__(self, data_column_name, engagement_db_dataset):
         """
         :param data_column_name: This are the variable names that store response for a question.
@@ -63,7 +63,7 @@ class KoboToolBoxToEngagementDBConfiguration:
         if participant_id_configuration is not None and participant_id_configuration.id_type not in \
             [KoboToolBoxParticipantIdTypes.KENYA_MOBILE_NUMBER]:
             assert ignore_invalid_mobile_numbers == False, f"`ignore_invalid_mobile_numbers` cannot be set to True " \
-                f"if participant id type is {participant_id_configuration.id_type}. See `GoogleFormToEngagementDBConfiguration`"
+                f"if participant id type is {participant_id_configuration.id_type}. See `KoboToolBoxToEngagementDBConfiguration`"
 
 
 class KoboToolBoxSource:
