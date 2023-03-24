@@ -2,28 +2,25 @@
 
 set -e
 
-PROJECT_NAME="$(<configurations/docker_image_project_name.txt)"
-IMAGE_NAME=$PROJECT_NAME-log-pipeline-event
+IMAGE_NAME="$(<configurations/docker_image_name.txt)"
 
 # Check that the correct number of arguments were provided.
-if [[ $# -ne 4 ]]; then
+if [[ $# -ne 5 ]]; then
     echo "Usage: ./docker-run-log-pipeline-event.sh
-    [--profile-cpu <cpu-profile-output-path>] <configuration-module> <google-cloud-credentials-file-path> \
-     <run-id> <event-key>"
+    [--profile-cpu <cpu-profile-output-path>] <configuration-file> <code-schemes-dir>
+     <google-cloud-credentials-file-path> <run-id> <event-key>"
     echo "Updates pipeline event/status to a firebase table to aid in monitoring"
-    exit
+    exit 1
 fi
+
 # Assign the program arguments to bash variables.
-CONFIGURATION_MODULE=$1
-GOOGLE_CLOUD_CREDENTIALS_PATH=$2
-RUN_ID=$3
-EVENT_KEY=$4
+CONFIGURATION_FILE=$1
+CODE_SCHEMES_DIR=$2
+GOOGLE_CLOUD_CREDENTIALS_PATH=$3
+RUN_ID=$4
+EVENT_KEY=$5
 
-# Build an image for this pipeline stage.
-docker build -t "$IMAGE_NAME" .
-
-# Create a container from the image that was just built.
-CMD="pipenv run python -u log_pipeline_event.py ${CONFIGURATION_MODULE}  /credentials/google-cloud-credentials.json \
+CMD="pipenv run python -u log_pipeline_event.py configuration /credentials/google-cloud-credentials.json \
        ${RUN_ID} ${EVENT_KEY}"
 
 container="$(docker container create -w /app "$IMAGE_NAME" /bin/bash -c "$CMD")"
@@ -34,6 +31,12 @@ container_short_id=${container:0:7}
 # Copy input data into the container
 echo "Copying $GOOGLE_CLOUD_CREDENTIALS_PATH -> $container_short_id:/credentials/google-cloud-credentials.json"
 docker cp "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$container:/credentials/google-cloud-credentials.json"
+
+echo "Copying $CODE_SCHEMES_DIR -> $container_short_id:/app/code_schemes"
+docker cp "$CODE_SCHEMES_DIR" "$container:/app/code_schemes"
+
+echo "Copying $CONFIGURATION_FILE -> $container_short_id:/app/configuration.py"
+docker cp "$CONFIGURATION_FILE" "$container:/app/configuration.py"
 
 # Run the container
 echo "Starting container $container_short_id"
