@@ -182,6 +182,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     data_column_name="phone_number",
                     id_type=KoboToolBoxParticipantIdTypes.KENYA_MOBILE_NUMBER
                 ),
+                ignore_invalid_mobile_numbers=True,
                 question_configurations=[
                     # Long answer
                     QuestionConfiguration(data_column_name="leap_s05e01?", engagement_db_dataset="leap_s05e01"),
