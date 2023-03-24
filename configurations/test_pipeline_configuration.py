@@ -177,7 +177,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         KoboToolBoxSource(
             token_file_url="gs://avf-credentials/dev-kobotoolbox-credentials.json",
             sync_config=KoboToolBoxToEngagementDBConfiguration(
-                asset_uid="aGHhW23K5kyM6xwh3uEeaY".
+                asset_uid="aGHhW23K5kyM6xwh3uEeaY",
                 participant_id_configuration=ParticipantIdConfiguration(
                     data_column_name="phone_number",
                     id_type=KoboToolBoxParticipantIdTypes.KENYA_MOBILE_NUMBER
