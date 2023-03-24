@@ -4,6 +4,7 @@ import json
 from dateutil.parser import isoparse
 
 from storage.google_cloud import google_cloud_utils
+from core_data_modules.logging import Logger
 
 log = Logger(__name__)
 
