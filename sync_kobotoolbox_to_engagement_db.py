@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     HistoryEntryOrigin.set_defaults(user, project, pipeline, commit)
 
-    if pipeline_config.telegram_group_sources is None:
+    if pipeline_config.kobotoolbox_sources is None:
         log.info(f"No KoboToolBox sources specified; exiting")
         exit(0)
 
