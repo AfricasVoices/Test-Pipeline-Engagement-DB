@@ -173,6 +173,31 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             )
         )
     ],
+    kobotoolbox_sources=[
+        KoboToolBoxSource(
+            token_file_url="gs://avf-credentials/dev-kobotoolbox-credentials.json",
+            sync_config=KoboToolBoxToEngagementDBConfiguration(
+                asset_uid="aGHhW23K5kyM6xwh3uEeaY".
+                participant_id_configuration=ParticipantIdConfiguration(
+                    data_column_name="phone_number",
+                    id_type=KoboToolBoxParticipantIdTypes.KENYA_MOBILE_NUMBER
+                ),
+                question_configurations=[
+                    # Long answer
+                    QuestionConfiguration(data_column_name="leap_s05e01?", engagement_db_dataset="leap_s05e01"),
+
+                    # Multiple choice question
+                    QuestionConfiguration(data_column_name=["gender?"], engagement_db_dataset="gender"),
+
+                    # Numeric answer
+                    QuestionConfiguration(data_column_name=["age"], engagement_db_dataset="age"),
+
+                    # Multiple choice question
+                    QuestionConfiguration(data_column_name=["disability"], engagement_db_dataset="disability"),
+                ]
+            )
+        )
+    ],
     coda_sync=CodaConfiguration(
         coda=CodaClientConfiguration(credentials_file_url="gs://avf-credentials/coda-staging.json"),
         sync_config=CodaSyncConfiguration(

@@ -27,6 +27,8 @@ from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfigur
                                                          MembershipGroupConfiguration, AnalysisConfiguration)
 from src.facebook_to_engagement_db.configuration import (FacebookSource, FacebookDataset, FacebookSearch)
 from src.telegram_to_engagement_db.configuration import (TelegramGroupSource, TelegramGroupDataset, TelegramGroupSearch)
+from src.kobotoolbox_to_engagement_db.configuration import (KoboToolBoxSource, KoboToolBoxToEngagementDBConfiguration, 
+                                                            KoboToolBoxParticipantIdTypes)
 
 
 def load_code_scheme(fname):
@@ -69,6 +71,7 @@ class PipelineConfiguration:
     telegram_group_sources: Optional[List[TelegramGroupSource]] = None
     csv_sources: Optional[List[CSVSource]] = None
     google_form_sources: Optional[List[GoogleFormSource]] = None
+    kobotoolbox_sources: Optional[List[KoboToolBoxSource]] = None
     coda_sync: CodaConfiguration = None
     rapid_pro_target: RapidProTarget = None
     analysis: AnalysisConfiguration = None
