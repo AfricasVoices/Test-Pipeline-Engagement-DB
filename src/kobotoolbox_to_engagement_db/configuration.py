@@ -3,7 +3,6 @@ import json
 from core_data_modules.logging import Logger
 from storage.google_cloud import google_cloud_utils
 
-from src.google_form_to_engagement_db.google_forms_client import GoogleFormsClient
 
 log = Logger(__name__)
 
@@ -20,7 +19,7 @@ class ParticipantIdConfiguration:
 
         :param data_column_name:  This is the variable name that stores to the form user for this question
                                e.g. "What is your phone number?"
-        :type question_title: str
+        :type data_column_name: str
         :param id_type: See `KoboToolBoxParticipantIdTypes`.
         :type id_type: str
         """
@@ -29,14 +28,14 @@ class ParticipantIdConfiguration:
 
 
 class QuestionConfiguration:
-    def __init__(self, data_column_name, engagement_db_dataset,):
+    def __init__(self, data_column_name, engagement_db_dataset):
         """
         :param data_column_name: This are the variable names that store response for a question.
         :type data_column_name: str
         :param engagement_db_dataset: Name of the dataset to use in the engagement database.
         :type engagement_db_dataset: str
         """
-        self.question_titles = data_column_name
+        self.data_column_name = data_column_name
         self.engagement_db_dataset = engagement_db_dataset
 
 
