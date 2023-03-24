@@ -25,7 +25,7 @@ ARCHIVE_FILE="$ARCHIVE_DIR/data-$RUN_ID.tar.gzip"
 
 echo "Starting a new pipeline run with id ${RUN_ID}"
 
-./docker-run-kobotoolbox-to-engagement-db \
+./docker-run-kobotoolbox-to-engagement-db.sh \
     --incremental-cache-volume "$PIPELINE_NAME-google-forms-to-engagement-db-cache"  \
     "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_FILE" "$CODE_SCHEMES_DIR" "$DATA_DIR"
 
