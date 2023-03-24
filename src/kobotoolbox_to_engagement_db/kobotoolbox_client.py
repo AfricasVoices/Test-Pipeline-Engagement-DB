@@ -24,7 +24,7 @@ class KoboToolBoxClient:
         :rtype: 
         """
         log.info('Downloading telegram access tokens...')
-        api_token = json.loads(google_cloud_utils.download_blob_to_string(
+        api_token = json.load(google_cloud_utils.download_blob_to_string(
             google_cloud_credentials_file_path, token_file_url).strip())
         
         authorization_headers = {"Authorization": f'Token {api_token}'}
