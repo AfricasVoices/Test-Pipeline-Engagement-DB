@@ -160,7 +160,10 @@ def _engagement_db_has_message(engagement_db, message):
     """
     matching_messages_filter = lambda q: q.where("origin.origin_id", "==", message.origin.origin_id)
     matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
+    if len(matching_messages) < 2:
+        print(matching_messages)
     assert len(matching_messages) < 2
+
 
     return len(matching_messages) > 0
 
