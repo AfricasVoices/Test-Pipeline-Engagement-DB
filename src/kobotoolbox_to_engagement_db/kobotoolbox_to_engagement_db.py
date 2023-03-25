@@ -186,6 +186,7 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
         HistoryEntryOrigin(origin_name="KoboToolBox -> Database Sync", details=message_origin_details)
     )
 
+
 def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_source, engagement_db,
                                               uuid_table, cache_path=None):
     """
@@ -215,11 +216,6 @@ def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, koboto
     
     for form_response in form_responses:
         for question_config in kobotoolbox_source.sync_config.question_configurations:
-
-            print(form_response)
-            print(type(form_response))
-            print(question_config.data_column_name)
-            print(type(question_config.data_column_name))
 
             form_answer = form_response.get(question_config.data_column_name)
 
