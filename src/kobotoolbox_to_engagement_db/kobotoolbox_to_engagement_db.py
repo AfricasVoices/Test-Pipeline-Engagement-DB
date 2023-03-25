@@ -2,6 +2,8 @@ import requests
 import pandas as pd
 import json
 from dateutil.parser import isoparse
+from collections import OrderedDict
+
 
 from storage.google_cloud import google_cloud_utils
 
@@ -14,6 +16,7 @@ from engagement_database.data_models import (Message, MessageDirections, Message
 from src.common.cache import Cache
 from src.kobotoolbox_to_engagement_db.configuration import KoboToolBoxParticipantIdTypes
 from src.kobotoolbox_to_engagement_db.kobotoolbox_client import KoboToolBoxClient
+from src.kobotoolbox_to_engagement_db.sync_stats import KoboToolBoxSyncEvents, KoboToolBoxToEngagementDBSyncStats
 
 log = Logger(__name__)
 
@@ -184,15 +187,16 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     """
     if _engagement_db_has_message(engagement_db, message):
         log.debug(f"Message already in engagement database")
+        return KoboToolBoxSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
 
     log.debug(f"Adding message to engagement database dataset {message.dataset}...")
     engagement_db.set_message(
         message,
         HistoryEntryOrigin(origin_name="KoboToolBox -> Database Sync", details=message_origin_details)
     )
+    return KoboToolBoxSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
-
-def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_source, engagement_db,
+def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_source, engagement_db,
                                               uuid_table, cache_path=None):
     """
     Syncs KoboToolBox Forms to an engagement database.
@@ -219,14 +223,18 @@ def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, koboto
     form_responses = sorted(KoboToolBoxClient.get_form_responses(authorization_headers, kobotoolbox_source.sync_config.asset_uid, last_seen_response_time), 
                             key=lambda response:response['_submission_time'])
     
+    sync_stats = KoboToolBoxParticipantIdTypes()
     for form_response in form_responses:
+        sync_stats.add_event(KoboToolBoxSyncEvents.READ_RESPONSE_FROM_KOBOTOOLBOX)
         for question_config in kobotoolbox_source.sync_config.question_configurations:
 
             form_answer = form_response.get(question_config.data_column_name)
             if form_answer is None:
                 log.warning(f"Found no response for {question_config.data_column_name} skipping!..")
+                sync_stats.add_event(KoboToolBoxSyncEvents.FOUND_A_NULL_RESPONSE)
                 continue
-
+            sync_stats.add_event(KoboToolBoxSyncEvents.READ_ANSWER_FROM_RESPONSE)
+            
             participant_uuid = _get_participant_uuid_for_response(form_response, kobotoolbox_source.sync_config.participant_id_configuration.id_type, 
                                                                   kobotoolbox_source.sync_config.participant_id_configuration.data_column_name, 
                                                                   uuid_table, kobotoolbox_source.sync_config.participant_id_configuration)
@@ -238,10 +246,49 @@ def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, koboto
                                           "timestamp": form_response.get("_submission_time"),
                                           "text": form_answer}
             
-            _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details)
+            sync_event = _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details)
+            sync_stats.add_event(sync_event)
 
             last_seen_response_time = form_response.get("_submission_time")
 
-
     if cache is not None and last_seen_response_time is not None:
         cache.set_date_time(kobotoolbox_source.sync_config.asset_uid, isoparse(last_seen_response_time))  
+
+    return sync_stats
+
+def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_sources, engagement_db,
+                                              uuid_table, cache_path=None):
+    """
+    Syncs Google Forms to an engagement database.
+
+    :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
+                                               download Google Form credentials.
+    :type google_cloud_credentials_file_path: str
+    :param kobotoolbox_sources: Configuration for the Google Forms to sync.
+    :type kobotoolbox_sources: list of src.google_form_to_engagement_db.configuration.GoogleFormSource
+    :param engagement_db: Engagement database to sync
+    :type engagement_db: engagement_database.EngagementDatabase
+    :param uuid_table: UUID table to use to de-identify contact urns.
+    :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
+    :param cache_path: Path to a directory to use to cache results needed for incremental operation.
+                       If None, runs in non-incremental mode.
+    :type cache_path: str | None
+    """
+
+    asset_uid_to_sync_stats = OrderedDict()
+    all_sync_stats = KoboToolBoxToEngagementDBSyncStats()
+    for i, form_source in enumerate(kobotoolbox_sources):
+        log.info(f"Processing form configuration {i + 1}/{len(kobotoolbox_sources)}...")
+        asset_uid = form_source.sync_config.asset_uid
+        sync_stats = _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, form_source, engagement_db,
+                                              uuid_table, cache_path=None
+                                              )
+        asset_uid_to_sync_stats[asset_uid] = sync_stats
+        all_sync_stats.add_stats(sync_stats)
+
+    for asset_uid, sync_stats in asset_uid_to_sync_stats.items():
+        log.info(f"Summary of actions for Google Form '{asset_uid}':")
+        sync_stats.print_summary()
+
+    log.info(f"Summary of actions for all Google Forms:")
+    all_sync_stats.print_summary()

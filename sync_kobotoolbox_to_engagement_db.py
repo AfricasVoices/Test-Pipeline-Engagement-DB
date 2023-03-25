@@ -45,5 +45,5 @@ if __name__ == "__main__":
 
     for kobotoolbox_source in pipeline_config.kobotoolbox_sources:
         sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_source, engagement_db,
-                                                uuid_table, cache_path=None)
+                                                uuid_table, incremental_cache_path)
 
