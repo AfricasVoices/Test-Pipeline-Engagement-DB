@@ -13,7 +13,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     ],
     engagement_database=EngagementDatabaseClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
-        database_path="engagement_db_experiments/experimental_test"
+        database_path="engagement_db_experiments/kobotoolbox_test"
     ),
     uuid_table=UUIDTableClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
