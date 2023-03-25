@@ -207,10 +207,10 @@ def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, koboto
     cache = None
     if cache_path is not None:
         cache = Cache(cache_path)
-
     last_seen_response_time = None if cache is None else cache.get_date_time(kobotoolbox_source.sync_config.asset_uid)
+
     authorization_headers = KoboToolBoxClient.get_authorization_headers(google_cloud_credentials_file_path, kobotoolbox_source.token_file_url)
-    form_responses = sorted(KoboToolBoxClient.get_form_responses(authorization_headers, kobotoolbox_source.sync_config.asset_uid), 
+    form_responses = sorted(KoboToolBoxClient.get_form_responses(authorization_headers, kobotoolbox_source.sync_config.asset_uid, last_seen_response_time), 
                             key=lambda response:response['_submission_time'])
 
     for form_response in form_responses:
@@ -226,14 +226,13 @@ def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, koboto
                                           question_config.engagement_db_dataset, question_config.data_column_name)
             
             message_origin_details = {"message_id": f"{form_response['_id']}_{form_response['formhub/uuid']}",
-                                          "timestamp": form_response.get("_submission_time").isoformat(),
+                                          "timestamp": form_response.get("_submission_time"),
                                           "text": form_answer}
             
             _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details)
 
-            last_seen_response_time = form_response.get("_submission_time").isoformat()
+            last_seen_response_time = form_response.get("_submission_time")
 
 
     if cache is not None and last_seen_response_time is not None:
-        cache.set_date_time(kobotoolbox_source.sync_config.asset_uid, last_seen_response_time)   
-
+        cache.set_date_time(kobotoolbox_source.sync_config.asset_uid, isoparse(last_seen_response_time))  
