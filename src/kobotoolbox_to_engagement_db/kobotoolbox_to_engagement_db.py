@@ -116,8 +116,8 @@ def _form_answer_to_engagement_db_message(form_answer, asset_uid, form_response,
     """
     Converts a Form answer to an engagement database message.
 
-    :param form_answer: Answer to convert, in Google Forms' answer dictionary format.
-    :type form_answer: dict
+    :param form_answer: A string of the response.
+    :type form_answer: str
     :param asset_uid: Id of the form this answer is for.
     :type asset_uid: str
     :param form_response: The form response that this answer was given as part of, in Google Forms' response dictionary
@@ -222,6 +222,7 @@ def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, koboto
         for question_config in kobotoolbox_source.sync_config.question_configurations:
 
             form_answer = form_response.get(question_config.data_column_name)
+            print(form_answer)
 
             participant_uuid = _get_participant_uuid_for_response(form_response, kobotoolbox_source.sync_config.participant_id_configuration.id_type, 
                                                                   kobotoolbox_source.sync_config.participant_id_configuration.data_column_name, 
