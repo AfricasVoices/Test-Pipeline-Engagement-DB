@@ -42,6 +42,9 @@ def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_l
 
     if len(phone_number) == 0:
         raise ValueError("Invalid phone number")
+    
+    if phone_number.startswith("0"):
+        phone_number.strip('0') 
 
     if phone_number.startswith(country_code):
         if valid_prefixes is not None:
@@ -85,19 +88,10 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
     """
     participant_id_answer = response.get(participant_id_question_id, None)
     response_uuid = f"{response['_id']}_{response['formhub/uuid']}"
+    
     if participant_id_answer is None:
         participant_uuid = response_uuid
     else:
-        if len(participant_id_answer) == 1:
-            print(participant_id_answer)
-            print(response)
-            print(f"len(participant_id_answer) == {len(participant_id_answer)}")
-        else:
-            print(participant_id_answer)
-            print(response)
-            print(f"len(participant_id_answer) = {len(participant_id_answer)} exiting...")
-            exit(0)
-
         participant_id = participant_id_answer
 
         assert id_type == KoboToolBoxParticipantIdTypes.KENYA_MOBILE_NUMBER, \
