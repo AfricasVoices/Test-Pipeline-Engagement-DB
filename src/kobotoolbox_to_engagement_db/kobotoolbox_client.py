@@ -61,6 +61,4 @@ class KoboToolBoxClient:
         form_responses = response.json()["results"]
         print(f"Downloaded {len(form_responses)} total responses")
 
-        print(json.dumps(form_responses, indent=2))
-
         return form_responses

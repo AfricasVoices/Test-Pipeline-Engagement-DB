@@ -213,10 +213,13 @@ def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, koboto
     form_responses = sorted(KoboToolBoxClient.get_form_responses(authorization_headers, kobotoolbox_source.sync_config.asset_uid, last_seen_response_time), 
                             key=lambda response:response['_submission_time'])
     
-    print(json.dumps(form_responses, indent=2))
-
     for form_response in form_responses:
         for question_config in kobotoolbox_source.sync_config.question_configurations:
+
+            print(form_answer)
+            print(type(form_answer))
+            print(question_config.data_column_name)
+            print(type(question_config.data_column_name))
 
             form_answer = form_response.get(question_config.data_column_name)
 
