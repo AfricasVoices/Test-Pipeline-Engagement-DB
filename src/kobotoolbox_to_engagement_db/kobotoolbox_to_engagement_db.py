@@ -57,6 +57,7 @@ def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_l
         raise ValueError("Invalid phone number length")  
 
     urn = f"tel:+{phone_number}"
+
     return urn
 
 def _get_participant_uuid_for_response(response, id_type, participant_id_question_id, uuid_table, form_config):
@@ -87,7 +88,16 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
     if participant_id_answer is None:
         participant_uuid = response_uuid
     else:
-        assert len(participant_id_answer) == 1
+        if len(participant_id_answer) == 1:
+            print(participant_id_answer)
+            print(response)
+            print(f"len(participant_id_answer) == {len(participant_id_answer)}")
+        else:
+            print(participant_id_answer)
+            print(response)
+            print(f"len(participant_id_answer) = {len(participant_id_answer)} exiting...")
+            exit(0)
+
         participant_id = participant_id_answer
 
         assert id_type == KoboToolBoxParticipantIdTypes.KENYA_MOBILE_NUMBER, \
