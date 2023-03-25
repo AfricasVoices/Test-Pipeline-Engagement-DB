@@ -216,8 +216,8 @@ def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, koboto
     for form_response in form_responses:
         for question_config in kobotoolbox_source.sync_config.question_configurations:
 
-            print(form_answer)
-            print(type(form_answer))
+            print(form_response)
+            print(type(form_response))
             print(question_config.data_column_name)
             print(type(question_config.data_column_name))
 
