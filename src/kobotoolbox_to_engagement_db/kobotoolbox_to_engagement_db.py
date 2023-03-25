@@ -160,10 +160,8 @@ def _engagement_db_has_message(engagement_db, message):
     """
     matching_messages_filter = lambda q: q.where("origin.origin_id", "==", message.origin.origin_id)
     matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
-    if len(matching_messages) < 2:
-        print(matching_messages)
+    
     assert len(matching_messages) < 2
-
 
     return len(matching_messages) > 0
 
@@ -224,6 +222,8 @@ def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, koboto
     for form_response in form_responses:
         for question_config in kobotoolbox_source.sync_config.question_configurations:
 
+            print(form_response)
+            print(question_config.data_column_name)
             form_answer = form_response.get(question_config.data_column_name)
             print(form_answer)
 
