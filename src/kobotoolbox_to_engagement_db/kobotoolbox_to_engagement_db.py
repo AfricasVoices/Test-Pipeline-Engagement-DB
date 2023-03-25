@@ -224,7 +224,7 @@ def sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, koboto
 
             form_answer = form_response.get(question_config.data_column_name)
             if form_answer is None:
-                log.warning(f"Found no response for {question_config.data_column_name} skipping"..)
+                log.warning(f"Found no response for {question_config.data_column_name} skipping!..")
                 continue
 
             participant_uuid = _get_participant_uuid_for_response(form_response, kobotoolbox_source.sync_config.participant_id_configuration.id_type, 
