@@ -4,7 +4,6 @@ import json
 from dateutil.parser import isoparse
 from collections import OrderedDict
 
-
 from storage.google_cloud import google_cloud_utils
 
 from core_data_modules.cleaners import PhoneCleaner
@@ -23,6 +22,8 @@ log = Logger(__name__)
 
 def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_length, valid_prefixes=None):
     """
+    Validates a phone number and formats it as a URN.
+
     :param phone_number: Phone number to validate and format. This may be just the phone number or the phone number
                          and country code, and may contain punctuation or alpha characters e.g. tel:+ or (0123) 70-40
     :type phone_number: str
@@ -37,30 +38,27 @@ def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_l
                            number starts with one of these prefixes. For example, this could be used to ensure
                            this is a mobile number, or to ensure it belongs to a valid network.
     :type valid_prefixes: set of str | None
+    :raises ValueError: If the phone number is empty, does not have a valid prefix (when valid_prefixes is provided),
+                        or has an invalid length.
     :return: Phone number as urn e.g. 'tel:+254700123123' or None.
     :rtype: str | None
     """
     # Normalise the phone number (removes spaces, non-numeric, and leading 0s).
-    phone_number = PhoneCleaner.normalise_phone(phone_number)
+    phone_number = PhoneCleaner.normalise_phone(phone_number).lstrip('0')
 
-    if len(phone_number) == 0:
+    if not phone_number:
         raise ValueError("Invalid phone number")
-    
-    if phone_number.startswith("0"):
-        phone_number.strip('0') 
 
-    if phone_number.startswith(country_code):
+   # Validate prefixes and ensure phone number startswidth country code.
+    if not phone_number.startswith(country_code):
         if valid_prefixes is not None:
-            if not len([p for p in valid_prefixes if phone_number.replace(country_code, "").startswith(p)]) == 1:
-                raise ValueError(f"Phone number must contain a valid prefix; Valid prefixes specified: {','.join(valid_prefixes)}")
-    else:
-        if valid_prefixes is not None:
-            if not len([p for p in valid_prefixes if phone_number.startswith(p)]) == 1:
-                raise ValueError(f"Phone number must contain a valid prefix; Valid prefixes specified: {','.join(valid_prefixes)}")
+            if not any(phone_number.startswith(p) for p in valid_prefixes):
+                raise ValueError(f"Phone number must contain a valid prefix; Valid prefixes specified: {', '.join(valid_prefixes)}")
         phone_number = f"{country_code}{phone_number}"
 
-    if not len(phone_number) == valid_length:
-        raise ValueError("Invalid phone number length")  
+    # Ensure phone number is the expected length
+    if len(phone_number) != valid_length:
+        raise ValueError(f"Invalid phone number length; expected length is {valid_length}")
 
     urn = f"tel:+{phone_number}"
 
@@ -85,7 +83,9 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
     :param uuid_table: UUID table to use to de-identify the urn
     :type uuid_table: id_infrastructure.firestore_uuid_table.FirestoreUuidTable
     :param form_config: Configuration for the form to sync.
-    :type form_config: src.google_form_to_engagement_db.configuration.GoogleFormToEngagementDBConfiguration
+    :type form_config: src.kobotoolbox_to_engagement_db.configuration.KoboToolBoxToEngagementDBConfiguration
+    :raises AssertionError: If the id_type is not recognised.
+    :raises ValueError: If an invalid participant id is provided and the ignore_invalid_mobile_numbers flag is False.
     :return: Participant uuid for this response.
     :rtype: str
     """
@@ -110,9 +110,10 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
                 log.warning(f"{e}, using the response_uuid as the participant_uuid instead")
                 participant_uuid = response_uuid
             else:
-                raise e
-
+                raise ValueError(f"Invalid participant id: {participant_id}.") from e
+            
     return participant_uuid
+
 
 def _form_answer_to_engagement_db_message(form_answer, asset_uid, form_response, participant_uuid,
                                           engagement_db_dataset, data_column_name):
@@ -123,7 +124,7 @@ def _form_answer_to_engagement_db_message(form_answer, asset_uid, form_response,
     :type form_answer: str
     :param asset_uid: Id of the form this answer is for.
     :type asset_uid: str
-    :param form_response: The form response that this answer was given as part of, in Google Forms' response dictionary
+    :param form_response: The form response that this answer was given as part of, in KoboToolBox Forms' response dictionary
                           format
     :type form_response: dict
     :param engagement_db_dataset: engagement db dataset name to use for that question.
@@ -202,7 +203,7 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
     Syncs KoboToolBox Forms to an engagement database.
 
     :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
-                                               download Google Form credentials.
+                                               download KoboToolBox Form credentials.
     :type google_cloud_credentials_file_path: str
     :param kobotoolbox_source: Configuration for the KoboToolBox Forms to sync.
     :type kobotoolbox_source: list of src.koboltoolbox_to_engagement_db.configuration.KoboToolBoxSource
@@ -213,6 +214,8 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
                        If None, runs in non-incremental mode.
     :type cache_path: str | None
+    :return: The sync statistics object.
+    :rtype: src.kobotoolbox_to_engagement_db.sync_stats.KoboToolBoxToEngagementDBSyncStats
     """
     cache = None
     if cache_path is not None:
@@ -259,13 +262,13 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
 def sync_kobotoolbox_sources_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_sources, engagement_db,
                                               uuid_table, cache_path=None):
     """
-    Syncs Google Forms to an engagement database.
+    Syncs KoboToolBox Forms to an engagement database.
 
     :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
-                                               download Google Form credentials.
+                                               download KoboToolBox Form credentials.
     :type google_cloud_credentials_file_path: str
-    :param kobotoolbox_sources: Configuration for the Google Forms to sync.
-    :type kobotoolbox_sources: list of src.google_form_to_engagement_db.configuration.GoogleFormSource
+    :param kobotoolbox_sources: Configuration for the KoboToolBox Forms to sync.
+    :type kobotoolbox_sources: list of src.kobotoolbox_to_engagement_db.configuration.KoboToolBoxSource
     :param engagement_db: Engagement database to sync
     :type engagement_db: engagement_database.EngagementDatabase
     :param uuid_table: UUID table to use to de-identify contact urns.
@@ -287,8 +290,8 @@ def sync_kobotoolbox_sources_to_engagement_db(google_cloud_credentials_file_path
         all_sync_stats.add_stats(sync_stats)
 
     for asset_uid, sync_stats in asset_uid_to_sync_stats.items():
-        log.info(f"Summary of actions for Google Form '{asset_uid}':")
+        log.info(f"Summary of actions for KoboToolBox Form '{asset_uid}':")
         sync_stats.print_summary()
 
-    log.info(f"Summary of actions for all Google Forms:")
+    log.info(f"Summary of actions for all KoboToolBox Forms:")
     all_sync_stats.print_summary()

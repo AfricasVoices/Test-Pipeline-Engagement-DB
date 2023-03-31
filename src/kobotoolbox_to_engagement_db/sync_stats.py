@@ -25,7 +25,7 @@ class KoboToolBoxToEngagementDBSyncStats(SyncStats):
         })
 
     def print_summary(self):
-        log.info(f"Responses read from Google Form(s): {self.event_counts[KoboToolBoxSyncEvents.READ_RESPONSE_FROM_KOBOTOOLBOX_FORM]}")
+        log.info(f"Responses read from KoboToolBox Form(s): {self.event_counts[KoboToolBoxSyncEvents.READ_RESPONSE_FROM_KOBOTOOLBOX_FORM]}")
         log.info(f"Answers read from responses: {self.event_counts[KoboToolBoxSyncEvents.READ_ANSWER_FROM_RESPONSE]}")
         log.info(f"Null responses found: {self.event_counts[KoboToolBoxSyncEvents.FOUND_A_NULL_RESPONSE]}")
         log.info(f"Messages already in engagement db: {self.event_counts[KoboToolBoxSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB]}")

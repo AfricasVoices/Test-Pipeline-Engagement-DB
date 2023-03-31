@@ -45,10 +45,10 @@ class KoboToolBoxClient:
         :param submitted_after_exclusive: A datetime object specifying the earliest submission time. If set, only downloads responses last
                                         submitted after this datetime. If None, downloads responses from all of time.
         :type submitted_after_exclusive: datetime.datetime | None
+        :raises: requests.exceptions.RequestException: If an error occurs while making the API call.
         :return: A list of dictionaries, each representing a response to the specified form.
         :rtype: list of dict
-        :Raises: requests.exceptions.RequestException: If an error occurs while making the API call.
-
+        
         Examples:
             To retrieve all responses for a kobotoolbox form:
 
