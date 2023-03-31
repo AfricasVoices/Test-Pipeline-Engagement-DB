@@ -1,5 +1,4 @@
 import requests
-import pandas as pd
 import json
 from dateutil.parser import isoparse
 
