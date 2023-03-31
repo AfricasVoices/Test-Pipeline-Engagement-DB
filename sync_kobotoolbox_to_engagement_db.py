@@ -5,7 +5,8 @@ import subprocess
 from core_data_modules.logging import Logger
 from engagement_database.data_models import HistoryEntryOrigin
 
-from src.kobotoolbox_to_engagement_db.kobotoolbox_to_engagement_db import sync_kobotoolbox_to_engagement_db
+from src.kobotoolbox_to_engagement_db.kobotoolbox_to_engagement_db import sync_kobotoolbox_sources_to_engagement_db
+
 
 log = Logger(__name__)
 
@@ -43,7 +44,6 @@ if __name__ == "__main__":
     engagement_db = pipeline_config.engagement_database.init_engagement_db_client(google_cloud_credentials_file_path)
     uuid_table = pipeline_config.uuid_table.init_uuid_table_client(google_cloud_credentials_file_path)
 
-    for kobotoolbox_source in pipeline_config.kobotoolbox_sources:
-        sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_source, engagement_db,
+    sync_kobotoolbox_sources_to_engagement_db(google_cloud_credentials_file_path, pipeline_config.kobotoolbox_sources, engagement_db,
                                                 uuid_table, incremental_cache_path)
 

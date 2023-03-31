@@ -256,7 +256,7 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
 
     return sync_stats
 
-def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_sources, engagement_db,
+def sync_kobotoolbox_sources_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_sources, engagement_db,
                                               uuid_table, cache_path=None):
     """
     Syncs Google Forms to an engagement database.
