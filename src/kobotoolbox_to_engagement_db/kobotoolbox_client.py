@@ -14,15 +14,18 @@ BASE_URL = "https://kf.kobotoolbox.org/api/v2/assets"
 class KoboToolBoxClient:
     def get_authorization_headers(google_cloud_credentials_file_path, token_file_url):
         """
-        :param token_file_url: Path to the Google Cloud file path that contains KoboToolBox account api token.
-        :type token_file_url: str
+        Retrieves a KoboToolBox API token and returns it as a dictionary of authorization headers.
+
         :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use when
                                                 downloading api token.
         :type google_cloud_credentials_file_path: str
-        :return authorization_headers
-        :rtype: 
+        :param token_file_url: Path to the Google Cloud file path that contains KoboToolBox account api token.
+        :type token_file_url: str
+        :return: A dictionary of authorization headers containing the KoboToolBox API token.
+        :rtype: dict
+
         """
-        log.info('Downloading telegram access tokens...')
+        log.info('Downloading KoboToolBox access tokens...')
         api_token = json.loads(google_cloud_utils.download_blob_to_string(
             google_cloud_credentials_file_path, token_file_url).strip())
         
@@ -33,17 +36,37 @@ class KoboToolBoxClient:
 
     def get_form_responses(authorization_headers, asset_uid, submitted_after_exclusive=None):
         """
-        Gets responses to the requested form.
+        Retrieves the responses for a specified kobotoolbox form.
 
-        :param authorization_headers: 
-        :type authorization_headers: 
-        :param asset_uid: Form to download responses to.
+        :param authorization_headers: A dictionary of authorization headers for the API call.
+        :type authorization_headers: dict
+        :param asset_uid: The UID of the form for which responses are to be retrieved.
         :type asset_uid: str
-        :param submitted_after_exclusive: Datetime to filter responses for. If set, only downloads responses last
+        :param submitted_after_exclusive: A datetime object specifying the earliest submission time. If set, only downloads responses last
                                         submitted after this datetime. If None, downloads responses from all of time.
         :type submitted_after_exclusive: datetime.datetime | None
-        :return: List of dictionaries representing form responses.
+        :return: A list of dictionaries, each representing a response to the specified form.
         :rtype: list of dict
+        :Raises: requests.exceptions.RequestException: If an error occurs while making the API call.
+
+        Examples:
+            To retrieve all responses for a kobotoolbox form:
+
+            >>> authorization_headers = {'Authorization': 'Bearer your_token'}
+            >>> asset_uid = 'your_form_uid'
+            >>> form_responses = get_form_responses(authorization_headers, asset_uid)
+            >>> print(len(form_responses))
+            100
+
+            To retrieve responses submitted after a specific time:
+
+            >>> authorization_headers = {'Authorization': 'Bearer your_token'}
+            >>> asset_uid = 'your_form_uid'
+            >>> submitted_after_exclusive = datetime.datetime(2022, 1, 1)
+            >>> form_responses = get_form_responses(authorization_headers, asset_uid, submitted_after_exclusive)
+            >>> print(len(form_responses))
+            50
+
         """
 
         timestamp_log = ""

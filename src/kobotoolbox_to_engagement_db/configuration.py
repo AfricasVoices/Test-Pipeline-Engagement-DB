@@ -15,12 +15,12 @@ class KoboToolBoxParticipantIdTypes:
 class KoboToolBoxParticipantIdConfiguration:
     def __init__(self, data_column_name, id_type):
         """
-        Configuration for a participant uuid question.
+        Initializes a configuration object for a participant uuid question.
 
         :param data_column_name:  This is the variable name that stores to the form user for this question
                                e.g. "What is your phone number?"
         :type data_column_name: str
-        :param id_type: See `KoboToolBoxParticipantIdTypes`.
+        :param id_type: The type of UUID used for the question. See `KoboToolBoxParticipantIdTypes` for valid values.
         :type id_type: str
         """
         self.data_column_name = data_column_name
@@ -30,7 +30,9 @@ class KoboToolBoxParticipantIdConfiguration:
 class KoboToolBoxQuestionConfiguration:
     def __init__(self, data_column_name, engagement_db_dataset):
         """
-        :param data_column_name: This are the variable names that store response for a question.
+        Initializes a configuration object for an engagement database dataset.
+
+        :param data_column_name: This are the variable name that store response(s) for a question.
         :type data_column_name: str
         :param engagement_db_dataset: Name of the dataset to use in the engagement database.
         :type engagement_db_dataset: str
@@ -42,10 +44,14 @@ class KoboToolBoxQuestionConfiguration:
 class KoboToolBoxToEngagementDBConfiguration:
     def __init__(self, asset_uid, question_configurations, participant_id_configuration=None, ignore_invalid_mobile_numbers=False):
         """
-        :param asset_uid: Id of KobotoolBox Form to sync.
+        Initializes a Configuration for syncing a KoboToolBox form with the Engagment Database.
+
+        :param asset_uid: The unique identifier of the KoboToolBox form to sync with the engagement database.
         :type asset_uid: str
-        :param question_configurations: Configuration for each question on the Google Form to sync.
-        :type question_configurations: list of QuestionConfiguration
+        :param question_configurations: The list of `QuestionConfiguration` objects, one for each question to sync.
+                                         Each `QuestionConfiguration` object specifies the mapping between a question
+                                         on the KoboToolBox form and the corresponding field on the engagement database.
+        :type question_configurations: List[QuestionConfiguration]
         :param participant_id_configuration: Optional configuration for the participant uuid.
                                                If set, the participant uuid will be derived from the answer to an
                                                id question, otherwise it will be set to the form response id.
@@ -53,7 +59,9 @@ class KoboToolBoxToEngagementDBConfiguration:
         ignore_invalid_mobile_numbers: bool = False
         ignore_invalid_mobile_numbers: Whether to ignore invalid mobile numbers during validation.
                                     If a participant provides an invalid mobile number, instead of the pipeline terminating with a valueError
-                                    the participant uuid will be derived from the form response id.                               
+                                    the participant uuid will be derived from the form response id. 
+        :raises AssertionError: If `ignore_invalid_mobile_numbers` is set to True but `participant_id_configuration` has a
+                              id_type that is not `KoboToolBoxParticipantIdTypes.KENYA_MOBILE_NUMBER`.                              
         """
         self.asset_uid = asset_uid
         self.question_configurations = question_configurations
@@ -69,9 +77,11 @@ class KoboToolBoxToEngagementDBConfiguration:
 class KoboToolBoxSource:
     def __init__(self, token_file_url, sync_config):
         """
-        :param token_file_url: GS url path to the kobotoolbox api token file
+        Initializes a KoboToolBoxSource instance for syncing KoboToolBox form data to an engagement database.
+
+        :param token_file_url: The GS url path to the kobotoolbox api token file.
         :type token_file_url: GS url
-        :param sync_config: Sync configuration
+        :param sync_config: The sync configuration for the KoboToolBox form data
         :type sync_config: KoboToolBoxToEngagementDBConfiguration
         """
         self.token_file_url = token_file_url
