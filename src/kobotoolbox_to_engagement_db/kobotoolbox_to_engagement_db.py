@@ -265,6 +265,7 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
 
     return sync_stats
 
+
 def sync_kobotoolbox_sources_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_sources, engagement_db,
                                               uuid_table, cache_path=None):
     """

@@ -153,7 +153,7 @@ class PipelineConfiguration:
         :param google_form_sources: Configuration for the Google Forms -> engagement db sync.
         :type google_form_sources: (list of src.google_form_to_engagement_db.configuration.GoogleFormSource) | None
         :param kobotoolbox_sources: Configuration for the Kobotoolbox Forms -> engagement db sync.
-        :type kobotoolbox_sources: (list of src.google_form_to_engagement_db.configuration.KoboToolBoxSource) | None
+        :type kobotoolbox_sources: (list of src.kobotoolbox_to_engagement_db.configuration.KoboToolBoxSource) | None
         :param coda_sync: Configuration for the bidirectional Coda <-> engagement db sync.
         :type coda_sync: CodaConfiguration
         :param rapid_pro_target: Configuration for the engagement db -> Rapid Pro sync.
