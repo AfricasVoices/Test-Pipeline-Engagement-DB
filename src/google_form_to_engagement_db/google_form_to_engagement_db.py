@@ -122,12 +122,14 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
     :return: Participant uuid for this response.
     :rtype: str
     """
-    participant_id_answer = response["answers"].get(participant_id_question_id, None)
-    if participant_id_answer is None:
+    participant_id_answers = response["answers"].get(participant_id_question_id, None)
+    if participant_id_answers is None:
         participant_uuid = response["responseId"]
     else:
-        assert len(participant_id_answer["textAnswers"]["answers"]) == 1
-        participant_id = participant_id_answer["textAnswers"]["answers"][0]["value"]
+        participant_id_answers_count = len(participant_id_answers["textAnswers"]["answers"])
+        assert participant_id_answers_count == 1, f"Expected one answer for participant id, " \
+            f"but found {participant_id_answers_count} answers"
+        participant_id = participant_id_answers["textAnswers"]["answers"][0]["value"]
 
         assert id_type == GoogleFormParticipantIdTypes.KENYA_MOBILE_NUMBER, \
             f"Participant id type {id_type} not recognised."
@@ -183,6 +185,54 @@ def _form_answer_to_engagement_db_message(form_answer, form_id, form_response, p
     )
 
 
+def _merge_engagement_db_messages(messages_with_origin_details, answers_delimeter):
+    assert len(messages_with_origin_details) > 1, \
+        f"Expected at least 2 messages with origin details, but found {len(messages_with_origin_details)}."
+
+    participant_uuid, dataset = None, None
+    texts, timestamps, origin_ids, messages_origin_details = [], [], [], []
+    for index, message_with_origin_details in enumerate(messages_with_origin_details):
+        msg, origin_details = message_with_origin_details
+
+        texts.append(msg.text)
+        timestamps.append(msg.timestamp)
+        origin_ids.append(msg.origin.origin_id)
+        messages_origin_details.append(origin_details)
+
+        if index == 0:
+            participant_uuid, dataset = msg.participant_uuid, msg.dataset
+            continue
+
+        assert participant_uuid is not None and msg.participant_uuid == participant_uuid, \
+            f"Attempted merging messages where the participant uuid is None or the messages are not from the same participant"
+
+        assert dataset is not None and msg.dataset == dataset, \
+            f"Attempted merging messages where the dataset is None or the messages are not from the same dataset"
+
+    text, timestamp = answers_delimeter.join(texts), min(timestamps, key=lambda x: x.timestamp())
+    message = Message(
+        participant_uuid=participant_uuid,
+        text=text,
+        timestamp=timestamp,
+        direction=MessageDirections.IN,
+        channel_operator="google_form",
+        status=MessageStatuses.LIVE,
+        dataset=dataset,
+        labels=[],
+        origin=MessageOrigin(
+            origin_id=origin_ids,
+            origin_type="google_form"
+        )
+    )
+
+    message_origin_details = {
+        "formId": messages_origin_details[0]["formId"],
+        "answer": [msg["answer"] for msg in messages_origin_details],
+    }
+
+    return message, message_origin_details
+
+
 def _engagement_db_has_message(engagement_db, message):
     """
     Checks if an engagement database contains a message with the same origin id as the given message.
@@ -196,12 +246,12 @@ def _engagement_db_has_message(engagement_db, message):
     """
     matching_messages_filter = lambda q: q.where("origin.origin_id", "==", message.origin.origin_id)
     matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
-    assert len(matching_messages) < 2
+    assert len(matching_messages) < 2, f"Expected at most 1 matching message in database, but found {len(matching_messages)}."
 
     return len(matching_messages) > 0
 
 
-def _ensure_engagement_db_has_message(engagement_db, message, message_origin_details):
+def _ensure_engagement_db_has_message(engagement_db, message_with_origin_details, dry_run=False):
     """
     Ensures that the given message exists in an engagement database.
 
@@ -210,26 +260,29 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
 
     :param engagement_db: Engagement database to use.
     :type engagement_db: engagement_database.EngagementDatabase
-    :param message: Message to make sure exists in the engagement database.
-    :type message: engagement_database.data_models.Message
-    :param message_origin_details: Message origin details, to be logged in the HistoryEntryOrigin.details.
-    :type message_origin_details: dict
+    :param message_with_origin_details: Tuple of message to make sure exists in the engagement database and message origin details, 
+                                        to be logged in the HistoryEntryOrigin.details.
+    :type message_with_origin_details: (engagement_database.data_models.Message, dict)
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: Sync event.
     :rtype: str
     """
+    message, message_origin_details = message_with_origin_details
     if _engagement_db_has_message(engagement_db, message):
         log.debug(f"Message already in engagement database")
         return GoogleFormSyncEvents.MESSAGE_ALREADY_IN_ENGAGEMENT_DB
 
     log.debug(f"Adding message to engagement database dataset {message.dataset}...")
-    engagement_db.set_message(
-        message,
-        HistoryEntryOrigin(origin_name="Google Form -> Database Sync", details=message_origin_details)
-    )
+    if not dry_run:
+        engagement_db.set_message(
+            message,
+            HistoryEntryOrigin(origin_name="Google Form -> Database Sync", details=message_origin_details)
+        )
     return GoogleFormSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 
-def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_config, uuid_table, cache=None):
+def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_config, uuid_table, cache=None, dry_run=False):
     """
     Syncs a Google Form to an engagement database.
 
@@ -246,6 +299,8 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     :param cache: Cache to use, or None. If None, downloads all form responses. If a cache is specified, only fetches
                   responses last submitted after this function was last run.
     :type cache: src.common.cache.Cache | None
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: sync_stats
     :rtype: src.google_form_to_engagement_db.sync_stats.GoogleFormToEngagementDBSyncStats
     """
@@ -317,47 +372,43 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
             sync_stats.add_event(GoogleFormSyncEvents.READ_ANSWER_FROM_RESPONSE)
             if answer["questionId"] not in question_id_to_engagement_db_dataset:
                 log.info(f"This answer is to question {answer['questionId']}, which isn't configured in this sync")
-                continue 
+                continue
 
-            question_id_to_engagement_db_message[answer["questionId"]] = _form_answer_to_engagement_db_message(
+            engagement_db_message = _form_answer_to_engagement_db_message(
                 answer, form_config.form_id, response, participant_uuid, question_id_to_engagement_db_dataset
             )
-            question_id_to_message_origin_details[answer["questionId"]] = {
+            engagement_db_message_origin_details = {
                 "formId": form_config.form_id,
                 "answer": answer,
             }
+            question_id_to_engagement_db_message[answer["questionId"]] = (engagement_db_message, engagement_db_message_origin_details)
 
         for question_config in form_config.question_configurations:
-            assert len(question_config.question_titles) > 0
+            assert len(question_config.question_titles) > 0, "No question titles found in the question configuration."
             if len(question_config.question_titles) == 1:
                 question_id = question_title_to_question_id[question_config.question_titles[0]]
                 if question_id not in question_id_to_engagement_db_message:
                     continue
-                message = question_id_to_engagement_db_message[question_id]
-                message_origin_details = question_id_to_message_origin_details[question_id]
+                message_with_origin_details = question_id_to_engagement_db_message[question_id]
             else:
-                messages = []
-                messages_origin_details = []
+                list_of_messages_with_origin_details = []
                 for question_title in question_config.question_titles:
                     question_id = question_title_to_question_id[question_title]
                     if question_id not in question_id_to_engagement_db_message:
                         continue
-                    messages.append(question_id_to_engagement_db_message[question_id])
-                    messages_origin_details.append(question_id_to_message_origin_details[question_id])
-                if len(messages) == 0:
-                    continue
-                elif len(messages) == 1:
-                    [message], [message_origin_details] = messages, messages_origin_details
-                    continue
-                else:
-                    # TODO: Implement the function below that merges engagement db messages including their origin details
-                    # message, message_origin_details = _merge_engagement_db_messages(messages, messages_origin_details, question_config.answers_delimeter)
-                    continue
+                    list_of_messages_with_origin_details.append(question_id_to_engagement_db_message[question_id])
 
-            sync_event = _ensure_engagement_db_has_message(engagement_db, message, message_origin_details)
+                if len(list_of_messages_with_origin_details) == 0:
+                    continue
+                elif len(list_of_messages_with_origin_details) == 1:
+                    message_with_origin_details = list_of_messages_with_origin_details[0]
+                else:
+                    message_with_origin_details = _merge_engagement_db_messages(list_of_messages_with_origin_details, question_config.answers_delimeter)
+
+            sync_event = _ensure_engagement_db_has_message(engagement_db, message_with_origin_details, dry_run)
             sync_stats.add_event(sync_event)
 
-        if cache is not None:
+        if not dry_run and cache is not None:
             if i == len(responses) - 1 or \
                     isoparse(responses[i + 1]["lastSubmittedTime"]) > isoparse(response["lastSubmittedTime"]):
                 cache.set_date_time(form_config.form_id, isoparse(response["lastSubmittedTime"]))
@@ -366,7 +417,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
 
 
 def _sync_google_form_source_to_engagement_db(google_cloud_credentials_file_path, form_source, engagement_db,
-                                              uuid_table, cache=None):
+                                              uuid_table, cache=None, dry_run=False):
     """
     Syncs a Google Form source to an engagement database.
 
@@ -382,15 +433,17 @@ def _sync_google_form_source_to_engagement_db(google_cloud_credentials_file_path
     :param cache: Cache to use, or None. If None, downloads all form responses. If a cache is specified, only fetches
                   responses last submitted after this function was last run.
     :type cache: src.common.cache.Cache | None
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     :return: sync_stats
     :rtype: src.google_form_to_engagement_db.sync_stats.GoogleFormToEngagementDBSyncStats
     """
     google_form_client = form_source.google_form_client.init_google_forms_client(google_cloud_credentials_file_path)
-    return _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_source.sync_config, uuid_table, cache)
+    return _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_source.sync_config, uuid_table, cache, dry_run)
 
 
 def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path, form_sources, engagement_db,
-                                              uuid_table, cache_path=None):
+                                              uuid_table, cache_path=None, dry_run=False):
     """
     Syncs Google Forms to an engagement database.
 
@@ -406,6 +459,8 @@ def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path
     :param cache_path: Path to a directory to use to cache results needed for incremental operation.
                        If None, runs in non-incremental mode.
     :type cache_path: str | None
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
     """
     cache = None
     if cache_path is not None:
@@ -417,7 +472,7 @@ def sync_google_form_sources_to_engagement_db(google_cloud_credentials_file_path
         log.info(f"Processing form configuration {i + 1}/{len(form_sources)}...")
         form_id = form_source.sync_config.form_id
         sync_stats = _sync_google_form_source_to_engagement_db(
-            google_cloud_credentials_file_path, form_source, engagement_db, uuid_table, cache
+            google_cloud_credentials_file_path, form_source, engagement_db, uuid_table, cache, dry_run
         )
         form_id_to_sync_stats[form_id] = sync_stats
         all_sync_stats.add_stats(sync_stats)

@@ -41,6 +41,9 @@ echo "Starting a new pipeline run with id ${RUN_ID}"
     --incremental-cache-volume "$PIPELINE_NAME-engagement-db-to-rapid-pro-cache"  \
     "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_FILE" "$CODE_SCHEMES_DIR"
 
+./docker-sync-coda-to-engagement-db.sh --incremental-cache-volume --skip-updating-coda-users-and-code-schemes "$PIPELINE_NAME-coda-to-engagement-db-cache" "$USER" \
+                        "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE" "$DATA_DIR"
+
 ./docker-run-engagement-db-to-analysis.sh \
     --incremental-cache-volume "$PIPELINE_NAME-engagement-db-to-analysis-cache" \
     "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_FILE" "$CODE_SCHEMES_DIR" "$DATA_DIR"
