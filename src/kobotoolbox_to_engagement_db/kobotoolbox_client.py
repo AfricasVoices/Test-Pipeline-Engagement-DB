@@ -68,6 +68,7 @@ class KoboToolBoxClient:
 
         timestamp_log = ""
         if submitted_after_exclusive is not None:
+            submitted_after_exclusive = submitted_after_exclusive.strftime("%Y-%m-%d %H:%M:%S")
             timestamp_log = f", last submitted after {submitted_after_exclusive}"
             query = '{"_submission_time":{"$gt":{submitted_after_exclusive}}}'
             log.info(f"Downloading responses for Asset '{asset_uid}'{timestamp_log}")
