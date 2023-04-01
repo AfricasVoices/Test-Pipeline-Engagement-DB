@@ -69,9 +69,9 @@ class KoboToolBoxClient:
         timestamp_log = ""
         if submitted_after_exclusive is not None:
             timestamp_log = f", last submitted after {submitted_after_exclusive}"
-            query = '{"_submission_time":{"$gt":{submitted_after_exclusive}},}'
+            query = '{"_submission_time":{"$gt":{submitted_after_exclusive}}}'
             log.info(f"Downloading responses for Asset '{asset_uid}'{timestamp_log}")
-            request = f'{BASE_URL}/{asset_uid}/data/?query={query}/?format=json'
+            request = f'{BASE_URL}/{asset_uid}/data/?query={query}&format=json'
         else:
             log.info(f"Downloading all responses for Asset '{asset_uid}")
             request = f'{BASE_URL}/{asset_uid}/data/?format=json'
