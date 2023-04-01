@@ -7,12 +7,11 @@ from engagement_database.data_models import HistoryEntryOrigin
 
 from src.kobotoolbox_to_engagement_db.kobotoolbox_to_engagement_db import sync_kobotoolbox_sources_to_engagement_db
 
-
 log = Logger(__name__)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Syncs data from kobotoolbox forms to an engagement database")
+    parser = argparse.ArgumentParser(description="Syncs data from KoboToolBox forms to an engagement database")
 
     parser.add_argument("--incremental-cache-path",
                         help="Path to a directory to use to cache results needed for incremental operation.")

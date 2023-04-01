@@ -7,7 +7,6 @@ from core_data_modules.logging import Logger
 
 log = Logger(__name__)
 
-
 BASE_URL = "https://kf.kobotoolbox.org/api/v2/assets"
 
 
@@ -23,7 +22,6 @@ class KoboToolBoxClient:
         :type token_file_url: str
         :return: A dictionary of authorization headers containing the KoboToolBox API token.
         :rtype: dict
-
         """
         log.info('Downloading KoboToolBox access tokens...')
         api_token = json.loads(google_cloud_utils.download_blob_to_string(
@@ -66,21 +64,25 @@ class KoboToolBoxClient:
             >>> form_responses = get_form_responses(authorization_headers, asset_uid, submitted_after_exclusive)
             >>> print(len(form_responses))
             50
-
         """
 
         timestamp_log = ""
         if submitted_after_exclusive is not None:
             timestamp_log = f", last submitted after {submitted_after_exclusive}"
             query = '{"_submission_time":{"$gt":{submitted_after_exclusive}},}'
-            print(f"Downloading responses for Asset '{asset_uid}'{timestamp_log}")
+            log.info(f"Downloading responses for Asset '{asset_uid}'{timestamp_log}")
             request = f'{BASE_URL}/{asset_uid}/data/?query={query}/?format=json'
         else:
-            print(f"Downloading all responses for Asset '{asset_uid}")
+            log.info(f"Downloading all responses for Asset '{asset_uid}")
             request = f'{BASE_URL}/{asset_uid}/data/?format=json'
 
-        response = requests.get(request, headers=authorization_headers, verify=False)
-        form_responses = response.json()["results"]
-        print(f"Downloaded {len(form_responses)} total responses")
+        response = requests.get(request, headers=authorization_headers, verify=False).json()
+        
+        if len(response) > 0:
+            form_responses = response.json()["results"]
+            log.info(f"Downloaded {len(form_responses)} total responses")
+        else:
+            form_responses = []
+            log.info(f"No responses downloaded for Asset '{asset_uid}'{timestamp_log}. Status code: {response.status_code}")
 
         return form_responses
