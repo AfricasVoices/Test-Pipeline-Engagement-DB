@@ -64,6 +64,7 @@ def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_l
 
     return urn
 
+
 def _get_participant_uuid_for_response(response, id_type, participant_id_question_id, uuid_table, form_config):
     """
     Gets the participant_uuid for the given response.
@@ -134,7 +135,6 @@ def _form_answer_to_engagement_db_message(form_answer, asset_uid, form_response,
     :return: `form_answer` as an engagement db message.
     :rtype: engagement_database.data_models.Message
     """
-
     return Message(
         participant_uuid=participant_uuid,
         text=form_answer,
@@ -197,6 +197,7 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     )
     return KoboToolBoxSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
+
 def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_source, engagement_db,
                                               uuid_table, cache_path):
     """
@@ -227,6 +228,11 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
                             key=lambda response:response['_submission_time'])
     
     sync_stats = KoboToolBoxToEngagementDBSyncStats()
+
+    # Check if form_responses is empty and return sync_stats without performing sync operations
+    if not form_responses:
+        return sync_stats
+    
     for form_response in form_responses:
         sync_stats.add_event(KoboToolBoxSyncEvents.READ_RESPONSE_FROM_KOBOTOOLBOX_FORM)
         for question_config in kobotoolbox_source.sync_config.question_configurations:
@@ -258,6 +264,7 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
         cache.set_date_time(kobotoolbox_source.sync_config.asset_uid, isoparse(last_seen_response_time))  
 
     return sync_stats
+
 
 def sync_kobotoolbox_sources_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_sources, engagement_db,
                                               uuid_table, cache_path=None):
