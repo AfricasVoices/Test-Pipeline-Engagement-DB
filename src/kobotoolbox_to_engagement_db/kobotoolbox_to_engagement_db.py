@@ -198,7 +198,7 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
     return KoboToolBoxSyncEvents.ADD_MESSAGE_TO_ENGAGEMENT_DB
 
 def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_source, engagement_db,
-                                              uuid_table, cache_path=None):
+                                              uuid_table, cache_path):
     """
     Syncs KoboToolBox Forms to an engagement database.
 
@@ -284,7 +284,7 @@ def sync_kobotoolbox_sources_to_engagement_db(google_cloud_credentials_file_path
         log.info(f"Processing form configuration {i + 1}/{len(kobotoolbox_sources)}...")
         asset_uid = form_source.sync_config.asset_uid
         sync_stats = _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, form_source, engagement_db,
-                                              uuid_table, cache_path=None
+                                              uuid_table, cache_path
                                               )
         asset_uid_to_sync_stats[asset_uid] = sync_stats
         all_sync_stats.add_stats(sync_stats)
