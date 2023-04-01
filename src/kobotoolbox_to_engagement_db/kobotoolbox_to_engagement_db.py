@@ -199,7 +199,7 @@ def _ensure_engagement_db_has_message(engagement_db, message, message_origin_det
 
 
 def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_source, engagement_db,
-                                              uuid_table, cache_path):
+                                              uuid_table, cache_path=None):
     """
     Syncs KoboToolBox Forms to an engagement database.
 
@@ -264,7 +264,6 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
         cache.set_date_time(kobotoolbox_source.sync_config.asset_uid, isoparse(last_seen_response_time))  
 
     return sync_stats
-
 
 def sync_kobotoolbox_sources_to_engagement_db(google_cloud_credentials_file_path, kobotoolbox_sources, engagement_db,
                                               uuid_table, cache_path=None):

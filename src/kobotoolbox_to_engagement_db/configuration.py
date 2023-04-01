@@ -17,7 +17,7 @@ class KoboToolBoxParticipantIdConfiguration:
         """
         Initializes a configuration object for a participant uuid question.
 
-        :param data_column_name:  This is the variable name that stores to the form user for this question
+        :param data_column_name:  This is the KoboToolBox variable name that store response(s) for a question.
                                e.g. "What is your phone number?"
         :type data_column_name: str
         :param id_type: The type of UUID used for the question. See `KoboToolBoxParticipantIdTypes` for valid values.
@@ -32,7 +32,7 @@ class KoboToolBoxQuestionConfiguration:
         """
         Initializes a configuration object for an engagement database dataset.
 
-        :param data_column_name: This are the variable name that store response(s) for a question.
+        :param data_column_name: This is a KoboToolBox variable name that store response for a question.
         :type data_column_name: str
         :param engagement_db_dataset: Name of the dataset to use in the engagement database.
         :type engagement_db_dataset: str

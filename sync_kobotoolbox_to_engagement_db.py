@@ -45,4 +45,3 @@ if __name__ == "__main__":
 
     sync_kobotoolbox_sources_to_engagement_db(google_cloud_credentials_file_path, pipeline_config.kobotoolbox_sources, engagement_db,
                                                 uuid_table, incremental_cache_path)
-

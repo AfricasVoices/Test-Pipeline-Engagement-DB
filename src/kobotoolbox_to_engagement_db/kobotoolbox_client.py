@@ -65,7 +65,6 @@ class KoboToolBoxClient:
             >>> print(len(form_responses))
             50
         """
-
         timestamp_log = ""
         if submitted_after_exclusive is not None:
             submitted_after_exclusive = submitted_after_exclusive.isoformat()
@@ -81,8 +80,8 @@ class KoboToolBoxClient:
         if response.content:
             form_responses = response.json()["results"]
             log.info(f"Downloaded {len(form_responses)} total responses")
-        else:
-            form_responses = []
+        else: 
             log.info(f"No responses downloaded for Asset '{asset_uid}'{timestamp_log}. Status code: {response.status_code}")
+            form_responses = []
 
         return form_responses
