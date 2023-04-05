@@ -1,6 +1,5 @@
 from core_data_modules.analysis.cross_tabs import _normal_codes
 from core_data_modules.logging import Logger
-from rpy2 import robjects
 from rpy2.interactive.packages import importr
 from rpy2.robjects import r
 
