@@ -111,6 +111,6 @@ def export_all_regression_analysis_txt(participants, consent_withdrawn_field, rq
     )
 
     for results in regression_results.values():
-        for (theme, result_text) in results.items():
+        for theme, result_text in results.items():
             f.write(theme + "\n")
             f.write(result_text + "\n")
