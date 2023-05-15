@@ -12,6 +12,18 @@ log = Logger(__name__)
 GLM_FAMILY = 'binomial(link="logit")'
 
 
+def _get_model_formula(theme, predictors):
+    """
+    Gets the model formula string for a given theme and the names of its predictor variables.
+    
+    :param theme: Theme in model formula e.g. "s01e01_yes"
+    :type theme: str
+    :param predictors: List of predictor variables e.g. ["age", "gender", ...]
+    :type predictors: list of str
+    """
+    return f"{theme} ~ {' + '.join(predictors)}"
+
+
 def run_complete_case_regression_analysis(participants, consent_withdrawn_field, rqa_analysis_config,
                                           demog_analysis_configs):
     """
@@ -42,12 +54,14 @@ def run_complete_case_regression_analysis(participants, consent_withdrawn_field,
         participants, consent_withdrawn_field, rqa_analysis_config, demog_analysis_configs
     )
 
-    # TODO: Derive this formula automatically or from configuration rather than from a hard-coded string.
-    demogs_formula = "gender + age_category + disability + recently_displaced"
+    # TODO: Derive these predictors automatically or from configuration rather than from a hard-coded list.
+    predictors = ["gender", "age_category", "disability", "recently_displaced"]
+
     results = dict()
     for code in _normal_codes(rqa_analysis_config.code_scheme.codes):
         theme = f"{rqa_analysis_config.dataset_name}_{code.string_value}"
-        formula = f"{theme} ~ {demogs_formula}"
+        formula = _get_model_formula(theme, predictors)
+
         log.info(f"Running complete case regression '{formula}'...")
         regression_results = arm.bayesglm(formula, family=r(GLM_FAMILY), data=data_frame)
 
