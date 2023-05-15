@@ -8,7 +8,7 @@ from src.engagement_db_to_analysis.column_view_conversion import (analysis_datas
                                                                   analysis_dataset_configs_to_demog_column_configs,
                                                                   analysis_dataset_configs_to_column_configs)
 from src.engagement_db_to_analysis.configuration import AnalysisLocations
-from src.engagement_db_to_analysis.regression_analysis.regression_analysis import run_all_regression_analysis
+from src.engagement_db_to_analysis.regression_analysis.regression_analysis import export_all_regression_analysis_txt
 
 log = Logger(__name__)
 
@@ -104,8 +104,10 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
 
     if analysis_config.enable_experimental_regression_analysis:
         log.info(f"Running experimental regression analysis...")
-        run_all_regression_analysis(participants_by_column, "consent_withdrawn", rqa_column_configs,
-                                    demog_column_configs)
+        with open(f"{export_dir_path}/complete_case_regression.txt", "w") as f:
+            export_all_regression_analysis_txt(
+                participants_by_column, "consent_withdrawn", rqa_column_configs, demog_column_configs, f
+            )
 
     log.info(f"Exporting participation maps for each location dataset...")
     mappers = {
