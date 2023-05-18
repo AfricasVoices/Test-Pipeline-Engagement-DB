@@ -73,9 +73,9 @@ def run_complete_case_regression_analysis(participants, consent_withdrawn_field,
     return results
 
 
-def run_all_regression_analysis(participants, consent_withdrawn_field, rqa_analysis_configs, demog_analysis_configs):
+def run_all_complete_case_regression_analysis(participants, consent_withdrawn_field, rqa_analysis_configs, demog_analysis_configs):
     """
-    Runs all the regression analysis for multiple RQA and demographic configurations.
+    Runs all the complete case regression analysis for multiple RQA and demographic configurations.
 
     This function calls `run_complete_case_regression_analysis` once for each of the given `rqa_analysis_configs`.
 
@@ -90,6 +90,8 @@ def run_all_regression_analysis(participants, consent_withdrawn_field, rqa_analy
                                    TODO: The actual demographics are currently a hard-coded subset of what is provided
                                          here. Derive automatically or from configuration in future.
     :type demog_analysis_configs: list of core_data_modules.analysis.AnalysisConfiguration
+    :return: Dictionary of dataset_name -> (dict of theme -> results table as text)
+    :rtype dict of str -> (dict of str -> str)
     """
     all_results = dict()  # of dataset_name -> (dict of theme -> results table as text)
     for rqa_config in rqa_analysis_configs:
@@ -101,10 +103,10 @@ def run_all_regression_analysis(participants, consent_withdrawn_field, rqa_analy
     return all_results
 
 
-def export_all_regression_analysis_txt(participants, consent_withdrawn_field, rqa_analysis_configs,
-                                       demog_analysis_configs, f):
+def export_all_complete_case_regression_analysis_txt(participants, consent_withdrawn_field, rqa_analysis_configs,
+                                                     demog_analysis_configs, f):
     """
-    Computes all the regression analysis and exports them to a text file.
+    Computes all the complete-case regression analysis and exports them to a text file.
 
     :param participants: Participants to analyse.
     :type participants: iterable of core_data_modules.traced_data.TracedData
@@ -120,7 +122,7 @@ def export_all_regression_analysis_txt(participants, consent_withdrawn_field, rq
     :param f: Text file to write the regression results to.
     :type f: file-like
     """
-    regression_results = run_all_regression_analysis(
+    regression_results = run_all_complete_case_regression_analysis(
         participants, consent_withdrawn_field, rqa_analysis_configs, demog_analysis_configs
     )
 
