@@ -8,6 +8,9 @@ def convert_dicts_to_r_data_frame(dicts):
     """
     Converts a list of dictionaries to an R data-frame.
 
+    Each column in the returned data-frame contains a "FactorVector", which is the datatype used to represent
+    categorical data in R.
+
     :param dicts: Dictionaries to convert. Every dictionary must contain the same keys.
     :type dicts: dict of str -> (str | int | None)
     """
