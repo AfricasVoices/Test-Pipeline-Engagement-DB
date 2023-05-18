@@ -83,25 +83,6 @@ def _get_participant_regression_data(participant, consent_withdrawn_field, rqa_a
     return regression_data
 
 
-def _get_column_types(rqa_analysis_config, demog_analysis_configs):
-    """
-    Gets the expected types of the values returned by `_get_participant_regression_data`.
-
-    :param rqa_analysis_config: Configuration for the RQA dataset to include in the returned data-frame.
-    :type rqa_analysis_config: core_data_modules.analysis.AnalysisConfiguration
-    :param demog_analysis_configs: Configuration for the demographic datasets to include in the returned data-frame.
-    :type demog_analysis_configs: list of core_data_modules.analysis.AnalysisConfiguration
-    """
-    column_types = dict()
-    column_types["participant_uuid"] = str
-    for code in rqa_analysis_config.code_scheme.codes:
-        column_types[f"{rqa_analysis_config.dataset_name}_{code.string_value}"] = int
-    for demog_config in demog_analysis_configs:
-        column_types[demog_config.dataset_name] = str
-
-    return column_types
-
-
 def convert_participants_to_regression_data_frame(participants, consent_withdrawn_field,
                                                   rqa_analysis_config, demog_analysis_configs):
     """
@@ -138,5 +119,4 @@ def convert_participants_to_regression_data_frame(participants, consent_withdraw
         )
 
     # Convert the regression data into an R data frame.
-    column_types = _get_column_types(rqa_analysis_config, demog_analysis_configs)
-    return convert_dicts_to_r_data_frame(regression_dicts, column_types)
+    return convert_dicts_to_r_data_frame(regression_dicts)
