@@ -56,7 +56,7 @@ def run_multiple_imputation_regression_analysis(participants, consent_withdrawn_
     # Generate 20 copies of the input dataset, where each copy has had the missing data filled in with a different set
     # of plausible values.
     # Reset R's random number generator seed to ensure we get reproducible results.
-    log.info(f"Running multiple imputation for dataset '{rqa_analysis_config.dataset_name}...")
+    log.info(f"Running multiple imputation for dataset '{rqa_analysis_config.dataset_name}'...")
     base.set_seed(123)
     multiple_imputed_data_frame = mice.mice(data_frame, m=20, printFlag=False)
     env["multiple_imputed_data_frame"] = multiple_imputed_data_frame
