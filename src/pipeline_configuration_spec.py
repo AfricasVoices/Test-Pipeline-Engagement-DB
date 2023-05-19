@@ -21,6 +21,7 @@ from src.rapid_pro_to_engagement_db.configuration import (FlowResultConfiguratio
 from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfiguration, OperatorDatasetConfiguration,
                                                          DatasetTypes, AgeCategoryConfiguration, AnalysisLocations,
                                                          CodingConfiguration, GoogleDriveUploadConfiguration,
+                                                         AnalysisDashboardUploadConfiguration, SeriesConfiguration,
                                                          MembershipGroupConfiguration, AnalysisConfiguration)
 from src.facebook_to_engagement_db.configuration import (FacebookSource, FacebookDataset, FacebookSearch)
 from src.telegram_to_engagement_db.configuration import (TelegramGroupSource, TelegramGroupDataset, TelegramGroupSearch)

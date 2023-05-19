@@ -1,3 +1,5 @@
+import json
+
 from core_data_modules.analysis import (engagement_counts, repeat_participations, theme_distributions, sample_messages,
                                         AnalysisConfiguration, traffic_analysis, cross_tabs)
 from core_data_modules.analysis.mapping import participation_maps, kenya_mapper, somalia_mapper
@@ -67,6 +69,14 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
         theme_distributions.export_theme_distributions_csv(
             participants_by_column, "consent_withdrawn", rqa_column_configs, demog_column_configs, f
         )
+
+    theme_dists = theme_distributions.compute_theme_distributions(
+        participants_by_column, "consent_withdrawn", rqa_column_configs, demog_column_configs
+    )
+    with open(f"{export_dir_path}/theme_distributions.json", "w") as f:
+        json.dump(theme_dists, f)
+
+    return
 
     log.info("Exporting demographic distributions...")
     with open(f"{export_dir_path}/demographic_distributions.csv", "w") as f:
