@@ -52,7 +52,7 @@ class EngagementDBToRapidProConfiguration:
                                       However, setting this to True may not be appropriate for a continuous sync to
                                       Rapid Pro because any new messages that have arrived in Rapid Pro but haven't been
                                       synced to the database yet will not be included in this sync from the database.
-                                      This might cause consistency issues/spam, depending on the flow design.
+                                      This might cause consistency issues or potential spam, depending on the flow design.
                                       Note: This only clears contact fields from participants who had some data to sync
                                       to other fields. Contacts present in Rapid Pro but not in the engagement database
                                       (or with no new data in the database when running in incremental mode)
