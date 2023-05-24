@@ -7,7 +7,7 @@ from core_data_modules.analysis.analysis_utils import get_codes_from_td
 from core_data_modules.analysis.cross_tabs import _normal_codes
 from core_data_modules.cleaners import Codes
 
-from src.engagement_db_to_analysis.regression_analysis.r_utils import convert_dicts_to_r_data_frame
+from src.engagement_db_to_analysis.regression_analysis.r_utils import convert_dicts_to_r_data_frame_of_factors
 
 
 def _get_matrix_values(codes, dataset_name, code_scheme):
@@ -119,4 +119,4 @@ def convert_participants_to_regression_data_frame(participants, consent_withdraw
         )
 
     # Convert the regression data into an R data frame.
-    return convert_dicts_to_r_data_frame(regression_dicts)
+    return convert_dicts_to_r_data_frame_of_factors(regression_dicts)

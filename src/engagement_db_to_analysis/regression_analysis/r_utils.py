@@ -4,7 +4,7 @@ from collections import defaultdict
 from rpy2.robjects import DataFrame, FactorVector
 
 
-def convert_dicts_to_r_data_frame(dicts):
+def convert_dicts_to_r_data_frame_of_factors(dicts):
     """
     Converts a list of dictionaries to an R data-frame.
 
