@@ -13,7 +13,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
     ],
     engagement_database=EngagementDatabaseClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
-        database_path="engagement_db_experiments/kobotoolbox_test"
+        database_path="engagement_db_experiments/experimental_test"
     ),
     uuid_table=UUIDTableClientConfiguration(
         credentials_file_url="gs://avf-credentials/firebase-test.json",
@@ -185,10 +185,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 ignore_invalid_mobile_numbers=True,
                 question_configurations=[
                     # Long answer
-                    KoboToolBoxQuestionConfiguration(data_column_name="leap_s05e01?", engagement_db_dataset="leap_s05e01"),
+                    KoboToolBoxQuestionConfiguration(data_column_name="leap_s05e01?", engagement_db_dataset="s01e01"),
 
                     # Multiple choice question
-                    KoboToolBoxQuestionConfiguration(data_column_name="gender?", engagement_db_dataset="gender"),
+                    KoboToolBoxQuestionConfiguration(data_column_name="gender", engagement_db_dataset="gender"),
 
                     # Numeric answer
                     KoboToolBoxQuestionConfiguration(data_column_name="age", engagement_db_dataset="age"),
