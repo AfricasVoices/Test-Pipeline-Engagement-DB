@@ -17,8 +17,8 @@ class KoboToolBoxParticipantIdConfiguration:
         """
         Initializes a configuration object for a participant uuid question.
 
-        :param data_column_name:  This is the KoboToolBox variable name that store response(s) for a question.
-                               e.g. "What is your phone number?"
+        :param data_column_name:  This is the KoboToolBox variable name that stores response(s) for a question.
+                                  e.g. "What is your phone number?"
         :type data_column_name: str
         :param id_type: The type of UUID used for the question. See `KoboToolBoxParticipantIdTypes` for valid values.
         :type id_type: str
@@ -30,7 +30,7 @@ class KoboToolBoxParticipantIdConfiguration:
 class KoboToolBoxQuestionConfiguration:
     def __init__(self, data_column_name, engagement_db_dataset):
         """
-        Initializes a configuration object for an engagement database dataset.
+        Initializes a configuration object for specifying the KoboToolBox variable name to sync from and the engagement database dataset to sync to.
 
         :param data_column_name: This is a KoboToolBox variable name that store response for a question.
         :type data_column_name: str
@@ -40,7 +40,7 @@ class KoboToolBoxQuestionConfiguration:
         self.data_column_name = data_column_name
         self.engagement_db_dataset = engagement_db_dataset
 
-
+#TODO: Extract common config and move to common/src
 class KoboToolBoxToEngagementDBConfiguration:
     def __init__(self, asset_uid, question_configurations, participant_id_configuration=None, ignore_invalid_mobile_numbers=False):
         """
