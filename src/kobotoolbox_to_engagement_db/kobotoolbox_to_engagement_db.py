@@ -19,7 +19,7 @@ from src.kobotoolbox_to_engagement_db.sync_stats import KoboToolBoxSyncEvents, K
 
 log = Logger(__name__)
 
-
+#TODO: Move to src/common
 def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_length, valid_prefixes=None):
     """
     Validates a phone number and formats it as a URN.
@@ -225,7 +225,8 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
 
     authorization_headers = KoboToolBoxClient.get_authorization_headers(google_cloud_credentials_file_path, kobotoolbox_source.token_file_url)
     form_responses = sorted(KoboToolBoxClient.get_form_responses(authorization_headers, kobotoolbox_source.sync_config.asset_uid, last_seen_response_time), 
-                            key=lambda response:response['_submission_time'])
+                            key=lambda response: response['_submission_time'])
+    log.info(f"Downloaded {len(form_responses)} responses")
     
     sync_stats = KoboToolBoxToEngagementDBSyncStats()
 
@@ -233,13 +234,14 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
     if not form_responses:
         return sync_stats
     
-    for form_response in form_responses:
+    for i, form_response in enumerate(form_responses):
+        log.info(f"Processing response {i + 1}/{len(form_responses)}...")
         sync_stats.add_event(KoboToolBoxSyncEvents.READ_RESPONSE_FROM_KOBOTOOLBOX_FORM)
         for question_config in kobotoolbox_source.sync_config.question_configurations:
 
             form_answer = form_response.get(question_config.data_column_name)
             if form_answer is None:
-                log.warning(f"Found no response for {question_config.data_column_name} skipping!..")
+                log.warning(f"Found no response for column {question_config.data_column_name}; skipping...")
                 sync_stats.add_event(KoboToolBoxSyncEvents.FOUND_A_NULL_RESPONSE)
                 continue
             sync_stats.add_event(KoboToolBoxSyncEvents.READ_ANSWER_FROM_RESPONSE)
