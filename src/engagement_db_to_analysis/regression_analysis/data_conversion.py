@@ -66,8 +66,6 @@ def _get_participant_regression_data(participant, consent_withdrawn_field, rqa_a
     # Extract the regression data into a dictionary.
     # This will contain the relevant RQA labels in matrix-format, and the relevant demog labels in categorical-format.
     regression_data = {}
-    #    "participant_uuid": participant["participant_uuid"]
-    # }
 
     # Extract the relevant RQA labels in matrix-format.
     rqa_codes = get_codes_from_td(participant, rqa_analysis_config)
