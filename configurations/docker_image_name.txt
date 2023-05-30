@@ -1,1 +1,1 @@
-ghcr.io/africasvoices/engagement-data-pipeline:add_kobotoolbox_source_wusc
+engagement-db-test
