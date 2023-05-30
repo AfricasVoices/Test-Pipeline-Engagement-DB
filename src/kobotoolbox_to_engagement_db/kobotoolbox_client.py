@@ -77,8 +77,10 @@ class KoboToolBoxClient:
             request = f'{BASE_URL}/{asset_uid}/data/?format=json'
 
         response = requests.get(request, headers=authorization_headers, verify=False)
+        print(response.status_code)
         if response.content:
-            form_responses = response.json()["results"]
+            form_responses = response.json()
+            print(json.dumps(form_responses, indent=1))
             log.info(f"Downloaded {len(form_responses)} total responses")
         else: 
             log.info(f"No responses downloaded for Asset '{asset_uid}'{timestamp_log}. Status code: {response.status_code}")
