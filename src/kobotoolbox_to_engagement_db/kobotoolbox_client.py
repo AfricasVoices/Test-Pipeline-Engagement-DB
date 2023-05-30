@@ -7,7 +7,7 @@ from core_data_modules.logging import Logger
 
 log = Logger(__name__)
 
-BASE_URL = "https://kf.kobotoolbox.org/api/v2/assets"
+BASE_URL = "https://kc.humanitarianresponse.info/api/v2/assets"
 
 
 class KoboToolBoxClient:
@@ -23,7 +23,7 @@ class KoboToolBoxClient:
         :return: A dictionary of authorization headers containing the KoboToolBox API token.
         :rtype: dict
         """
-        log.info('Downloading KoboToolBox access tokens...')
+        log.info('Downloading KoboToolBox access token...')
         api_token = json.loads(google_cloud_utils.download_blob_to_string(
             google_cloud_credentials_file_path, token_file_url).strip())
         
