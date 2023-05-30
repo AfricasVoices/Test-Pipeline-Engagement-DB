@@ -7,7 +7,7 @@ from core_data_modules.logging import Logger
 
 log = Logger(__name__)
 
-BASE_URL = "https://kc.humanitarianresponse.info/api/v2/assets"
+BASE_URL = "https://kc.humanitarianresponse.info/api/v1/submissions"
 
 
 class KoboToolBoxClient:
