@@ -79,7 +79,7 @@ class KoboToolBoxClient:
         response = requests.get(request, headers=authorization_headers, verify=False)
         print(response.status_code)
         if response.content:
-            form_responses = json.loads(response)
+            form_responses = json.loads(response.content)
             #print(json.dumps(form_responses, indent=1))
             print(form_responses)
             print(type(form_responses))
