@@ -264,7 +264,7 @@
             "editable": true,
             "extras": [],
             "git": "https://github.com/AfricasVoices/CoreDataModules",
-            "ref": "2dd6764d58da375791373a0e1dfa8902608f6833"
+            "ref": "85b4bbe335290d4f8701c63f70e1f20b526f50c2"
         },
         "cryptography": {
             "hashes": [

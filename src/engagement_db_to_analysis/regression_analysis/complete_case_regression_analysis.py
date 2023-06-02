@@ -1,4 +1,4 @@
-from core_data_modules.analysis.cross_tabs import _normal_codes
+from core_data_modules.analysis.analysis_utils import normal_codes
 from core_data_modules.logging import Logger
 from rpy2.interactive.packages import importr
 from rpy2.robjects import r
@@ -58,7 +58,7 @@ def run_complete_case_regression_analysis(participants, consent_withdrawn_field,
     predictors = ["gender", "age_category", "disability", "recently_displaced"]
 
     results = dict()
-    for code in _normal_codes(rqa_analysis_config.code_scheme.codes):
+    for code in normal_codes(rqa_analysis_config.code_scheme.codes):
         theme = f"{rqa_analysis_config.dataset_name}_{code.string_value}"
         formula = _get_model_formula(theme, predictors)
 
