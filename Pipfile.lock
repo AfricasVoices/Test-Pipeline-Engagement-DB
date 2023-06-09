@@ -264,7 +264,7 @@
             "editable": true,
             "extras": [],
             "git": "https://github.com/AfricasVoices/CoreDataModules",
-            "ref": "85b4bbe335290d4f8701c63f70e1f20b526f50c2"
+            "ref": "efc1bd9039d8c4217fc04a28aa08e5b38ffd0fb6"
         },
         "cryptography": {
             "hashes": [
@@ -1001,7 +1001,7 @@
         "pipelineinfrastructure": {
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/Pipeline-Infrastructure",
-            "ref": "88f54479f71f0236ddb9872ca0bde3e75e385379"
+            "ref": "bb6948d0b6951970d212f15a38d5fbbbb2147e92"
         },
         "proto-plus": {
             "hashes": [

@@ -2,6 +2,7 @@ from core_data_modules.logging import Logger
 from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO
 from core_data_modules.util import TimeUtils
+from firebase_admin import storage
 
 from src.common.get_messages_in_datasets import get_messages_in_datasets
 from src.engagement_db_to_analysis import google_drive_upload
@@ -53,6 +54,9 @@ def export_traced_data(traced_data, export_path):
 
 def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, uuid_table, engagement_db, rapid_pro,
                             membership_group_dir_path,output_dir, cache_path=None, dry_run=False):
+    """
+    :type pipeline_config: src.pipeline_configuration_spec.PipelineConfiguration
+    """
 
     analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
     # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
@@ -129,6 +133,26 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
             google_drive_upload.upload_all_files_in_dir(
                 f"{output_dir}/automated-analysis", f"{drive_dir}/automated-analysis", recursive=True
             )
+
+    if pipeline_config.analysis.analysis_dashboard_upload is None:
+        log.debug(f"Not uploading to an Analysis Dashboard, because the 'analysis_dashboard' configuration was None {dry_run_text}")
+    elif dry_run:
+        log.info(f"Not uploading to an Analysis Dashboard {dry_run_text}")
+    else:
+        analysis_dashboard_config = pipeline_config.analysis.analysis_dashboard_upload
+        analysis_dashboard = analysis_dashboard_config.init_analysis_dashboard_client(google_cloud_credentials_file_path)
+
+        # TODO: Update series doc if needed
+
+        # TODO: Update users if needed
+
+        analysis_dashboard.create_snapshot(
+            series_id=analysis_dashboard_config.series.series_id,
+            bucket_name=analysis_dashboard_config.bucket_name,
+            files={
+                f"{output_dir}/production.csv": "production.csv"
+            }
+        )
 
     if pipeline_config.rapid_pro_target is not None and pipeline_config.rapid_pro_target.sync_config.sync_advert_contacts:
         sync_advert_contacts_to_rapid_pro(
