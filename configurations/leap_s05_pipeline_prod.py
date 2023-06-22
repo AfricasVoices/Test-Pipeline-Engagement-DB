@@ -97,10 +97,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     KoboToolBoxQuestionConfiguration(data_column_name="leap_s05e01", engagement_db_dataset="leap_s05e01"),
                 ] + demogs_question_configurations
             )
-        )
-    ],
-    # Leap episode 2 was extended to week 3
-    kobotoolbox_sources=[
+        ),
+        # Leap episode 2 was extended to week 3
         KoboToolBoxSource(
             token_file_url="gs://avf-credentials/wusc-kobotoolbox-token.json",
             sync_config=KoboToolBoxToEngagementDBConfiguration(
@@ -114,9 +112,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     KoboToolBoxQuestionConfiguration(data_column_name="leap_s05e02", engagement_db_dataset="leap_s05e02"),
                 ] + demogs_question_configurations
             )
-        )
-    ],
-    kobotoolbox_sources=[
+        ),
         KoboToolBoxSource(
             token_file_url="gs://avf-credentials/wusc-kobotoolbox-token.json",
             sync_config=KoboToolBoxToEngagementDBConfiguration(
@@ -130,9 +126,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     KoboToolBoxQuestionConfiguration(data_column_name="leap_s05e03", engagement_db_dataset="leap_s05e04"),
                 ] + demogs_question_configurations
             )
-        )
-    ],
-    kobotoolbox_sources=[
+        ),
         KoboToolBoxSource(
             token_file_url="gs://avf-credentials/wusc-kobotoolbox-token.json",
             sync_config=KoboToolBoxToEngagementDBConfiguration(
@@ -146,9 +140,7 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                     KoboToolBoxQuestionConfiguration(data_column_name="leap_s05e05", engagement_db_dataset="leap_s05e05"),
                 ] + demogs_question_configurations
             )
-        )
-    ],
-    kobotoolbox_sources=[
+        ),
         KoboToolBoxSource(
             token_file_url="gs://avf-credentials/wusc-kobotoolbox-token.json",
             sync_config=KoboToolBoxToEngagementDBConfiguration(
