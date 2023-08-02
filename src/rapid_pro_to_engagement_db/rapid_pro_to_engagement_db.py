@@ -227,9 +227,10 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
 
         # Get any contacts that have been updated since we last asked, in case any of the downloaded runs are for very
         # new contacts.
-        contacts = rapid_pro.update_raw_contacts_with_latest_modified(contacts)
-        if not dry_run and cache is not None:
-            cache.set_contacts(contacts)
+        updated_contacts = rapid_pro.update_raw_contacts_with_latest_modified(contacts)
+        if not dry_run and cache is not None and updated_contacts != contacts:
+            cache.set_contacts(updated_contacts)
+        contacts = updated_contacts
         contacts_lut = {c.uuid: c for c in contacts}
 
         # Process each run in turn, adding its values to the engagement database if it contains messages relevant to these flow
