@@ -255,14 +255,10 @@ def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_sche
 
 
 @firestore.transactional
-def clear_ws_labels(transaction, coda, coda_dataset_id, coda_message_id, coda_config, dry_run=False):
+def clear_checked_labels_in_coda(transaction, coda, coda_dataset_id, coda_message_id, dry_run=False):
     """
-    Clears the WS labels for a message in Coda.
-
-    WS labels are those which have control code `Codes.WRONG_SCHEME`, or are in the 'WS - Correct Dataset' code scheme.
-    Other labels, such as normal labels in another code scheme, are not touched.
-
-    TODO: Should we clear all labels? Otherwise it's possible to clear labels and the RAs won't know that this happened.
+    Clears all the checked labels from a message in Coda, by inserting new labels with id SPECIAL-MANUALLY_UNCODED
+    into the label history.
 
     :param transaction: Coda transaction to perform the update in.
     :type transaction: google.cloud.firestore.Transaction
@@ -272,8 +268,6 @@ def clear_ws_labels(transaction, coda, coda_dataset_id, coda_message_id, coda_co
     :type coda_dataset_id: str
     :param coda_message_id: Id of the message in Coda to clear the WS labels for.
     :type coda_message_id: str
-    :param coda_config: Coda sync configuration.
-    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param dry_run: Whether to perform a dry run.
     :type dry_run: bool
     """
@@ -285,24 +279,12 @@ def clear_ws_labels(transaction, coda, coda_dataset_id, coda_message_id, coda_co
         if not label.checked:
             continue
 
-        if label.scheme_id == coda_config.ws_correct_dataset_code_scheme.scheme_id:
-            continue
-
-        if _code_for_label(label, coda_config.get_non_ws_code_schemes()).control_code == Codes.WRONG_SCHEME:
-            coda_message.labels.insert(0, Label(
-                label.scheme_id,
-                "SPECIAL-MANUALLY_UNCODED",
-                TimeUtils.utc_now_as_iso_string(),
-                Origin(Metadata.get_call_location(), "Pipeline WS-Cycle Fixer", "External")
-            ))
-
-    # Reset WS - Correct Dataset code scheme label
-    coda_message.labels.insert(0, Label(
-        coda_config.ws_correct_dataset_code_scheme.scheme_id,
-        "SPECIAL-MANUALLY_UNCODED",
-        TimeUtils.utc_now_as_iso_string(),
-        Origin(Metadata.get_call_location(), "Pipeline WS-Cycle Fixer", "External")
-    ))
+        coda_message.labels.insert(0, Label(
+            label.scheme_id,
+            "SPECIAL-MANUALLY_UNCODED",
+            TimeUtils.utc_now_as_iso_string(),
+            Origin(Metadata.get_call_location(), "Pipeline WS-Cycle Fixer", "External")
+        ))
 
     if not dry_run:
         coda.update_dataset_message(coda_dataset_id, coda_message, transaction)
@@ -311,16 +293,19 @@ def clear_ws_labels(transaction, coda, coda_dataset_id, coda_message_id, coda_co
 def _fix_ws_cycle(engagement_db, coda, engagement_db_message, coda_config, transaction=None, dry_run=False):
     """
     Fixes a WS cycle, by:
-     - Clearing all the WS labels (TODO: all labels?) on all the Coda messages in the cycle.
+     - Clearing all the labels on all the Coda messages in the cycle[1].
      - Clearing the `labels` and `previous_datasets` of the engagement_db message, and resetting its `dataset` back
        to its original dataset.
+       
+    [1] Clear all the labels, not just the WS labels, to ensure the message becomes "unreviewed" in Coda, thus
+        ensuring a Coda user knows they need to take another look at this message.
 
     :param engagement_db: Engagement database containing the engagement_db message to reset.
     :type engagement_db: engagement_database.EngagementDatabase
     :param coda: Coda instance containing the Coda messages to clear.
     :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param engagement_db_message: Engagement db message to fix.
-    :type engagement_db_message: core_data_modules.data_models.Message
+    :type engagement_db_message: engagement_database.data_models.Message
     :param coda_config: Coda sync configuration.
     :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
     :param transaction: Transaction in the engagement database to perform the update in.
@@ -334,9 +319,8 @@ def _fix_ws_cycle(engagement_db, coda, engagement_db_message, coda_config, trans
     datasets_to_clear = set(engagement_db_message.previous_datasets + [engagement_db_message.dataset])
     for engagement_db_dataset in datasets_to_clear:
         coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(engagement_db_dataset)
-        clear_ws_labels(
-            coda.transaction(), coda, coda_dataset_config.coda_dataset_id, engagement_db_message.coda_id,
-            coda_config, dry_run
+        clear_checked_labels_in_coda(
+            coda.transaction(), coda, coda_dataset_config.coda_dataset_id, engagement_db_message.coda_id, dry_run
         )
 
     # Reset the message in the engagement db

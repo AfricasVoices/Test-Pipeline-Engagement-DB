@@ -161,13 +161,3 @@ class CodaSyncConfiguration:
                     return config
         raise ValueError(f"Coda configuration does not contain a dateset_configuration with a ws_code_match_value "
                          f"in '{ws_code_match_values}'")
-
-    def get_non_ws_code_schemes(self):
-        """
-        TODO: Remove?
-        """
-        code_schemes = []
-        for dataset_config in self.dataset_configurations:
-            for code_scheme_config in dataset_config.code_scheme_configurations:
-                code_schemes.append(code_scheme_config.code_scheme)
-        return code_schemes
