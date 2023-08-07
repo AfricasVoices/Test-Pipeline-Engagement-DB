@@ -103,7 +103,8 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
     if coda_message is not None:
         log.debug("Message already exists in Coda")
         update_sync_events = _update_engagement_db_message_from_coda_message(
-            engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction, dry_run=dry_run
+            engagement_db, coda, engagement_db_message, coda_message, coda_config,
+            transaction=transaction, dry_run=dry_run
         )
         sync_stats.add_events(update_sync_events)
         return engagement_db_message, sync_stats

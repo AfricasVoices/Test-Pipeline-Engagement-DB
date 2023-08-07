@@ -5,8 +5,10 @@ from core_data_modules.cleaners import Codes
 from core_data_modules.cleaners.cleaning_utils import CleaningUtils
 from core_data_modules.data_models import Message as CodaMessage, Label, Origin
 from core_data_modules.logging import Logger
+from core_data_modules.traced_data import Metadata
 from core_data_modules.util import TimeUtils
 from engagement_database.data_models import HistoryEntryOrigin
+from google.cloud import firestore
 from storage.google_cloud import google_cloud_utils
 
 from src.engagement_db_coda_sync.sync_stats import CodaSyncEvents, EngagementDBToCodaSyncStats
@@ -252,8 +254,109 @@ def _get_ws_code(coda_message, coda_dataset_config, ws_correct_dataset_code_sche
     return ws_code
 
 
-def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db_message, coda_message, coda_config,
-                                                    transaction=None, dry_run=False):
+@firestore.transactional
+def clear_ws_labels(transaction, coda, coda_dataset_id, coda_message_id, coda_config, dry_run=False):
+    """
+    Clears the WS labels for a message in Coda.
+
+    WS labels are those which have control code `Codes.WRONG_SCHEME`, or are in the 'WS - Correct Dataset' code scheme.
+    Other labels, such as normal labels in another code scheme, are not touched.
+
+    TODO: Should we clear all labels? Otherwise it's possible to clear labels and the RAs won't know that this happened.
+
+    :param transaction: Coda transaction to perform the update in.
+    :type transaction: google.cloud.firestore.Transaction
+    :param coda: Coda instance to reset the WS labels in.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
+    :param coda_dataset_id: Id (name) of this dataset in Coda e.g. 'Healthcare_s01e01'
+    :type coda_dataset_id: str
+    :param coda_message_id: Id of the message in Coda to clear the WS labels for.
+    :type coda_message_id: str
+    :param coda_config: Coda sync configuration.
+    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
+    """
+    log.info(f"Clearing WS labels for Coda message '{coda_message_id}' in Coda dataset '{coda_dataset_id}'...")
+    coda_message = coda.get_dataset_message(coda_dataset_id, coda_message_id, transaction)
+
+    # Reset all the WS labels in the non-WS-Correct-Dataset code schemes
+    for label in coda_message.get_latest_labels():
+        if not label.checked:
+            continue
+
+        if label.scheme_id == coda_config.ws_correct_dataset_code_scheme.scheme_id:
+            continue
+
+        if _code_for_label(label, coda_config.get_non_ws_code_schemes()).control_code == Codes.WRONG_SCHEME:
+            coda_message.labels.insert(0, Label(
+                label.scheme_id,
+                "SPECIAL-MANUALLY_UNCODED",
+                TimeUtils.utc_now_as_iso_string(),
+                Origin(Metadata.get_call_location(), "Pipeline WS-Cycle Fixer", "External")
+            ))
+
+    # Reset WS - Correct Dataset code scheme label
+    coda_message.labels.insert(0, Label(
+        coda_config.ws_correct_dataset_code_scheme.scheme_id,
+        "SPECIAL-MANUALLY_UNCODED",
+        TimeUtils.utc_now_as_iso_string(),
+        Origin(Metadata.get_call_location(), "Pipeline WS-Cycle Fixer", "External")
+    ))
+
+    if not dry_run:
+        coda.update_dataset_message(coda_dataset_id, coda_message, transaction)
+
+
+def _fix_ws_cycle(engagement_db, coda, engagement_db_message, coda_config, transaction=None, dry_run=False):
+    """
+    Fixes a WS cycle, by:
+     - Clearing all the WS labels (TODO: all labels?) on all the Coda messages in the cycle.
+     - Clearing the `labels` and `previous_datasets` of the engagement_db message, and resetting its `dataset` back
+       to its original dataset.
+
+    :param engagement_db: Engagement database containing the engagement_db message to reset.
+    :type engagement_db: engagement_database.EngagementDatabase
+    :param coda: Coda instance containing the Coda messages to clear.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
+    :param engagement_db_message: Engagement db message to fix.
+    :type engagement_db_message: core_data_modules.data_models.Message
+    :param coda_config: Coda sync configuration.
+    :type coda_config: src.engagement_db_coda_sync.configuration.CodaSyncConfiguration
+    :param transaction: Transaction in the engagement database to perform the update in.
+    :type transaction: google.cloud.firestore.Transaction
+    :param dry_run: Whether to perform a dry run.
+    :type dry_run: bool
+    """
+    log.warning(f"Fixing WS cycle for engagement_db message '{engagement_db_message.message_id}'...")
+
+    # Clear the labels in Coda
+    datasets_to_clear = set(engagement_db_message.previous_datasets + [engagement_db_message.dataset])
+    for engagement_db_dataset in datasets_to_clear:
+        coda_dataset_config = coda_config.get_dataset_config_by_engagement_db_dataset(engagement_db_dataset)
+        clear_ws_labels(
+            coda.transaction(), coda, coda_dataset_config.coda_dataset_id, engagement_db_message.coda_id,
+            coda_config, dry_run
+        )
+
+    # Reset the message in the engagement db
+    log.info(f"Resetting labels, dataset, and previous_dataset for engagement_db message "
+             f"'{engagement_db_message.message_id}'...")
+    engagement_db_message.labels = []
+    engagement_db_message.dataset = engagement_db_message.previous_datasets[0]
+    engagement_db_message.previous_datasets = []
+
+    if not dry_run:
+        engagement_db.set_message(
+            engagement_db_message,
+            HistoryEntryOrigin("Fix WS Cycle", {}),
+            transaction
+        )
+    log.info(f"Fixed WS cycle for engagement_db message '{engagement_db_message.message_id}'")
+
+
+def _update_engagement_db_message_from_coda_message(engagement_db, coda, engagement_db_message, coda_message,
+                                                    coda_config, transaction=None, dry_run=False):
     """
     Updates a message in the engagement database based on the labels in the Coda message.
 
@@ -263,6 +366,8 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
 
     :param engagement_db: Engagement database to update the message in.
     :type engagement_db: engagement_database.EngagementDatabase
+    :param coda: Coda instance the message is being synced from.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param engagement_db_message: Engagement database message to update
     :type engagement_db_message: engagement_database.data_models.Message
     :param coda_message: Coda message to use to update the engagement database message.
@@ -321,21 +426,13 @@ def _update_engagement_db_message_from_coda_message(engagement_db, engagement_db
         log.warning(f"Message '{engagement_db_message.message_id}' is being WS-corrected to the dataset is currently "
                     f"in. Not moving the message.")
     elif correct_dataset is not None:
-        # WS-correct this message.
-
-        # Ensure this message isn't being moved to a dataset which it has previously been assigned to.
-        # This is because if the message has already been in this new dataset, there is a chance there is an
-        # infinite loop in the WS labels, which could get very expensive if we end up cycling this message through
-        # the same datasets at high frequency.
-        # If this message has been in this dataset before, crash and wait for this to be manually corrected.
-        # Note that this is a simple but heavy-handed approach to handling what should be a rare edge case.
-        # If we encounter this problem more frequently than expected, upgrade this to a more sophisticated loop
-        # detector/handler.
-        assert correct_dataset not in engagement_db_message.previous_datasets, \
-            f"Engagement db message '{engagement_db_message.message_id}' (text '{engagement_db_message.text}') " \
-            f"is being WS-corrected to dataset '{correct_dataset}', but already has this dataset in its " \
-            f"previous_datasets ({engagement_db_message.previous_datasets}). " \
-            f"This suggests an infinite loop in the WS labels."
+        if correct_dataset in engagement_db_message.previous_datasets:
+            log.warning(f"Message '{engagement_db_message.message_id}' is being WS-corrected from  dataset "
+                        f"'{engagement_db_message.dataset}' to '{correct_dataset}', which is one of its previous "
+                        f"datasets ({engagement_db_message.previous_datasets})")
+            _fix_ws_cycle(engagement_db, coda, engagement_db_message, coda_config, transaction, dry_run)
+            sync_events.append(CodaSyncEvents.FIX_WS_CYCLE)
+            return sync_events
 
         # Clear the labels and correct the dataset (the message will sync with the new dataset on the next sync)
         log.debug(f"WS correcting from {engagement_db_message.dataset} to {correct_dataset}")
