@@ -31,10 +31,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             ),
             sync_config=RapidProToEngagementDBConfiguration(
                 flow_result_configurations=[
-                    FlowResultConfiguration("test_pipeline_daniel_activation", "rqa_s01e01", "s01e01"),
-                    FlowResultConfiguration("test_pipeline_daniel_demog", "constituency", "location"),
-                    FlowResultConfiguration("test_pipeline_daniel_demog", "age", "age"),
-                    FlowResultConfiguration("test_pipeline_daniel_demog", "gender", "gender"),
+                    FlowResultConfiguration("test_pipeline_sms_activation", "rqa_s01e01", "s01e01"),
+                    FlowResultConfiguration("test_pipeline_sms_demog", "constituency", "location"),
+                    FlowResultConfiguration("test_pipeline_sms_demog", "age", "age"),
+                    FlowResultConfiguration("test_pipeline_sms_demog", "gender", "gender"),
                 ]
             )
         )
