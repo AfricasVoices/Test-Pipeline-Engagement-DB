@@ -258,7 +258,9 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                     cache.set_latest_run_timestamp(flow_id, run.modified_on)
                 continue
             contact = contacts_lut[run.contact.uuid]
-            assert len(contact.urns) == 1, len(contact.urns)
+            if len(contact.urns) != 1:
+                continue
+            # assert len(contact.urns) == 1, len(contact.urns)
             contact_urn = _normalise_and_validate_contact_urn(contact.urns[0])
 
             if rapid_pro_config.uuid_filter is not None:
