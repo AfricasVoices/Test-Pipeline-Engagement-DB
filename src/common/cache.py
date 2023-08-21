@@ -1,10 +1,10 @@
 import json
+import os
 from datetime import datetime
 from os import path, remove
 
 from core_data_modules.util import IOUtils
 from engagement_database.data_models import Message
-from src.rapid_pro_to_engagement_db.configuration import FlowResultConfiguration
 from temba_client.v2 import Contact
 
 
@@ -48,9 +48,11 @@ class Cache:
 
     def set_rapid_pro_contacts(self, entry_name, contacts):
         export_path = f"{self.cache_dir}/{entry_name}.json"
+        temp_path = f"{self.cache_dir}/.{entry_name}_temp.json"
         IOUtils.ensure_dirs_exist_for_file(export_path)
-        with open(export_path, "w") as f:
+        with open(temp_path, "w") as f:
             json.dump([c.serialize() for c in contacts], f)
+        os.replace(temp_path, export_path)
 
     def get_rapid_pro_contacts(self, entry_name):
         try:

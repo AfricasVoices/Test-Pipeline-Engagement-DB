@@ -1,6 +1,13 @@
+import json
+
+from analysis_dashboard import AnalysisDashboard
 from core_data_modules.data_models import CodeScheme
+from core_data_modules.logging import Logger
+from storage.google_cloud import google_cloud_utils
 
 from src.engagement_db_to_rapid_pro.configuration import ContactField
+
+log = Logger(__name__)
 
 
 class DatasetTypes:
@@ -130,6 +137,66 @@ class GoogleDriveUploadConfiguration:
         self.drive_dir = drive_dir
 
 
+class SeriesConfiguration:
+    def __init__(self, series_id, series_name, project_name, pool_name):
+        """
+        Configuration for an Analysis Dashboard Series.
+
+        :param series_id: Id of this series in the Analysis Dashboard.
+        :type series_id: str
+        :param series_name: Name of this series
+        :type series_name: str
+        :param project_name: Name of the project to which this series belongs
+        :type project_name: str
+        :param pool_name: Name of the pool to which the project belongs.
+        :type pool_name: str
+        """
+        self.series_id = series_id
+        self.series_name = series_name
+        self.project_name = project_name
+        self.pool_name = pool_name
+
+
+class AnalysisDashboardUploadConfiguration:
+    def __init__(self, credentials_file_url, series, bucket_name):
+        """
+        Configuration for the upload of analysis to a new analysis snapshot in an Analysis Dashboard.
+
+        :param credentials_file_url: GS URL to a service account credentials file to use to access the AnalysisDashboard
+                                     Firebase project.
+        :type credentials_file_url: str
+        :param series: Series to upload the analysis to.
+                       TODO: Also create/update this series document in the Firestore, if needed.
+        :type series: SeriesConfiguration
+        :param bucket_name: Name of the Firebase storage bucket to upload analysis files to e.g.
+                            "avf-analysis-dashboard.appspot.com"
+        :type bucket_name: str
+        """
+        self.credentials_file_url = credentials_file_url
+        self.series = series
+        self.bucket_name = bucket_name
+
+    def init_analysis_dashboard_client(self, google_cloud_credentials_file_path):
+        """
+        Initialises an Analysis Dashboard client from this configuration.
+
+        :param google_cloud_credentials_file_path: Path to the Google Cloud service account credentials file to use to
+                                                   access the credentials bucket.
+        :type google_cloud_credentials_file_path: str
+        :rtype: analysis_dashboard.AnalysisDashboard
+        """
+        log.info("Initialising Analysis Dashboard client...")
+        credentials = json.loads(google_cloud_utils.download_blob_to_string(
+            google_cloud_credentials_file_path,
+            self.credentials_file_url
+        ))
+
+        analysis_dashboard = AnalysisDashboard.init_from_credentials(credentials)
+        log.info("Initialised analysis dashboard client")
+
+        return analysis_dashboard
+
+
 class MembershipGroupConfiguration:
     def __init__(self, membership_group_csv_urls=None):
         """
@@ -154,7 +221,8 @@ class MembershipGroupConfiguration:
 
 class AnalysisConfiguration:
     def __init__(self, dataset_configurations, ws_correct_dataset_code_scheme, cross_tabs=None, traffic_labels=None,
-                 google_drive_upload=None, membership_group_configuration=None):
+                 google_drive_upload=None, analysis_dashboard_upload=None, membership_group_configuration=None,
+                 enable_experimental_regression_analysis=False):
         """
         Configuration for an analysis of data in an engagement database.
 
@@ -177,14 +245,23 @@ class AnalysisConfiguration:
                                     to Google Drive.
                                     If None, does not upload any data to Google Drive.
         :type google_drive_upload: GoogleDriveUploadConfiguration | None
+        :param analysis_dashboard_upload: TODO
+        :type analysis_dashboard_upload: AnalysisDashboardUploadConfiguration | None
         :param membership_group_configuration: Configuration for membership groups. These can be used to tag groups
                                                of participants based on participation in provided datasets.
                                                See `MembershipGroupConfiguration` for more details.
         :type membership_group_configuration: MembershipGroupConfiguration
+        :param enable_experimental_regression_analysis: Whether to run the experimental regression analysis.
+                                                        Regression analysis is in beta and therefore not suitable for
+                                                        all pipelines.
+                                                        TODO: Remove this feature flag once stable.
+        :type enable_experimental_regression_analysis: bool
         """
         self.dataset_configurations = dataset_configurations
         self.ws_correct_dataset_code_scheme = ws_correct_dataset_code_scheme
         self.cross_tabs = cross_tabs
         self.traffic_labels = traffic_labels
         self.google_drive_upload = google_drive_upload
+        self.analysis_dashboard_upload = analysis_dashboard_upload
         self.membership_group_configuration = membership_group_configuration
+        self.enable_experimental_regression_analysis = enable_experimental_regression_analysis

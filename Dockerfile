@@ -4,8 +4,12 @@ FROM python:3.8-slim
 RUN apt-get update && apt-get install -y git
 RUN pip install pipenv
 
-# ARM support
-RUN apt-get update && apt-get install -y libgeos-dev libgdal-dev build-essential
+# If building for ARM-64 architecture, install additional dependencies which will be needed to run `pipenv sync` later.
+RUN if [ $(arch) = 'aarch64' ]; then apt-get update && apt-get install -y libgeos-dev libgdal-dev build-essential; fi
+
+# R
+RUN apt-get update && apt-get install -y python3-dev r-base cmake
+RUN R -e "install.packages('arm', dependencies=TRUE, repos='https://cran.rstudio.com/')"
 
 # Make a directory for private credentials files
 RUN mkdir /credentials

@@ -79,7 +79,8 @@ def _get_new_runs(rapid_pro, flow_id, cache=None):
     :type flow_id: str
     :param cache: Cache to check for a timestamp of a previous export. If None, downloads all runs.
     :type cache: src.rapid_pro_to_engagement_db.cache.RapidProSyncCache | None
-    :return: Runs modified for the given flow since the cache was last updated, if possible, else from all of time.
+    :return: Runs modified for the given flow since the cache was last updated, if possible, else from the flow's
+             creation datetime.
     :rtype: list of temba_client.v2.Run
     """
     # Try to get the last modified timestamp from the cache
@@ -87,9 +88,12 @@ def _get_new_runs(rapid_pro, flow_id, cache=None):
     if cache is not None:
         flow_last_updated = cache.get_latest_run_timestamp(flow_id)
 
-    # If there is a last updated timestamp in the cache, only download and return runs that have been modified since.
-    filter_last_modified_after = None
-    if flow_last_updated is not None:
+    if flow_last_updated is None:
+        # There is no last modified timestamp in the cache, so use the flow's creation date as the start date instead.
+        flow = rapid_pro.get_flow(flow_id)
+        filter_last_modified_after = flow.created_on
+    else:
+        # There is a last updated timestamp in the cache - only download and return runs that have been modified since.
         filter_last_modified_after = flow_last_updated + timedelta(microseconds=1)
 
     return rapid_pro.get_raw_runs(flow_id, last_modified_after_inclusive=filter_last_modified_after)
@@ -258,9 +262,10 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
 
         # Get any contacts that have been updated since we last asked, in case any of the downloaded runs are for very
         # new contacts.
-        contacts = rapid_pro.update_raw_contacts_with_latest_modified(contacts)
-        if not dry_run and cache is not None:
-            cache.set_contacts(contacts)
+        updated_contacts = rapid_pro.update_raw_contacts_with_latest_modified(contacts)
+        if not dry_run and cache is not None and updated_contacts != contacts:
+            cache.set_contacts(updated_contacts)
+        contacts = updated_contacts
         contacts_lut = {c.uuid: c for c in contacts}
 
         # Process each run in turn, adding its values to the engagement database if it contains messages relevant to these flow
