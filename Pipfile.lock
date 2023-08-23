@@ -246,12 +246,12 @@
         "codav2pythonclient": {
             "editable": true,
             "git": "https://www.github.com/AfricasVoices/CodaV2PythonClient",
-            "ref": "0782b76018392ed8a29e7b603ae99967f244a2b4"
+            "ref": "96887fc6916e80205675ebfee44554e4f7eeaef0"
         },
         "coredatamodules": {
             "editable": true,
             "git": "https://github.com/AfricasVoices/CoreDataModules",
-            "ref": "2825563eadee386b6f79c31ccc4b00279e706e9e"
+            "ref": "adeafc10ff48bb53f82fbdcd16c3431efd55fd1e"
         },
         "cryptography": {
             "hashes": [
