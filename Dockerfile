@@ -2,7 +2,7 @@ FROM python:3.8-slim
 
 # Install Python tools (git + pipenv)
 RUN apt-get update && apt-get install -y git
-RUN pip install pipenv
+RUN pip install --pre pipenv==2021.11.15
 
 # If building for ARM-64 architecture, install additional dependencies which will be needed to run `pipenv sync` later.
 RUN if [ $(arch) = 'aarch64' ]; then apt-get update && apt-get install -y libgeos-dev libgdal-dev build-essential; fi
@@ -23,7 +23,6 @@ WORKDIR /app
 # Install project dependencies.
 ADD Pipfile /app
 ADD Pipfile.lock /app
-RUN pipenv --rm
 RUN pipenv sync
 
 # Copy the rest of the project
