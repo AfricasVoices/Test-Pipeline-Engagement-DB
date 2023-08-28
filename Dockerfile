@@ -23,6 +23,7 @@ WORKDIR /app
 # Install project dependencies.
 ADD Pipfile /app
 ADD Pipfile.lock /app
+RUN pipenv --rm
 RUN pipenv sync
 
 # Copy the rest of the project
