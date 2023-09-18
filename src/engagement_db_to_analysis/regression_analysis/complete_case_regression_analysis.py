@@ -1,7 +1,5 @@
 from core_data_modules.analysis.analysis_utils import normal_codes
 from core_data_modules.logging import Logger
-from rpy2.interactive.packages import importr
-from rpy2.robjects import r
 
 from src.engagement_db_to_analysis.regression_analysis.data_conversion import \
     convert_participants_to_regression_data_frame
@@ -46,6 +44,9 @@ def run_complete_case_regression_analysis(participants, consent_withdrawn_field,
     :rtype: dict of str -> str
             TODO: Return the regression results table as an object that can be inspected and formatted rather than a str
     """
+    from rpy2.interactive.packages import importr
+    from rpy2.robjects import r
+
     # Initialise R
     base = importr("base")
     arm = importr("arm")  # Library for 'Data Analysis Using Regression and Multilevel/Hierarchical Models'
