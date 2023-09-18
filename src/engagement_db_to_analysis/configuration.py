@@ -60,7 +60,7 @@ class CodingConfiguration:
                                   If provided, locations will automatically be imputed between this and the other
                                   CodingConfigurations that have an analysis_dataset provided, and, depending on the
                                   location, participation maps will automatically be generated.
-        :type analysis_location: str | None
+        :type analysis_location: AnalysisLocations | None
         """
         self.code_scheme = code_scheme
         self.analysis_dataset = analysis_dataset
@@ -219,10 +219,21 @@ class MembershipGroupConfiguration:
         self.membership_group_csv_urls = membership_group_csv_urls
 
 
+class MapConfiguration:
+    def __init__(self, analysis_location):
+        """
+        Configuration for generating maps for an `AnalysisLocations`.
+
+        :param analysis_location: Location to generate the maps for.
+        :type analysis_location: AnalysisLocations
+        """
+        self.analysis_location = analysis_location
+
+
 class AnalysisConfiguration:
-    def __init__(self, dataset_configurations, ws_correct_dataset_code_scheme, cross_tabs=None, traffic_labels=None,
-                 google_drive_upload=None, analysis_dashboard_upload=None, membership_group_configuration=None,
-                 enable_experimental_regression_analysis=False):
+    def __init__(self, dataset_configurations, ws_correct_dataset_code_scheme, cross_tabs=None, maps=None,
+                 traffic_labels=None, google_drive_upload=None, analysis_dashboard_upload=None,
+                 membership_group_configuration=None, enable_experimental_regression_analysis=False):
         """
         Configuration for an analysis of data in an engagement database.
 
@@ -238,6 +249,10 @@ class AnalysisConfiguration:
                            analysis file.
                            If None, no cross-tabs will be generated.
         :type cross_tabs: list of (str, str) | None
+        :param maps: Configuration for generating maps.
+                     If None, generates maps for every `analysis_location` set in the `dataset_configurations`.
+                     To disable map generation, set `maps=[]`.
+        :type maps: list of MapConfiguration | None
         :param traffic_labels: List of TrafficLabels to use to generate a traffic_analysis file.
                                If None, no traffic analysis will be conducted.
         :type traffic_labels: iterable of TrafficLabel | None
@@ -260,8 +275,22 @@ class AnalysisConfiguration:
         self.dataset_configurations = dataset_configurations
         self.ws_correct_dataset_code_scheme = ws_correct_dataset_code_scheme
         self.cross_tabs = cross_tabs
+        self.maps = maps
         self.traffic_labels = traffic_labels
         self.google_drive_upload = google_drive_upload
         self.analysis_dashboard_upload = analysis_dashboard_upload
         self.membership_group_configuration = membership_group_configuration
         self.enable_experimental_regression_analysis = enable_experimental_regression_analysis
+
+    def get_configurations_for_analysis_location(self, analysis_location):
+        """
+        :type analysis_location: AnalysisLocations
+        :rtype: (AnalysisDatasetConfiguration, CodingConfiguration)
+        """
+        for dataset_config in self.dataset_configurations:
+            for coding_config in dataset_config.coding_configs:
+                if coding_config.analysis_location == analysis_location:
+                    return dataset_config, coding_config
+
+        raise ValueError(f"Analysis configuration does not contain a coding configuration with analysis_location "
+                         f"'{analysis_location}'")
