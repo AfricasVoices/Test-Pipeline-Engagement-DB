@@ -2,6 +2,7 @@ from core_data_modules.logging import Logger
 from core_data_modules.util import SHAUtils
 from engagement_database.data_models import MessageStatuses, HistoryEntryOrigin
 from google.cloud import firestore
+from google.cloud.firestore_v1 import FieldFilter
 
 from src.engagement_db_coda_sync.cache import CodaSyncCache
 from src.engagement_db_coda_sync.lib import _update_engagement_db_message_from_coda_message, _add_message_to_coda
@@ -44,8 +45,8 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
     """
     if last_seen_message is None:
         messages_filter = lambda q: q \
-            .where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]) \
-            .where("dataset", "==", dataset_config.engagement_db_dataset) \
+            .where(filter=FieldFilter("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE])) \
+            .where(filter=FieldFilter("dataset", "==", dataset_config.engagement_db_dataset)) \
             .order_by("last_updated") \
             .order_by("message_id") \
             .limit(1)
@@ -53,11 +54,11 @@ def _sync_next_engagement_db_message_to_coda(transaction, engagement_db, coda, c
         # Get the next message after the last_seen_message, having sorted by last_updated than message_id
         # Note: The last_seen_message can be the next/later message to be synced if it was updated
         messages_filter = lambda q: q \
-            .where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]) \
-            .where("dataset", "==", dataset_config.engagement_db_dataset) \
+            .where(filter=FieldFilter("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE])) \
+            .where(filter=FieldFilter("dataset", "==", dataset_config.engagement_db_dataset)) \
             .order_by("last_updated") \
             .order_by("message_id") \
-            .where("last_updated", ">=", last_seen_message.last_updated) \
+            .where(filter=FieldFilter("last_updated", ">=", last_seen_message.last_updated)) \
             .start_after({"last_updated": last_seen_message.last_updated, "message_id": last_seen_message.message_id}) \
             .limit(1)
 

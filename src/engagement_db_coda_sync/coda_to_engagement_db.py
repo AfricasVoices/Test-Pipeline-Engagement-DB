@@ -1,6 +1,7 @@
 from core_data_modules.logging import Logger
 from engagement_database.data_models import MessageStatuses
 from google.cloud import firestore
+from google.cloud.firestore_v1 import FieldFilter
 
 from src.engagement_db_coda_sync.cache import CodaSyncCache
 from src.engagement_db_coda_sync.lib import _update_engagement_db_message_from_coda_message
@@ -50,9 +51,9 @@ def _sync_coda_message_to_engagement_db_batch(transaction, coda, coda_message, e
 
     engagement_db_messages = engagement_db.get_messages(
         firestore_query_filter=lambda q: q
-            .where("dataset", "==", engagement_db_dataset)
-            .where("coda_id", "==", coda_message.message_id)
-            .where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE])
+            .where(filter=FieldFilter("dataset", "==", engagement_db_dataset))
+            .where(filter=FieldFilter("coda_id", "==", coda_message.message_id))
+            .where(filter=FieldFilter("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]))
             .order_by("last_updated")
             .order_by("message_id")
             .start_after(start_after_dict)
