@@ -2,8 +2,7 @@
 
 set -e
 
-PROJECT_NAME="$(<configurations/docker_image_project_name.txt)"
-IMAGE_NAME=$PROJECT_NAME-kobotoolbox-to-engagement-db
+IMAGE_NAME="$(<configurations/docker_image_name.txt)"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
