@@ -26,6 +26,9 @@ from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfigur
                                                          AnalysisConfiguration)
 from src.facebook_to_engagement_db.configuration import (FacebookSource, FacebookDataset, FacebookSearch)
 from src.telegram_to_engagement_db.configuration import (TelegramGroupSource, TelegramGroupDataset, TelegramGroupSearch)
+from src.kobotoolbox_to_engagement_db.configuration import (KoboToolBoxSource, KoboToolBoxToEngagementDBConfiguration, 
+                                                            KoboToolBoxParticipantIdTypes, KoboToolBoxParticipantIdConfiguration, 
+                                                            KoboToolBoxQuestionConfiguration)
 
 
 def load_code_scheme(fname):
@@ -92,7 +95,7 @@ class PipelineConfiguration:
     def __init__(self, pipeline_name, engagement_database, uuid_table, operations_dashboard, archive_configuration,
                  description=None, project_start_date=None, project_end_date=None, test_participant_uuids=None,
                  rapid_pro_sources=None, facebook_sources=None, telegram_group_sources=None, csv_sources=None,
-                 google_form_sources=None, coda_sync=None, rapid_pro_target=None, analysis=None):
+                 google_form_sources=None, kobotoolbox_sources=None, coda_sync=None, rapid_pro_target=None, analysis=None):
         """
         Configuration for an Engagement-Data-Pipeline. An Engagement-Data-Pipeline is composed of a sequence of stages
         which each synchronise data, either from another tool to an engagement database, or from an engagement database
@@ -151,6 +154,8 @@ class PipelineConfiguration:
         :type csv_sources: (list of src.csv_to_engagement_db.configuration.CSVToEngagementDBSync) | None
         :param google_form_sources: Configuration for the Google Forms -> engagement db sync.
         :type google_form_sources: (list of src.google_form_to_engagement_db.configuration.GoogleFormSource) | None
+        :param kobotoolbox_sources: Configuration for the Kobotoolbox Forms -> engagement db sync.
+        :type kobotoolbox_sources: (list of src.kobotoolbox_to_engagement_db.configuration.KoboToolBoxSource) | None
         :param coda_sync: Configuration for the bidirectional Coda <-> engagement db sync.
         :type coda_sync: CodaConfiguration
         :param rapid_pro_target: Configuration for the engagement db -> Rapid Pro sync.
@@ -172,6 +177,7 @@ class PipelineConfiguration:
         self.telegram_group_sources = telegram_group_sources
         self.csv_sources = csv_sources
         self.google_form_sources = google_form_sources
+        self.kobotoolbox_sources = kobotoolbox_sources
         self.coda_sync = coda_sync
         self.rapid_pro_target = rapid_pro_target
         self.analysis = analysis
