@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 
+from google.cloud.firestore_v1 import FieldFilter
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
 from telethon.tl.types import (PeerChannel)
@@ -157,7 +158,7 @@ def _engagement_db_has_message(engagement_db, message):
     :return: Whether a message with this text, timestamp, and participant_uuid exists in the engagement database.
     :rtype: bool
     """
-    matching_messages_filter = lambda q: q.where("origin.origin_id", "==", message.origin.origin_id)
+    matching_messages_filter = lambda q: q.where(filter=FieldFilter("origin.origin_id", "==", message.origin.origin_id))
     matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
     assert len(matching_messages) < 2
 

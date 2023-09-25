@@ -5,6 +5,7 @@ from core_data_modules.logging import Logger
 from dateutil.parser import isoparse
 from engagement_database.data_models import (Message, MessageDirections, MessageStatuses, MessageOrigin,
                                              HistoryEntryOrigin)
+from google.cloud.firestore_v1 import FieldFilter
 
 from src.common.cache import Cache
 from src.google_form_to_engagement_db.configuration import GoogleFormParticipantIdTypes
@@ -244,7 +245,7 @@ def _engagement_db_has_message(engagement_db, message):
     :return: Whether a message with this text, timestamp, and participant_uuid exists in the engagement database.
     :rtype: bool
     """
-    matching_messages_filter = lambda q: q.where("origin.origin_id", "==", message.origin.origin_id)
+    matching_messages_filter = lambda q: q.where(filter=FieldFilter("origin.origin_id", "==", message.origin.origin_id))
     matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
     assert len(matching_messages) < 2, f"Expected at most 1 matching message in database, but found {len(matching_messages)}."
 
