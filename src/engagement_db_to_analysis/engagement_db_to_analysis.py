@@ -34,8 +34,7 @@ def _convert_messages_to_traced_data(user, messages_map):
     :type: list of Traced data
     """
     messages_traced_data = []
-    for engagement_db_dataset in messages_map:
-        engagement_db_dataset_messages = messages_map[engagement_db_dataset]
+    for engagement_db_dataset_messages in messages_map.values():
         for msg in engagement_db_dataset_messages:
             messages_traced_data.append(TracedData(
                 msg.to_dict(serialize_datetimes_to_str=True),
