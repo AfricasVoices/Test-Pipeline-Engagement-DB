@@ -23,7 +23,7 @@ EVENT_KEY=$4
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u log_pipeline_event.py ${CONFIGURATION_MODULE}  /credentials/google-cloud-credentials.json \
+CMD="pdm run python -u log_pipeline_event.py ${CONFIGURATION_MODULE}  /credentials/google-cloud-credentials.json \
        ${RUN_ID} ${EVENT_KEY}"
 
 container="$(docker container create -w /app "$IMAGE_NAME" /bin/bash -c "$CMD")"

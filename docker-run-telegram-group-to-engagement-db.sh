@@ -38,7 +38,7 @@ DATA_DIR=$5
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u sync_telegram_group_to_engagement_db.py ${INCREMENTAL_ARG} ${USER} \
+CMD="pdm run python -u sync_telegram_group_to_engagement_db.py ${INCREMENTAL_ARG} ${USER} \
     /credentials/google-cloud-credentials.json configuration"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
