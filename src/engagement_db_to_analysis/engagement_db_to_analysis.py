@@ -94,24 +94,24 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     # Export to hard-coded files for now.
     export_production_file(messages_by_column, pipeline_config.analysis, f"{output_dir}/production.csv")
 
-    if pipeline_config.analysis.membership_group_configuration is not None:
+    # if pipeline_config.analysis.membership_group_configuration is not None:
 
-        membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
-        log.info("Tagging membership group participants to messages_by_column traced data...")
-        tag_membership_groups_participants(user, google_cloud_credentials_file_path, messages_by_column,
-                                           membership_group_csv_urls, membership_group_dir_path)
+    #     membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
+    #     log.info("Tagging membership group participants to messages_by_column traced data...")
+    #     tag_membership_groups_participants(user, google_cloud_credentials_file_path, messages_by_column,
+    #                                        membership_group_csv_urls, membership_group_dir_path)
 
-        log.info("Tagging membership group participants to participants_by_column traced data...")
-        tag_membership_groups_participants(user, google_cloud_credentials_file_path, participants_by_column,
-                                           membership_group_csv_urls, membership_group_dir_path)
+    #     log.info("Tagging membership group participants to participants_by_column traced data...")
+    #     tag_membership_groups_participants(user, google_cloud_credentials_file_path, participants_by_column,
+    #                                        membership_group_csv_urls, membership_group_dir_path)
 
-    export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/messages.csv", export_timestamps=True)
-    export_analysis_file(participants_by_column, pipeline_config, f"{output_dir}/participants.csv")
+    # export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/messages.csv", export_timestamps=True)
+    # export_analysis_file(participants_by_column, pipeline_config, f"{output_dir}/participants.csv")
 
-    export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
-    export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
+    # export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
+    # export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
 
-    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated-analysis")
+    # run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated-analysis")
 
     dry_run_text = "(dry run)" if dry_run else ""
     if pipeline_config.analysis.google_drive_upload is None:

@@ -164,8 +164,9 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
             if type(origin_id) == list:
                 origin_id = tuple(origin_id)
 
-            assert origin_id not in all_message_origins, f"Multiple messages had the same origin id: " \
-                                                         f"'{msg.origin.origin_id}'"
+            if origin_id in all_message_origins:
+                continue
+            
             all_message_origins.add(origin_id)
 
     # Filter out messages that don't meet the status conditions

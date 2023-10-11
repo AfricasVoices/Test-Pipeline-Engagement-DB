@@ -112,38 +112,38 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
     else:
         log.debug("Not running any traffic analysis because analysis_configuration.traffic_labels is None")
 
-    if analysis_config.enable_experimental_regression_analysis:
-        log.info(f"Running experimental regression analysis...")
-        with open(f"{export_dir_path}/complete_case_regression.txt", "w") as f:
-            export_all_complete_case_regression_analysis_txt(
-                participants_by_column, "consent_withdrawn", rqa_column_configs, demog_column_configs, f
-            )
+    # if analysis_config.enable_experimental_regression_analysis:
+    #     log.info(f"Running experimental regression analysis...")
+    #     with open(f"{export_dir_path}/complete_case_regression.txt", "w") as f:
+    #         export_all_complete_case_regression_analysis_txt(
+    #             participants_by_column, "consent_withdrawn", rqa_column_configs, demog_column_configs, f
+    #         )
 
-    map_configurations = analysis_config.maps
-    if map_configurations is None:
-        map_configurations = []
-        for analysis_dataset_config in analysis_config.dataset_configurations:
-            for coding_config in analysis_dataset_config.coding_configs:
-                if coding_config.analysis_location in MAPPERS:
-                    map_configurations.append(MapConfiguration(coding_config.analysis_location))
+    # map_configurations = analysis_config.maps
+    # if map_configurations is None:
+    #     map_configurations = []
+    #     for analysis_dataset_config in analysis_config.dataset_configurations:
+    #         for coding_config in analysis_dataset_config.coding_configs:
+    #             if coding_config.analysis_location in MAPPERS:
+    #                 map_configurations.append(MapConfiguration(coding_config.analysis_location))
 
-    log.info(f"Exporting participation maps for locations "
-             f"{[config.analysis_location for config in map_configurations]}...")
+    # log.info(f"Exporting participation maps for locations "
+    #          f"{[config.analysis_location for config in map_configurations]}...")
 
-    for map_config in map_configurations:
-        dataset_config, coding_config = analysis_config.get_configurations_for_analysis_location(
-            map_config.analysis_location
-        )
+    # for map_config in map_configurations:
+    #     dataset_config, coding_config = analysis_config.get_configurations_for_analysis_location(
+    #         map_config.analysis_location
+    #     )
 
-        column_config = AnalysisConfiguration(
-            dataset_name=coding_config.analysis_dataset,
-            raw_field=dataset_config.raw_dataset,
-            coded_field=f"{coding_config.analysis_dataset}_labels",
-            code_scheme=coding_config.code_scheme
-        )
+    #     column_config = AnalysisConfiguration(
+    #         dataset_name=coding_config.analysis_dataset,
+    #         raw_field=dataset_config.raw_dataset,
+    #         coded_field=f"{coding_config.analysis_dataset}_labels",
+    #         code_scheme=coding_config.code_scheme
+    #     )
 
-        participation_maps.export_participation_maps(
-            participants_by_column, "consent_withdrawn", rqa_column_configs, column_config,
-            MAPPERS[coding_config.analysis_location],
-            f"{export_dir_path}/maps/{column_config.dataset_name}/{column_config.dataset_name}_"
-        )
+    #     participation_maps.export_participation_maps(
+    #         participants_by_column, "consent_withdrawn", rqa_column_configs, column_config,
+    #         MAPPERS[coding_config.analysis_location],
+    #         f"{export_dir_path}/maps/{column_config.dataset_name}/{column_config.dataset_name}_"
+    #     )
