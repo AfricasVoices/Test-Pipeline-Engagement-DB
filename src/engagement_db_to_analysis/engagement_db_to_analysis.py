@@ -22,24 +22,23 @@ from src.engagement_db_to_analysis.rapid_pro_advert_functions import sync_advert
 log = Logger(__name__)
 
 
-def _convert_messages_to_traced_data(user, messages_map):
+def _convert_messages_to_traced_data(user, messages):
     """
-    Converts messages dict objects to TracedData objects.
+    Converts Message objects to TracedData objects.
 
     :param user: Identifier of user running the pipeline.
     :type user: str
-    :param messages_map: Dict of engagement db dataset -> list of Messages in that dataset.
-    :type messages_map: dict of str -> list of engagement_database.data_models.Message
+    :param messages: list of Messages in that dataset.
+    :type messages: list of engagement_database.data_models.Message
     :return: A list of Traced data message objects.
     :type: list of Traced data
     """
     messages_traced_data = []
-    for engagement_db_dataset_messages in messages_map.values():
-        for msg in engagement_db_dataset_messages:
-            messages_traced_data.append(TracedData(
-                msg.to_dict(serialize_datetimes_to_str=True),
-                Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
-            ))
+    for msg in messages:
+        messages_traced_data.append(TracedData(
+            msg.to_dict(serialize_datetimes_to_str=True),
+            Metadata(user, Metadata.get_call_location(), TimeUtils.utc_now_as_iso_string())
+        ))
 
     log.info(f"Converted {len(messages_traced_data)} raw messages to TracedData")
 
