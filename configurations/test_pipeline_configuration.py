@@ -1,4 +1,6 @@
 from core_data_modules.cleaners import swahili
+from core_data_modules.cleaners.codes import KenyaCodes, SocialMediaCodes
+
 from dateutil.parser import isoparse
 
 from src.pipeline_configuration_spec import *
@@ -350,6 +352,14 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 analysis_location=AnalysisLocations.KENYA_COUNTY
             )
         ],
+        channel_operators=ChannelManager(
+            individual_channels=[KenyaCodes.KENYAN_TELEPHONE, SocialMediaCodes.TELEGRAM, "whatsapp", "kobotoolbox", "google_form"],
+            grouped_channels=[
+                ChannelsGroup(group_name="Questionnaire interview", individual_channels=["kobotoolbox", "google_form"]),
+                ChannelsGroup(group_name="sms and whatsapp", individual_channels=[KenyaCodes.KENYAN_TELEPHONE, "whatsapp"]),
+                ChannelsGroup(group_name="kobo and whatsapp", individual_channels=["kobotoolbox", "whatsapp"]),
+            ]
+        ),
         traffic_labels=[
             TrafficLabel(isoparse("2021-04-01T00:00+03:00"), isoparse("2021-05-01T00:00+03:00"), "April"),
             TrafficLabel(isoparse("2021-05-01T00:00+03:00"), isoparse("2021-06-01T00:00+03:00"), "May")
