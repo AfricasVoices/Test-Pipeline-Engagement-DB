@@ -50,6 +50,41 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
+def _group_messages_by_channel_operator(messages_map, channel_operators_config):
+    """
+    :param messages_map: Dictionary of engagement db dataset -> list of Messages in dataset.
+    :type messages_map: dict of str -> list of engagement_database.data_models.Message
+    :param channel_operators_config: represents a configuration object used to specify message channels
+                                     for the purpose of grouping final analysis files based on those channels.                  
+    :type channel_operators_config: src.engagement_db_to_analysis.configuration.ChannelManager
+    :return: Dictionary of engagement db channel operator -> list of Messages in dataset.
+    :rtype: dict of str -> list of engagement_database.data_models.Message
+    """
+    channel_operator_to_messages = {"all": []}
+    for messages in messages_map.values():
+        channel_operator_to_messages["all"].extend(messages)
+
+        if channel_operators_config is None:
+            continue
+
+        for msg in messages:
+            if msg.channel_operator in channel_operators_config.individual_channels:
+                channel_operator_to_messages.setdefault(msg.channel_operator, []).append(msg)
+
+            if channel_operators_config.grouped_channels is None:
+                continue
+
+            channels_group_names = []
+            for grouped_channel in channel_operators_config.grouped_channels:
+                if msg.channel_operator in grouped_channel.individual_channels:
+                    channels_group_names.append(grouped_channel.group_name)
+
+            for key in channels_group_names:
+                channel_operator_to_messages.setdefault(key, []).append(msg)
+                
+    return channel_operator_to_messages
+
+
 def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, uuid_table, engagement_db, rapid_pro,
                             membership_group_dir_path, output_dir, cache_path=None, dry_run=False):
     """
@@ -71,12 +106,7 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
         engagement_db_datasets.extend(config.engagement_db_datasets)
     messages_map = get_messages_in_datasets(engagement_db, engagement_db_datasets, cache, dry_run)
 
-    channel_to_messages = {"all": []}
-    for messages in messages_map.values():
-        channel_to_messages["all"].extend(messages)
-        for msg in messages:
-            channel_to_messages.setdefault(msg.channel_operator, []).append(msg)
-
+    channel_to_messages = _group_messages_by_channel_operator(messages_map, pipeline_config.analysis.channel_operators)
     for channel, messages in channel_to_messages.items():
 
         messages_traced_data = _convert_messages_to_traced_data(user, messages)
