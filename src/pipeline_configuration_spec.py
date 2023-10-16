@@ -23,7 +23,7 @@ from src.engagement_db_to_analysis.configuration import (AnalysisDatasetConfigur
                                                          CodingConfiguration, GoogleDriveUploadConfiguration,
                                                          AnalysisDashboardUploadConfiguration, SeriesConfiguration,
                                                          MembershipGroupConfiguration, MapConfiguration,
-                                                         AnalysisConfiguration)
+                                                         AnalysisConfiguration, ChannelManager, ChannelGroup)
 from src.facebook_to_engagement_db.configuration import (FacebookSource, FacebookDataset, FacebookSearch)
 from src.telegram_to_engagement_db.configuration import (TelegramGroupSource, TelegramGroupDataset, TelegramGroupSearch)
 

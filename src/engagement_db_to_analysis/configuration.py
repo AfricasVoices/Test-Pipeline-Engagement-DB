@@ -230,9 +230,38 @@ class MapConfiguration:
         self.analysis_location = analysis_location
 
 
+class ChannelGroup:
+    def __init__(self, group_name, individual_channels):
+        """
+        Configuration for defining a group of message channels that can be collectively
+        considered for analysis.
+
+        :param group_name: The name of the channel group.
+        :type group_name: str
+        :param individual_channels: A list of individual message channels that belong to the group.
+        :type individual_channels: list of str
+        """
+        self.group_name = group_name
+        self.individual_channels = individual_channels
+
+
+class ChannelManager:
+    def __init__(self, individual_channels, grouped_channels=None):
+        """
+        Configuration for defining message channels that can be collectively considered for analysis.
+
+        :param individual_channels: A list of individual message channels that belong to the group.
+        :type individual_channels: list of str
+        :param grouped_channels: A list of groups of message channels
+        :type grouped_channels: list of ChannelGroup
+        """
+        self.individual_channels = individual_channels
+        self.grouped_channels = grouped_channels
+
+
 class AnalysisConfiguration:
     def __init__(self, dataset_configurations, ws_correct_dataset_code_scheme, cross_tabs=None, maps=None,
-                 traffic_labels=None, google_drive_upload=None, analysis_dashboard_upload=None,
+                 channel_operators=None, traffic_labels=None, google_drive_upload=None, analysis_dashboard_upload=None,
                  membership_group_configuration=None, enable_experimental_regression_analysis=False):
         """
         Configuration for an analysis of data in an engagement database.
@@ -276,6 +305,7 @@ class AnalysisConfiguration:
         self.ws_correct_dataset_code_scheme = ws_correct_dataset_code_scheme
         self.cross_tabs = cross_tabs
         self.maps = maps
+        self.channel_operators = channel_operators
         self.traffic_labels = traffic_labels
         self.google_drive_upload = google_drive_upload
         self.analysis_dashboard_upload = analysis_dashboard_upload
