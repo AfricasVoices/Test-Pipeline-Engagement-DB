@@ -41,7 +41,7 @@ DATA_DIR=$5
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u sync_coda_to_engagement_db.py ${DRY_RUN} ${INCREMENTAL_ARG} \
+CMD="pdm run python -u sync_coda_to_engagement_db.py ${DRY_RUN} ${INCREMENTAL_ARG} \
     ${USER} /credentials/google-cloud-credentials.json configuration"
 
 if [[ "$INCREMENTAL_ARG" ]]; then

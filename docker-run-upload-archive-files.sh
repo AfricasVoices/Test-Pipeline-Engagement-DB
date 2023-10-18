@@ -21,7 +21,7 @@ ARCHIVE_DIR=$4
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u upload_archive_files.py ${USER} /credentials/google-cloud-credentials.json \
+CMD="pdm run python -u upload_archive_files.py ${USER} /credentials/google-cloud-credentials.json \
     ${CONFIGURATION_MODULE} /archives"
 
 # Create the container. Note that we use a bind mount here rather than a volume or docker cp so we can directly

@@ -1,10 +1,11 @@
 FROM python:3.8-slim
 
-# Install Python tools (git + pipenv)
+# Install Python tools (git + pdm)
 RUN apt-get update && apt-get install -y git
-RUN pip install pipenv
+RUN pip install -U pip setuptools wheel
+RUN pip install pdm
 
-# If building for ARM-64 architecture, install additional dependencies which will be needed to run `pipenv sync` later.
+# If building for ARM-64 architecture, install additional dependencies which will be needed to run `pdm sync` later.
 RUN if [ $(arch) = 'aarch64' ]; then apt-get update && apt-get install -y libgeos-dev libgdal-dev build-essential; fi
 
 # R
@@ -21,9 +22,10 @@ RUN mkdir /data
 WORKDIR /app
 
 # Install project dependencies.
-ADD Pipfile /app
-ADD Pipfile.lock /app
-RUN pipenv sync
+ADD pyproject.toml /app
+ADD pdm.lock /app
+ADD README.md /app
+RUN pdm lock --check && pdm sync
 
 # Copy the rest of the project
 ADD .git /app/.git
