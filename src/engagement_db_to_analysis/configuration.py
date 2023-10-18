@@ -250,7 +250,7 @@ class ChannelManager:
         """
         Configuration for defining message channels that can be collectively considered for analysis.
 
-        :param individual_channels: A list of individual message channels that belong to the group.
+        :param individual_channels: A list of individual message channels to include in the group. Messages which have one of these operators will be included in the analysis for this group.
         :type individual_channels: list of str
         :param grouped_channels: A list of groups of message channels
         :type grouped_channels: list of ChannelGroup
