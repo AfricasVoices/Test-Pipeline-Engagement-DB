@@ -231,37 +231,33 @@ class MapConfiguration:
 
 
 class ChannelGroup:
-    def __init__(self, group_name, individual_channels):
+    def __init__(self, group_name, channel_operators):
         """
         Configuration for defining a group of message channels that can be collectively
         considered for analysis.
 
         :param group_name: The name of the channel group.
         :type group_name: str
-        :param individual_channels: A list of individual message channels that belong to the group.
-        :type individual_channels: list of str
+        :param channel_operators: A list of individual message channels to include in the group. Messages which have one of these operators will be included in the analysis for this group.
+        :type channel_operators: list of str
         """
         self.group_name = group_name
-        self.individual_channels = individual_channels
+        self.channel_operators = channel_operators
 
-
-class ChannelManager:
-    def __init__(self, individual_channels, grouped_channels=None):
+class ChannelGroupAnalysis:
+    def __init__(self, channel_groups):
         """
         Configuration for defining message channels that can be collectively considered for analysis.
 
-        :param individual_channels: A list of individual message channels to include in the group. Messages which have one of these operators will be included in the analysis for this group.
-        :type individual_channels: list of str
-        :param grouped_channels: A list of groups of message channels
-        :type grouped_channels: list of ChannelGroup
+        :param channel_groups: A list of groups of message channels
+        :type channel_groups: list of ChannelGroup
         """
-        self.individual_channels = individual_channels
-        self.grouped_channels = grouped_channels
+        self.channel_groups = channel_groups
 
 
 class AnalysisConfiguration:
     def __init__(self, dataset_configurations, ws_correct_dataset_code_scheme, cross_tabs=None, maps=None,
-                 channel_operators=None, traffic_labels=None, google_drive_upload=None, analysis_dashboard_upload=None,
+                 channel_group_analysis=None, traffic_labels=None, google_drive_upload=None, analysis_dashboard_upload=None,
                  membership_group_configuration=None, enable_experimental_regression_analysis=False):
         """
         Configuration for an analysis of data in an engagement database.
@@ -305,7 +301,7 @@ class AnalysisConfiguration:
         self.ws_correct_dataset_code_scheme = ws_correct_dataset_code_scheme
         self.cross_tabs = cross_tabs
         self.maps = maps
-        self.channel_operators = channel_operators
+        self.channel_group_analysis = channel_group_analysis
         self.traffic_labels = traffic_labels
         self.google_drive_upload = google_drive_upload
         self.analysis_dashboard_upload = analysis_dashboard_upload
