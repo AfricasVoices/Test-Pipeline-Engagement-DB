@@ -50,38 +50,11 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
-def _group_messages_by_channel_operator(messages_map, channel_operators_config):
-    """
-    :param messages_map: Dictionary of engagement db dataset -> list of Messages in dataset.
-    :type messages_map: dict of str -> list of engagement_database.data_models.Message
-    :param channel_operators_config: represents a configuration object used to specify message channels
-                                     for the purpose of grouping final analysis files based on those channels.                  
-    :type channel_operators_config: src.engagement_db_to_analysis.configuration.ChannelManager
-    :return: Dictionary of engagement db channel operator -> list of Messages in dataset.
-    :rtype: dict of str -> list of engagement_database.data_models.Message
-    """
-    channel_operator_to_messages = {"all": []}
-    for messages in messages_map.values():
-        channel_operator_to_messages["all"].extend(messages)
+def _group_messages_by_channel_operator(messages):
+    channel_operator_to_messages = defaultdict(list)
+    for msg in messages:
+        channel_operator_to_messages[msg.channel_operator].append(msg)
 
-        if channel_operators_config is None:
-            continue
-
-        for msg in messages:
-            if msg.channel_operator in channel_operators_config.individual_channels:
-                channel_operator_to_messages.setdefault(msg.channel_operator, []).append(msg)
-
-            if channel_operators_config.grouped_channels is None:
-                continue
-
-            channels_group_names = []
-            for grouped_channel in channel_operators_config.grouped_channels:
-                if msg.channel_operator in grouped_channel.individual_channels:
-                    channels_group_names.append(grouped_channel.group_name)
-
-            for key in channels_group_names:
-                channel_operator_to_messages.setdefault(key, []).append(msg)
-                
     return channel_operator_to_messages
 
 
