@@ -58,29 +58,31 @@ def _group_messages_by_channel_operator(messages):
     return channel_operator_to_messages
 
 
-def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, uuid_table, engagement_db, rapid_pro,
-                            membership_group_dir_path, output_dir, cache_path=None, dry_run=False):
+def _group_messages_by_channel_group(messages, channel_group_config):
     """
-    :type pipeline_config: src.pipeline_configuration_spec.PipelineConfiguration
+    :param messages: list of Messages in that dataset.
+    :type messages: list of engagement_database.data_models.Message
+    :param channel_group_config: represents a configuration object used to specify message channels
+                                 for the purpose of grouping final analysis files based on those channels.                  
+    :type channel_group_config: src.engagement_db_to_analysis.configuration.ChannelManager
+    :return: Dictionary of engagement db channel group -> list of Messages in dataset.
+    :rtype: dict of str -> list of engagement_database.data_models.Message
     """
+    channel_group_to_messages = defaultdict(list)
+    channel_group_to_messages["all"].extend(messages)
 
-    analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
-    # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
+    if channel_group_config.channel_group_analysis is None:
+        return channel_group_to_messages
+        
+    channel_groups = channel_group_config.channel_group_analysis.channel_groups
 
-    if cache_path is None:
-        cache = None
-        log.warning(f"No `cache_path` provided. This tool will perform a full download of project messages from engagement database")
-    else:
-        log.info(f"Initialising EngagementAnalysisCache at '{cache_path}/engagement_db_to_analysis'")
-        cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
-
-    engagement_db_datasets = []
-    for config in analysis_dataset_configurations:
-        engagement_db_datasets.extend(config.engagement_db_datasets)
-    messages_map = get_messages_in_datasets(engagement_db, engagement_db_datasets, cache, dry_run)
-
-    channel_to_messages = _group_messages_by_channel_operator(messages_map, pipeline_config.analysis.channel_operators)
-    for channel, messages in channel_to_messages.items():
+    for msg in messages:
+        channel_group_to_messages = defaultdict(list)
+        for channel_group in channel_groups:
+            if msg.channel_operator in channel_group.channel_operators:
+                channel_group_to_messages[channel_group.group_name].append(msg)
+        
+    return channel_group_to_messages
 
         messages_traced_data = _convert_messages_to_traced_data(user, messages)
 
