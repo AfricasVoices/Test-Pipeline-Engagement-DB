@@ -173,12 +173,12 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     channel_operator_to_messages = _group_messages_by_channel_operator(messages)
     for channel_operator, messages in channel_operator_to_messages.items():
         generate_analysis_by_criteria(user, google_cloud_credentials_file_path, pipeline_config, messages,
-                                      membership_group_dir_path, output_dir, dry_run)
+                                      membership_group_dir_path, f"{output_dir}/{channel_operator}", dry_run)
 
     channel_groups_to_messages = _group_messages_by_channel_group(messages, pipeline_config.analysis.channel_group_analysis)
     for channel_group, messages in channel_groups_to_messages.items():
         generate_analysis_by_criteria(user, google_cloud_credentials_file_path, pipeline_config, messages,
-                                      membership_group_dir_path, output_dir, dry_run)
+                                      membership_group_dir_path, f"{output_dir}/{channel_group}", dry_run)
 
     if pipeline_config.analysis.analysis_dashboard_upload is None:
         log.debug(f"Not uploading to an Analysis Dashboard, because the 'analysis_dashboard' configuration was None {dry_run_text}")
