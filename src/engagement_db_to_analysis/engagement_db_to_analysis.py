@@ -22,6 +22,8 @@ from src.engagement_db_to_analysis.rapid_pro_advert_functions import sync_advert
 
 log = Logger(__name__)
 
+MAIN_ANALYSIS_DIR = "main"
+
 
 def _convert_messages_to_traced_data(user, messages):
     """
@@ -70,7 +72,7 @@ def _group_messages_by_channel_group(messages, channel_group_config):
     :rtype: dict of str -> list of engagement_database.data_models.Message
     """
     channel_group_to_messages = defaultdict(list)
-    channel_group_to_messages["all"].extend(messages)
+    channel_group_to_messages[MAIN_ANALYSIS_DIR].extend(messages)
 
     if channel_group_config.channel_group_analysis is None:
         return channel_group_to_messages
@@ -85,66 +87,69 @@ def _group_messages_by_channel_group(messages, channel_group_config):
         
     return channel_group_to_messages
 
-        messages_traced_data = _convert_messages_to_traced_data(user, messages)
 
-        messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
+def generate_analysis_by_criteria(user, google_cloud_credentials_file_path, pipeline_config, messages,
+                                  membership_group_dir_path, output_dir, dry_run=False):
+    messages_traced_data = _convert_messages_to_traced_data(user, messages)
 
-        impute_codes_by_message(
-            user, messages_traced_data, analysis_dataset_configurations,
-            pipeline_config.analysis.ws_correct_dataset_code_scheme
-        )
+    messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-        messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis)
-        participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
+    impute_codes_by_message(
+        user, messages_traced_data, analysis_dataset_configurations,
+        pipeline_config.analysis.ws_correct_dataset_code_scheme
+    )
 
-        log.info(f"Imputing messages column-view traced data...")
-        impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis.dataset_configurations)
+    messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis)
+    participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
 
-        log.info(f"Imputing participants column-view traced data...")
-        impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis.dataset_configurations)
+    log.info(f"Imputing messages column-view traced data...")
+    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis.dataset_configurations)
 
-        # Export to hard-coded files for now.
-        export_production_file(messages_by_column, pipeline_config.analysis, f"{output_dir}/{channel}/production.csv")
+    log.info(f"Imputing participants column-view traced data...")
+    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis.dataset_configurations)
 
-        if pipeline_config.analysis.membership_group_configuration is not None:
+    # Export to hard-coded files for now.
+    export_production_file(messages_by_column, pipeline_config.analysis, f"{output_dir}/production.csv")
 
-            membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
-            log.info("Tagging membership group participants to messages_by_column traced data...")
-            tag_membership_groups_participants(user, google_cloud_credentials_file_path, messages_by_column,
-                                            membership_group_csv_urls, membership_group_dir_path)
+    if pipeline_config.analysis.membership_group_configuration is not None:
 
-            log.info("Tagging membership group participants to participants_by_column traced data...")
-            tag_membership_groups_participants(user, google_cloud_credentials_file_path, participants_by_column,
-                                            membership_group_csv_urls, membership_group_dir_path)
+        membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
+        log.info("Tagging membership group participants to messages_by_column traced data...")
+        tag_membership_groups_participants(user, google_cloud_credentials_file_path, messages_by_column,
+                                        membership_group_csv_urls, membership_group_dir_path)
 
-        export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/{channel}/messages.csv", export_timestamps=True)
-        export_analysis_file(participants_by_column, pipeline_config, f"{output_dir}/{channel}/participants.csv")
+        log.info("Tagging membership group participants to participants_by_column traced data...")
+        tag_membership_groups_participants(user, google_cloud_credentials_file_path, participants_by_column,
+                                        membership_group_csv_urls, membership_group_dir_path)
 
-        export_traced_data(messages_by_column, f"{output_dir}/{channel}/messages.jsonl")
-        export_traced_data(participants_by_column, f"{output_dir}/{channel}/participants.jsonl")
+    export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/messages.csv", export_timestamps=True)
+    export_analysis_file(participants_by_column, pipeline_config, f"{output_dir}/participants.csv")
 
-        run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/{channel}/automated-analysis")
+    export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
+    export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
 
-        dry_run_text = "(dry run)" if dry_run else ""
-        if pipeline_config.analysis.google_drive_upload is None:
-            log.debug(f"Not uploading to Google Drive, because the 'google_drive_upload' configuration was None {dry_run_text}")
+    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated-analysis")
+
+    dry_run_text = "(dry run)" if dry_run else ""
+    if pipeline_config.analysis.google_drive_upload is None:
+        log.debug(f"Not uploading to Google Drive, because the 'google_drive_upload' configuration was None {dry_run_text}")
+    else:
+        if dry_run:
+            log.info(f"Not uploading to Google Drive {dry_run_text}")
         else:
-            if dry_run:
-                log.info(f"Not uploading to Google Drive {dry_run_text}")
-            else:
-                log.info("Uploading outputs to Google Drive...")
-                google_drive_upload.init_client(
-                    google_cloud_credentials_file_path,
-                    pipeline_config.analysis.google_drive_upload.credentials_file_url
-                )
+            log.info("Uploading outputs to Google Drive...")
+            google_drive_upload.init_client(
+                google_cloud_credentials_file_path,
+                pipeline_config.analysis.google_drive_upload.credentials_file_url
+            )
 
-                drive_dir = pipeline_config.analysis.google_drive_upload.drive_dir
-                google_drive_upload.upload_file(f"{output_dir}/{channel}/production.csv", drive_dir)
-                google_drive_upload.upload_file(f"{output_dir}/{channel}/messages.csv", drive_dir)
-                google_drive_upload.upload_file(f"{output_dir}/{channel}/participants.csv", drive_dir)
-                google_drive_upload.upload_all_files_in_dir(
-                    f"{output_dir}/{channel}/automated-analysis", f"{drive_dir}/automated-analysis", recursive=True
-                )
+            drive_dir = pipeline_config.analysis.google_drive_upload.drive_dir
+            google_drive_upload.upload_file(f"{output_dir}/production.csv", drive_dir)
+            google_drive_upload.upload_file(f"{output_dir}/messages.csv", drive_dir)
+            google_drive_upload.upload_file(f"{output_dir}/participants.csv", drive_dir)
+            google_drive_upload.upload_all_files_in_dir(
+                f"{output_dir}/automated-analysis", f"{drive_dir}/automated-analysis", recursive=True
+            )
 
 
 def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, uuid_table, engagement_db, rapid_pro,
@@ -196,7 +201,7 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
             series_id=analysis_dashboard_config.series.series_id,
             bucket_name=analysis_dashboard_config.bucket_name,
             files={
-                f"{output_dir}/all/production.csv": "production.csv"
+                f"{output_dir}/{MAIN_ANALYSIS_DIR}/production.csv": "production.csv"
             }
         )
 
