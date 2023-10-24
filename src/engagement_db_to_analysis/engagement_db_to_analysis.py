@@ -146,6 +146,40 @@ def _group_messages_by_channel_group(messages, channel_group_config):
                     f"{output_dir}/{channel}/automated-analysis", f"{drive_dir}/automated-analysis", recursive=True
                 )
 
+
+def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, uuid_table, engagement_db, rapid_pro,
+                            membership_group_dir_path, output_dir, cache_path=None, dry_run=False):
+    """
+    :type pipeline_config: src.pipeline_configuration_spec.PipelineConfiguration
+    """
+
+    analysis_dataset_configurations = pipeline_config.analysis.dataset_configurations
+    # TODO: Tidy up which functions get passed analysis_configs and which get passed dataset_configurations
+
+    if cache_path is None:
+        cache = None
+        log.warning(f"No `cache_path` provided. This tool will perform a full download of project messages from engagement database")
+    else:
+        log.info(f"Initialising EngagementAnalysisCache at '{cache_path}/engagement_db_to_analysis'")
+        cache = AnalysisCache(f"{cache_path}/engagement_db_to_analysis")
+
+    engagement_db_datasets = []
+    for config in analysis_dataset_configurations:
+        engagement_db_datasets.extend(config.engagement_db_datasets)
+    messages_map = get_messages_in_datasets(engagement_db, engagement_db_datasets, cache, dry_run)
+
+    messages = [message for messages_list in messages_map.values() for message in messages_list]
+
+    channel_operator_to_messages = _group_messages_by_channel_operator(messages)
+    for channel_operator, messages in channel_operator_to_messages.items():
+        generate_analysis_by_criteria(user, google_cloud_credentials_file_path, pipeline_config, messages,
+                                      membership_group_dir_path, output_dir, dry_run)
+
+    channel_groups_to_messages = _group_messages_by_channel_group(messages, pipeline_config.analysis.channel_group_analysis)
+    for channel_group, messages in channel_groups_to_messages.items():
+        generate_analysis_by_criteria(user, google_cloud_credentials_file_path, pipeline_config, messages,
+                                      membership_group_dir_path, output_dir, dry_run)
+
     if pipeline_config.analysis.analysis_dashboard_upload is None:
         log.debug(f"Not uploading to an Analysis Dashboard, because the 'analysis_dashboard' configuration was None {dry_run_text}")
     elif dry_run:
