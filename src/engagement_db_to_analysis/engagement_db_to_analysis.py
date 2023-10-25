@@ -2,7 +2,6 @@ from core_data_modules.logging import Logger
 from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO
 from core_data_modules.util import TimeUtils
-from collections import defaultdict
 from firebase_admin import storage
 
 from src.common.get_messages_in_datasets import get_messages_in_datasets
