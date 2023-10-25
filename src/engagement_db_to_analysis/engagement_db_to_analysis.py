@@ -175,6 +175,24 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
 
     messages = [message for messages_list in messages_map.values() for message in messages_list]
 
+    messages_traced_data = _convert_messages_to_traced_data(user, messages)
+
+    messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
+
+    impute_codes_by_message(
+        user, messages_traced_data, analysis_dataset_configurations,
+        pipeline_config.analysis.ws_correct_dataset_code_scheme
+    )
+
+    messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis)
+    participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
+
+    log.info(f"Imputing messages column-view traced data...")
+    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis.dataset_configurations)
+
+    log.info(f"Imputing participants column-view traced data...")
+    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis.dataset_configurations)
+
     channel_operator_to_messages = _group_messages_by_channel_operator(messages)
     for channel_operator, messages in channel_operator_to_messages.items():
         generate_analysis_by_criteria(user, google_cloud_credentials_file_path, pipeline_config, messages,
