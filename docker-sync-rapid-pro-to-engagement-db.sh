@@ -54,7 +54,7 @@ done
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u sync_rapid_pro_to_engagement_db.py ${DRY_RUN} ${INCREMENTAL_ARG} ${LOCAL_ARCHIVE_ARGS} \
+CMD="pdm run python -u sync_rapid_pro_to_engagement_db.py ${DRY_RUN} ${INCREMENTAL_ARG} ${LOCAL_ARCHIVE_ARGS} \
     ${USER} /credentials/google-cloud-credentials.json configuration"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
@@ -81,7 +81,7 @@ for LOCAL_ARCHIVE_PATH in "${LOCAL_ARCHIVE_PATHS[@]}"; do
     read -a strarr <<<"$LOCAL_ARCHIVE_PATH" # Reading str as an array of tokens separated by IFS 
     
     # Expand the tilde character to home directory if available
-    path=$(pipenv run python -c "import os.path; print(os.path.expanduser(\"${strarr[1]}\"))")
+    path=$(pdm run python -c "import os.path; print(os.path.expanduser(\"${strarr[1]}\"))")
     local_archive_dir=$(basename $path)
     
     echo "Copying $path -> $container_short_id:/$local_archive_dir"
