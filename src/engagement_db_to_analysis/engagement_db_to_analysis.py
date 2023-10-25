@@ -53,74 +53,37 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
-def _group_messages_by_channel_operator(messages):
-    channel_operator_to_messages = defaultdict(list)
-    for msg in messages:
-        channel_operator_to_messages[msg.channel_operator].append(msg)
+def _get_channel_operators(messages):
+    return {msg.channel_operator for msg in messages}
 
-    return channel_operator_to_messages
+def filter_msg_by_channel_operator(message_td, channel_operators):
+    if message_td["channel operators"] in channel_operators:
+        return message_td
 
+def filter_msg_by_channel_groups(message_td, channel_groups):
+    if message_td["channel operators"] in channel_groups.channel_operators:
+        return message_td
 
-def _group_messages_by_channel_group(messages, channel_group_config):
+def _filter_messages_by_criteria(filter_func, messages_traced_data, *args, **kwargs):
     """
-    :param messages: list of Messages in that dataset.
-    :type messages: list of engagement_database.data_models.Message
-    :param channel_group_config: represents a configuration object used to specify message channels
-                                 for the purpose of grouping final analysis files based on those channels.                  
-    :type channel_group_config: src.engagement_db_to_analysis.configuration.ChannelManager
-    :return: Dictionary of engagement db channel group -> list of Messages in dataset.
-    :rtype: dict of str -> list of engagement_database.data_models.Message
+    Filters out messages from participants who only sent demographics.
+
+    :param messages_traced_data: Messages traced data to filter.
+    :type messages_traced_data: list of core_data_modules.traced_data.TracedData
+    :param analysis_dataset_configs: Configuration for the filter.
+    :type analysis_dataset_configs: list of src.engagement_db_to_analysis.configuration.AnalysisDatasetConfiguration
+    :param messages_traced_data: Filtered messages traced data.
+    :type messages_traced_data: list of core_data_modules.traced_data.TracedData
     """
-    channel_group_to_messages = defaultdict(list)
-    channel_group_to_messages[MAIN_ANALYSIS_DIR].extend(messages)
+    filtered_data = [msg for msg in messages_traced_data if filter_func(msg, *args, **kwargs)]
+    log.info(f"Filtered out messages from participants who only sent demogs. Returning "
+             f"{len(filtered)}/{len(messages_traced_data)} messages (excluded {len(excluded_uuids)} uuids)")
+    return filtered_data
 
-    if channel_group_config.channel_group_analysis is None:
-        return channel_group_to_messages
-        
-    channel_groups = channel_group_config.channel_group_analysis.channel_groups
-
-    for msg in messages:
-        channel_group_to_messages = defaultdict(list)
-        for channel_group in channel_groups:
-            if msg.channel_operator in channel_group.channel_operators:
-                channel_group_to_messages[channel_group.group_name].append(msg)
-        
-    return channel_group_to_messages
-
-
-def generate_analysis_by_criteria(user, google_cloud_credentials_file_path, pipeline_config, messages,
-                                  membership_group_dir_path, output_dir, dry_run=False):
-    messages_traced_data = _convert_messages_to_traced_data(user, messages)
-
-    messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
-
-    impute_codes_by_message(
-        user, messages_traced_data, analysis_dataset_configurations,
-        pipeline_config.analysis.ws_correct_dataset_code_scheme
-    )
-
-    messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis)
-    participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
-
-    log.info(f"Imputing messages column-view traced data...")
-    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis.dataset_configurations)
-
-    log.info(f"Imputing participants column-view traced data...")
-    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis.dataset_configurations)
+def export_analysis_files(pipeline_config, messages_by_column, participants_by_column, output_dir, dry_run=False):
 
     # Export to hard-coded files for now.
     export_production_file(messages_by_column, pipeline_config.analysis, f"{output_dir}/production.csv")
-
-    if pipeline_config.analysis.membership_group_configuration is not None:
-
-        membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
-        log.info("Tagging membership group participants to messages_by_column traced data...")
-        tag_membership_groups_participants(user, google_cloud_credentials_file_path, messages_by_column,
-                                        membership_group_csv_urls, membership_group_dir_path)
-
-        log.info("Tagging membership group participants to participants_by_column traced data...")
-        tag_membership_groups_participants(user, google_cloud_credentials_file_path, participants_by_column,
-                                        membership_group_csv_urls, membership_group_dir_path)
 
     export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/messages.csv", export_timestamps=True)
     export_analysis_file(participants_by_column, pipeline_config, f"{output_dir}/participants.csv")
@@ -193,15 +156,33 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     log.info(f"Imputing participants column-view traced data...")
     impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis.dataset_configurations)
 
-    channel_operator_to_messages = _group_messages_by_channel_operator(messages)
-    for channel_operator, messages in channel_operator_to_messages.items():
-        generate_analysis_by_criteria(user, google_cloud_credentials_file_path, pipeline_config, messages,
-                                      membership_group_dir_path, f"{output_dir}/{channel_operator}", dry_run)
+    if pipeline_config.analysis.membership_group_configuration is not None:
 
-    channel_groups_to_messages = _group_messages_by_channel_group(messages, pipeline_config.analysis.channel_group_analysis)
-    for channel_group, messages in channel_groups_to_messages.items():
-        generate_analysis_by_criteria(user, google_cloud_credentials_file_path, pipeline_config, messages,
-                                      membership_group_dir_path, f"{output_dir}/{channel_group}", dry_run)
+        membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
+        log.info("Tagging membership group participants to messages_by_column traced data...")
+        tag_membership_groups_participants(user, google_cloud_credentials_file_path, messages_by_column,
+                                        membership_group_csv_urls, membership_group_dir_path)
+
+        log.info("Tagging membership group participants to participants_by_column traced data...")
+        tag_membership_groups_participants(user, google_cloud_credentials_file_path, participants_by_column,
+                                        membership_group_csv_urls, membership_group_dir_path)
+
+    export_analysis_files(pipeline_config, messages_by_column, participants_by_column, f"{output_dir}/{MAIN_ANALYSIS_DIR}", dry_run)
+
+    channel_operators = _get_channel_operators(messages)
+    for channel_operator in channel_operators:
+        filtered_messages_by_column = _filter_messages_by_criteria(messages_by_column, filter_func)
+        filtered_participants_by_column = _filter_messages_by_criteria(participants_by_column, filter_func)
+        export_analysis_files(pipeline_config, filtered_messages_by_column, filtered_participants_by_column, 
+                              f"{output_dir}/{channel_operator}", dry_run)
+
+    if pipeline_config.analysis.channel_group_analysis:
+        channel_groups = pipeline_config.analysis.channel_group_analysis.channel_groups
+        for channel_group in channel_groups:
+            filtered_messages_by_column = _filter_messages_by_criteria(messages_by_column, filter_func)
+            filtered_participants_by_column = _filter_messages_by_criteria(participants_by_column, filter_func)
+            export_analysis_files(pipeline_config, filtered_messages_by_column, filtered_participants_by_column, 
+                                f"{output_dir}/{channel_group}", dry_run)
 
     if pipeline_config.analysis.analysis_dashboard_upload is None:
         log.debug(f"Not uploading to an Analysis Dashboard, because the 'analysis_dashboard' configuration was None {dry_run_text}")
