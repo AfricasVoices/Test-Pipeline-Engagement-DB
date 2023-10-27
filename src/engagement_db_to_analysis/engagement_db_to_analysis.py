@@ -1,3 +1,4 @@
+from core_data_modules.cleaners import Codes
 from core_data_modules.logging import Logger
 from core_data_modules.traced_data import TracedData, Metadata
 from core_data_modules.traced_data.io import TracedDataJsonIO
@@ -20,6 +21,8 @@ from src.engagement_db_to_analysis.rapid_pro_advert_functions import sync_advert
 
 
 log = Logger(__name__)
+
+MAIN_ANALYSIS_DIR = "main"
 
 
 def _convert_messages_to_traced_data(user, messages):
@@ -50,9 +53,25 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
-def get_all_consent_withdrawn_uuids(user, messages_traced_data, pipeline_config):
-    participants_by_column = convert_to_participants_column_format(user, messages_traced_data_clone, pipeline_config.analysis)
-    consent_withdrawn_uuids = get_consent_withdrawn_participant_uuids(participants_by_column, pipeline_config.analysis.dataset_configurations)
+def get_consent_withdrawn_participant_uuids(user, pipeline_config, messages_traced_data):
+    messages_traced_data_clone = messages_traced_data.copy()
+    impute_codes_by_message(
+        user, messages_traced_data_clone, pipeline_config.analysis.dataset_configurations,
+        pipeline_config.analysis.ws_correct_dataset_code_scheme
+    )
+    column_traced_data_iterable = convert_to_participants_column_format(user, messages_traced_data_clone, pipeline_config.analysis)
+    column_configs = analysis_dataset_configs_to_column_configs(pipeline_config.analysis.dataset_configurations)
+    
+    consent_withdrawn_uuids = set()
+    for td in column_traced_data_iterable:
+        for column_config in column_configs:
+            if column_config.coded_field in td:
+                column_labels = td[column_config.coded_field]
+                for label in column_labels:
+                    if column_config.code_scheme.get_code_with_code_id(label["CodeID"]).control_code == Codes.STOP:
+                        consent_withdrawn_uuids.add(td["participant_uuid"])
+
+    log.info(f"Found {len(consent_withdrawn_uuids)} participants who withdrew consent")
     return consent_withdrawn_uuids
 
 
@@ -87,10 +106,10 @@ def process_data(user, google_cloud_credentials_file_path, pipeline_config, anal
     participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
 
     log.info(f"Imputing messages column-view traced data...")
-    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis.dataset_configurations)
+    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis.dataset_configurations, consent_withdrawn_uuids)
 
     log.info(f"Imputing participants column-view traced data...")
-    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis.dataset_configurations)
+    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis.dataset_configurations, consent_withdrawn_uuids)
 
     if pipeline_config.analysis.membership_group_configuration is not None:
 
@@ -152,69 +171,53 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
         engagement_db_datasets.extend(config.engagement_db_datasets)
     messages_map = get_messages_in_datasets(engagement_db, engagement_db_datasets, cache, dry_run)
 
-    channel_to_messages = _group_messages_by_channel_operator(messages_map, pipeline_config.analysis.channel_operators)
-    for channel, messages in channel_to_messages.items():
+    messages = [message for messages_list in messages_map.values() for message in messages_list]
+    messages_traced_data = _convert_messages_to_traced_data(user, messages)
 
-        messages_traced_data = _convert_messages_to_traced_data(user, messages)
+    messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
 
-        messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
+    consent_withdrawn_uuids = get_consent_withdrawn_participant_uuids(user, pipeline_config, messages_traced_data)
 
-        impute_codes_by_message(
-            user, messages_traced_data, analysis_dataset_configurations,
-            pipeline_config.analysis.ws_correct_dataset_code_scheme
+    # Process all messages for analysis
+    messages_traced_data_clone = messages_traced_data.copy()
+    messages_by_column, participants_by_column = process_data(
+        user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
+        membership_group_dir_path, messages_traced_data_clone, consent_withdrawn_uuids
+    )
+    export_analysis_files(pipeline_config, messages_by_column, participants_by_column, f"{output_dir}/{MAIN_ANALYSIS_DIR}/{channel_operator}")
+    
+    channel_operators = get_channel_operators(messages)
+    for channel_operator in channel_operators:
+        filtered_messages_td = filter_messages_by_criteria(filter_msg_by_channel_operator, messages_traced_data, channel_operator)
+        messages_by_column, participants_by_column = process_data(
+            user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
+            membership_group_dir_path, filtered_messages_td, consent_withdrawn_uuids
         )
+        export_analysis_files(pipeline_config, messages_by_column, participants_by_column, f"{output_dir}{channel_operator}")
 
-        messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis)
-        participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
+    if pipeline_config.analysis.channel_group_analysis:
+        for channel_group in pipeline_config.analysis.channel_group_analysis:
+            filtered_messages_td = filter_messages_by_criteria(filter_msg_by_channel_groups, messages_traced_data,
+                                                               channel_group.channel_operators)
+            messages_by_column, participants_by_column = process_data(
+                user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
+                membership_group_dir_path, filtered_messages_td, consent_withdrawn_uuids
+            )
+            export_analysis_files(pipeline_config, messages_by_column, participants_by_column,
+                                  f"{output_dir}/{channel_group.group_name}")
 
-        log.info(f"Imputing messages column-view traced data...")
-        impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis.dataset_configurations)
-
-        log.info(f"Imputing participants column-view traced data...")
-        impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis.dataset_configurations)
-
-        # Export to hard-coded files for now.
-        export_production_file(messages_by_column, pipeline_config.analysis, f"{output_dir}/{channel}/production.csv")
-
-        if pipeline_config.analysis.membership_group_configuration is not None:
-
-            membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
-            log.info("Tagging membership group participants to messages_by_column traced data...")
-            tag_membership_groups_participants(user, google_cloud_credentials_file_path, messages_by_column,
-                                            membership_group_csv_urls, membership_group_dir_path)
-
-            log.info("Tagging membership group participants to participants_by_column traced data...")
-            tag_membership_groups_participants(user, google_cloud_credentials_file_path, participants_by_column,
-                                            membership_group_csv_urls, membership_group_dir_path)
-
-        export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/{channel}/messages.csv", export_timestamps=True)
-        export_analysis_file(participants_by_column, pipeline_config, f"{output_dir}/{channel}/participants.csv")
-
-        export_traced_data(messages_by_column, f"{output_dir}/{channel}/messages.jsonl")
-        export_traced_data(participants_by_column, f"{output_dir}/{channel}/participants.jsonl")
-
-        run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/{channel}/automated-analysis")
-
-        dry_run_text = "(dry run)" if dry_run else ""
-        if pipeline_config.analysis.google_drive_upload is None:
-            log.debug(f"Not uploading to Google Drive, because the 'google_drive_upload' configuration was None {dry_run_text}")
-        else:
-            if dry_run:
-                log.info(f"Not uploading to Google Drive {dry_run_text}")
-            else:
-                log.info("Uploading outputs to Google Drive...")
-                google_drive_upload.init_client(
-                    google_cloud_credentials_file_path,
-                    pipeline_config.analysis.google_drive_upload.credentials_file_url
-                )
-
-                drive_dir = pipeline_config.analysis.google_drive_upload.drive_dir
-                google_drive_upload.upload_file(f"{output_dir}/{channel}/production.csv", drive_dir)
-                google_drive_upload.upload_file(f"{output_dir}/{channel}/messages.csv", drive_dir)
-                google_drive_upload.upload_file(f"{output_dir}/{channel}/participants.csv", drive_dir)
-                google_drive_upload.upload_all_files_in_dir(
-                    f"{output_dir}/{channel}/automated-analysis", f"{drive_dir}/automated-analysis", recursive=True
-                )
+    dry_run_text = "(dry run)" if dry_run else ""
+    if pipeline_config.analysis.google_drive_upload is None:
+        log.debug(f"Not uploading to Google Drive, because the 'google_drive_upload' configuration was None {dry_run_text}")
+    elif dry_run:
+        log.info(f"Not uploading to Google Drive {dry_run_text}")
+    else:
+        log.info("Uploading outputs to Google Drive...")
+        channel_groups = {grp.name for grp in pipeline_config.analysis.channel_group_analysis}
+        output_sub_dir = channel_groups.union(channel_operators)
+        output_sub_dir.add(MAIN_ANALYSIS_DIR)
+        for item in output_sub_dir:
+            upload_analysis_files(pipeline_config, google_cloud_credentials_file_path, output_dir)
 
     if pipeline_config.analysis.analysis_dashboard_upload is None:
         log.debug(f"Not uploading to an Analysis Dashboard, because the 'analysis_dashboard' configuration was None {dry_run_text}")
@@ -232,10 +235,11 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
             series_id=analysis_dashboard_config.series.series_id,
             bucket_name=analysis_dashboard_config.bucket_name,
             files={
-                f"{output_dir}/all/production.csv": "production.csv"
+                f"{output_dir}/{MAIN_ANALYSIS_DIR}/production.csv": "production.csv"
             }
         )
 
+    participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
     if pipeline_config.rapid_pro_target is not None and pipeline_config.rapid_pro_target.sync_config.sync_advert_contacts:
         sync_advert_contacts_to_rapid_pro(
             participants_by_column, uuid_table, pipeline_config, rapid_pro,

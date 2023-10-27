@@ -681,35 +681,7 @@ def _impute_nic_demogs(user, column_traced_data_iterable, analysis_dataset_confi
              f"traced data items")
 
 
-def get_consent_withdrawn_participant_uuids(column_traced_data_iterable, analysis_dataset_configs):
-    """
-    Gets the participant uuids of participants who withdrew consent.
-
-    A participant is considered to have withdrawn consent if any of their labels have control code Codes.STOP in any
-    of the datasets in the given `analysis_dataset_configs`.
-
-    :param column_traced_data_iterable: Column-view traced data objects to search for consent withdrawn status.
-    :type column_traced_data_iterable: iterable of core_data_modules.traced_data.TracedData
-    :param analysis_dataset_configs: Analysis dataset configurations for the search.
-    :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
-    :return: Uuids of participants who withdrew consent.
-    :rtype: set of str
-    """
-    column_configs = analysis_dataset_configs_to_column_configs(analysis_dataset_configs)
-    consent_withdrawn_uuids = set()
-
-    for td in column_traced_data_iterable:
-        for column_config in column_configs:
-            if column_config.coded_field in td:
-                column_labels = td[column_config.coded_field]
-                for label in column_labels:
-                    if column_config.code_scheme.get_code_with_code_id(label["CodeID"]).control_code == Codes.STOP:
-                        consent_withdrawn_uuids.add(td["participant_uuid"])
-
-    return consent_withdrawn_uuids
-
-
-def _impute_consent_withdrawn(user, column_traced_data_iterable, analysis_dataset_configs):
+def _impute_consent_withdrawn(user, column_traced_data_iterable, analysis_dataset_configs, consent_withdrawn_uuids):
     """
     Imputes consent_withdrawn on column-view datasets.
 
@@ -731,9 +703,6 @@ def _impute_consent_withdrawn(user, column_traced_data_iterable, analysis_datase
     :type analysis_dataset_configs: pipeline_config.analysis_configs.dataset_configurations
     """
     log.info("Imputing consent withdrawn...")
-    consent_withdrawn_uuids = _get_consent_withdrawn_participant_uuids(column_traced_data_iterable, analysis_dataset_configs)
-    log.info(f"Found {len(consent_withdrawn_uuids)} participants who withdrew consent")
-
     column_configs = analysis_dataset_configs_to_column_configs(analysis_dataset_configs)
     consent_withdrawn_tds = 0
     for td in column_traced_data_iterable:
@@ -842,7 +811,7 @@ def _impute_somalia_zone_from_somalia_operator(user, column_traced_data_iterable
              f"traced data items")
 
 
-def impute_codes_by_column_traced_data(user, column_traced_data_iterable, analysis_dataset_configs):
+def impute_codes_by_column_traced_data(user, column_traced_data_iterable, analysis_dataset_configs, consent_withdrawn_uuids):
     """
     Imputes codes for column-view TracedData in-place.
 
@@ -861,4 +830,4 @@ def impute_codes_by_column_traced_data(user, column_traced_data_iterable, analys
     _impute_true_missing(user, column_traced_data_iterable, analysis_dataset_configs)
     _impute_somalia_zone_from_somalia_operator(user, column_traced_data_iterable, analysis_dataset_configs)
     _impute_nic_demogs(user, column_traced_data_iterable, analysis_dataset_configs)
-    _impute_consent_withdrawn(user, column_traced_data_iterable, analysis_dataset_configs)
+    _impute_consent_withdrawn(user, column_traced_data_iterable, analysis_dataset_configs, consent_withdrawn_uuids)
