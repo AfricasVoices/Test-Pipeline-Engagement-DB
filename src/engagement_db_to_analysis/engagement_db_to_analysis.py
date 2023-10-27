@@ -55,20 +55,25 @@ def get_all_consent_withdrawn_uuids(user, messages_traced_data, pipeline_config)
     consent_withdrawn_uuids = get_consent_withdrawn_participant_uuids(participants_by_column, pipeline_config.analysis.dataset_configurations)
     return consent_withdrawn_uuids
 
+
 def get_channel_operators(messages):
     return {msg.channel_operator for msg in messages}
+
 
 def filter_msg_by_channel_operator(message_td, channel_operator):
     if message_td["channel_operator"] == channel_operator:
         return message_td
 
+
 def filter_msg_by_channel_groups(message_td, channel_operators):
     if message_td["channel_operator"] in channel_operators:
         return message_td
 
+
 def filter_messages_by_criteria(filter_func, messages_traced_data, *args, **kwargs):
     filtered_data = [msg for msg in messages_traced_data if filter_func(msg, *args, **kwargs)]
     return filtered_data
+
 
 def process_data(user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
                  membership_group_dir_path, messages_traced_data, consent_withdrawn_uuids):
@@ -78,7 +83,6 @@ def process_data(user, google_cloud_credentials_file_path, pipeline_config, anal
         pipeline_config.analysis.ws_correct_dataset_code_scheme
     )
 
-    # use copy of message traced  data
     messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis)
     participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
 
@@ -100,6 +104,18 @@ def process_data(user, google_cloud_credentials_file_path, pipeline_config, anal
                                            membership_group_csv_urls, membership_group_dir_path)
 
     return messages_by_column, participants_by_column
+
+
+def export_analysis_files(pipeline_config, messages_by_column, participants_by_column, output_dir):
+    # Export to hard-coded files for now.
+    export_production_file(messages_by_column, pipeline_config.analysis, f"{output_dir}/production.csv")
+    export_analysis_file(messages_by_column, pipeline_config, f"{output_dir}/messages.csv", export_timestamps=True)
+    export_analysis_file(participants_by_column, pipeline_config, f"{output_dir}/participants.csv")
+
+    export_traced_data(messages_by_column, f"{output_dir}/messages.jsonl")
+    export_traced_data(participants_by_column, f"{output_dir}/participants.jsonl")
+
+    run_automated_analysis(messages_by_column, participants_by_column, pipeline_config.analysis, f"{output_dir}/automated-analysis")
 
 
 def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, uuid_table, engagement_db, rapid_pro,
