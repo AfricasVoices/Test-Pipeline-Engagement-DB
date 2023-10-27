@@ -106,6 +106,19 @@ def process_data(user, google_cloud_credentials_file_path, pipeline_config, anal
     return messages_by_column, participants_by_column
 
 
+def upload_analysis_files(pipeline_config, google_cloud_credentials_file_path, output_dir):
+    google_drive_upload.init_client(google_cloud_credentials_file_path,
+                                    pipeline_config.analysis.google_drive_upload.credentials_file_url)
+
+    drive_dir = pipeline_config.analysis.google_drive_upload.drive_dir
+    google_drive_upload.upload_file(f"{output_dir}/production.csv", drive_dir)
+    google_drive_upload.upload_file(f"{output_dir}/messages.csv", drive_dir)
+    google_drive_upload.upload_file(f"{output_dir}/participants.csv", drive_dir)
+    google_drive_upload.upload_all_files_in_dir(
+        f"{output_dir}/automated-analysis", f"{drive_dir}/automated-analysis", recursive=True
+    )
+       
+
 def export_analysis_files(pipeline_config, messages_by_column, participants_by_column, output_dir):
     # Export to hard-coded files for now.
     export_production_file(messages_by_column, pipeline_config.analysis, f"{output_dir}/production.csv")
