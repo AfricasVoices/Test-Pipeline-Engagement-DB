@@ -681,7 +681,7 @@ def _impute_nic_demogs(user, column_traced_data_iterable, analysis_dataset_confi
              f"traced data items")
 
 
-def _get_consent_withdrawn_participant_uuids(column_traced_data_iterable, analysis_dataset_configs):
+def get_consent_withdrawn_participant_uuids(column_traced_data_iterable, analysis_dataset_configs):
     """
     Gets the participant uuids of participants who withdrew consent.
 
@@ -700,10 +700,11 @@ def _get_consent_withdrawn_participant_uuids(column_traced_data_iterable, analys
 
     for td in column_traced_data_iterable:
         for column_config in column_configs:
-            column_labels = td[column_config.coded_field]
-            for label in column_labels:
-                if column_config.code_scheme.get_code_with_code_id(label["CodeID"]).control_code == Codes.STOP:
-                    consent_withdrawn_uuids.add(td["participant_uuid"])
+            if column_config.coded_field in td:
+                column_labels = td[column_config.coded_field]
+                for label in column_labels:
+                    if column_config.code_scheme.get_code_with_code_id(label["CodeID"]).control_code == Codes.STOP:
+                        consent_withdrawn_uuids.add(td["participant_uuid"])
 
     return consent_withdrawn_uuids
 
