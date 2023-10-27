@@ -343,6 +343,11 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
                 ],
             )
         ],
+        channel_group_analysis=[
+            ChannelGroup(group_name="Questionnaire interview", channel_operators=["kobotoolbox", "google_form"]),
+            ChannelGroup(group_name="sms and whatsapp", channel_operators=[KenyaCodes.KENYAN_TELEPHONE, "whatsapp"]),
+            ChannelGroup(group_name="kobo and whatsapp", channel_operators=["kobotoolbox", "whatsapp"]),
+        ],
         ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset"),
         cross_tabs=[
             ("age_category", "gender"),
