@@ -51,7 +51,6 @@ def export_traced_data(traced_data, export_path):
 
 
 def get_all_consent_withdrawn_uuids(user, messages_traced_data, pipeline_config):
-    messages_traced_data_clone = messages_traced_data.copy()
     participants_by_column = convert_to_participants_column_format(user, messages_traced_data_clone, pipeline_config.analysis)
     consent_withdrawn_uuids = get_consent_withdrawn_participant_uuids(participants_by_column, pipeline_config.analysis.dataset_configurations)
     return consent_withdrawn_uuids
@@ -70,6 +69,37 @@ def filter_msg_by_channel_groups(message_td, channel_operators):
 def filter_messages_by_criteria(filter_func, messages_traced_data, *args, **kwargs):
     filtered_data = [msg for msg in messages_traced_data if filter_func(msg, *args, **kwargs)]
     return filtered_data
+
+def process_data(user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
+                 membership_group_dir_path, messages_traced_data, consent_withdrawn_uuids):
+
+    impute_codes_by_message(
+        user, messages_traced_data, analysis_dataset_configurations,
+        pipeline_config.analysis.ws_correct_dataset_code_scheme
+    )
+
+    # use copy of message traced  data
+    messages_by_column = convert_to_messages_column_format(user, messages_traced_data, pipeline_config.analysis)
+    participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
+
+    log.info(f"Imputing messages column-view traced data...")
+    impute_codes_by_column_traced_data(user, messages_by_column, pipeline_config.analysis.dataset_configurations)
+
+    log.info(f"Imputing participants column-view traced data...")
+    impute_codes_by_column_traced_data(user, participants_by_column, pipeline_config.analysis.dataset_configurations)
+
+    if pipeline_config.analysis.membership_group_configuration is not None:
+
+        membership_group_csv_urls = pipeline_config.analysis.membership_group_configuration.membership_group_csv_urls.items()
+        log.info("Tagging membership group participants to messages_by_column traced data...")
+        tag_membership_groups_participants(user, google_cloud_credentials_file_path, messages_by_column,
+                                           membership_group_csv_urls, membership_group_dir_path)
+
+        log.info("Tagging membership group participants to participants_by_column traced data...")
+        tag_membership_groups_participants(user, google_cloud_credentials_file_path, participants_by_column,
+                                           membership_group_csv_urls, membership_group_dir_path)
+
+    return messages_by_column, participants_by_column
 
 
 def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, uuid_table, engagement_db, rapid_pro,
