@@ -50,39 +50,26 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
-def _group_messages_by_channel_operator(messages_map, channel_operators_config):
-    """
-    :param messages_map: Dictionary of engagement db dataset -> list of Messages in dataset.
-    :type messages_map: dict of str -> list of engagement_database.data_models.Message
-    :param channel_operators_config: represents a configuration object used to specify message channels
-                                     for the purpose of grouping final analysis files based on those channels.                  
-    :type channel_operators_config: src.engagement_db_to_analysis.configuration.ChannelManager
-    :return: Dictionary of engagement db channel operator -> list of Messages in dataset.
-    :rtype: dict of str -> list of engagement_database.data_models.Message
-    """
-    channel_operator_to_messages = {"all": []}
-    for messages in messages_map.values():
-        channel_operator_to_messages["all"].extend(messages)
+def get_all_consent_withdrawn_uuids(user, messages_traced_data, pipeline_config):
+    messages_traced_data_clone = messages_traced_data.copy()
+    participants_by_column = convert_to_participants_column_format(user, messages_traced_data_clone, pipeline_config.analysis)
+    consent_withdrawn_uuids = get_consent_withdrawn_participant_uuids(participants_by_column, pipeline_config.analysis.dataset_configurations)
+    return consent_withdrawn_uuids
 
-        if channel_operators_config is None:
-            continue
+def get_channel_operators(messages):
+    return {msg.channel_operator for msg in messages}
 
-        for msg in messages:
-            if msg.channel_operator in channel_operators_config.individual_channels:
-                channel_operator_to_messages.setdefault(msg.channel_operator, []).append(msg)
+def filter_msg_by_channel_operator(message_td, channel_operator):
+    if message_td["channel_operator"] == channel_operator:
+        return message_td
 
-            if channel_operators_config.grouped_channels is None:
-                continue
+def filter_msg_by_channel_groups(message_td, channel_operators):
+    if message_td["channel_operator"] in channel_operators:
+        return message_td
 
-            channels_group_names = []
-            for grouped_channel in channel_operators_config.grouped_channels:
-                if msg.channel_operator in grouped_channel.individual_channels:
-                    channels_group_names.append(grouped_channel.group_name)
-
-            for key in channels_group_names:
-                channel_operator_to_messages.setdefault(key, []).append(msg)
-                
-    return channel_operator_to_messages
+def filter_messages_by_criteria(filter_func, messages_traced_data, *args, **kwargs):
+    filtered_data = [msg for msg in messages_traced_data if filter_func(msg, *args, **kwargs)]
+    return filtered_data
 
 
 def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_config, uuid_table, engagement_db, rapid_pro,
