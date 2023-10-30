@@ -178,7 +178,6 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
 
     consent_withdrawn_uuids = get_consent_withdrawn_participant_uuids(user, pipeline_config, messages_traced_data)
 
-    # Process all messages for analysis
     messages_traced_data_clone = messages_traced_data.copy()
     messages_by_column, participants_by_column = process_data(
         user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
