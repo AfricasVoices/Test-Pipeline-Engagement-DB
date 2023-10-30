@@ -12,7 +12,8 @@ from src.engagement_db_to_analysis.automated_analysis import run_automated_analy
 from src.engagement_db_to_analysis.cache import AnalysisCache
 from src.engagement_db_to_analysis.code_imputation_functions import (impute_codes_by_message,
                                                                      impute_codes_by_column_traced_data)
-from src.engagement_db_to_analysis.column_view_conversion import (convert_to_messages_column_format,
+from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_column_configs, 
+                                                                  convert_to_messages_column_format,
                                                                   convert_to_participants_column_format)
 from src.engagement_db_to_analysis.traced_data_filters import filter_messages
 from src.engagement_db_to_analysis.membership_group import (tag_membership_groups_participants)
@@ -183,7 +184,7 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
         user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
         membership_group_dir_path, messages_traced_data_clone, consent_withdrawn_uuids
     )
-    export_analysis_files(pipeline_config, messages_by_column, participants_by_column, f"{output_dir}/{MAIN_ANALYSIS_DIR}/{channel_operator}")
+    export_analysis_files(pipeline_config, messages_by_column, participants_by_column, f"{output_dir}/{MAIN_ANALYSIS_DIR}")
     
     channel_operators = get_channel_operators(messages)
     for channel_operator in channel_operators:
@@ -192,7 +193,7 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
             user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
             membership_group_dir_path, filtered_messages_td, consent_withdrawn_uuids
         )
-        export_analysis_files(pipeline_config, messages_by_column, participants_by_column, f"{output_dir}{channel_operator}")
+        export_analysis_files(pipeline_config, messages_by_column, participants_by_column, f"{output_dir}/{channel_operator}")
 
     if pipeline_config.analysis.channel_group_analysis:
         for channel_group in pipeline_config.analysis.channel_group_analysis:
@@ -238,8 +239,8 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
             }
         )
 
-    participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
     if pipeline_config.rapid_pro_target is not None and pipeline_config.rapid_pro_target.sync_config.sync_advert_contacts:
+        participants_by_column = convert_to_participants_column_format(user, messages_traced_data, pipeline_config.analysis)
         sync_advert_contacts_to_rapid_pro(
             participants_by_column, uuid_table, pipeline_config, rapid_pro,
             google_cloud_credentials_file_path, membership_group_dir_path, cache_path, dry_run
