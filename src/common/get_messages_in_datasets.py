@@ -4,6 +4,9 @@ from core_data_modules.logging import Logger
 from engagement_database.data_models import MessageStatuses
 from google.cloud.firestore_v1 import FieldFilter
 
+from google.cloud import firestore
+from google.cloud.firestore_v1 import transaction
+
 log = Logger(__name__)
 
 
@@ -25,7 +28,6 @@ def filter_latest_message_snapshots(messages):
             latest_messages.append(msg)
 
     return latest_messages
-
 
 def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, dry_run=False):
     """
@@ -158,16 +160,31 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
     # origin_id, that means there is a problem with the database or with the cache.
     # (Most likely we added the same message twice or we deleted a message and forgot to delete the analysis cache).
     all_message_origins = set()
+    deleted_messages_map = dict()  # of dataset_name -> no. of deleted messages
     for messages in engagement_db_messages_map.values():
         for msg in messages:
             origin_id = msg.origin.origin_id
             if type(origin_id) == list:
                 origin_id = tuple(origin_id)
-
-            if origin_id in all_message_origins:
-                continue
             
-            all_message_origins.add(origin_id)
+            # how to delete duplicate messages
+            if origin_id in all_message_origins:
+                log.warning(f"Multiple messages had the same origin id: '{msg.origin.origin_id}'")
+                if msg.dataset not in deleted_messages_map:
+                    deleted_messages_map[msg.dataset] = 0
+                    deleted_messages_map[msg.dataset] += 1
+                else:
+                    deleted_messages_map[msg.dataset] += 1
+                if not dry_run:
+                    engagement_db.delete_message_and_history(msg.message_id, transaction=None)
+                    log.warning(f"Deleted message {msg.message_id} from the database and history cache")
+                    # cache.delete_message(msg.message_id)
+
+            else:
+                all_message_origins.add(origin_id)
+
+    for dataset_name, deleted_messages in deleted_messages_map.items():
+        log.warning(f"Deleted {deleted_messages} messages from dataset {dataset_name}")
 
     # Filter out messages that don't meet the status conditions
     for engagement_db_dataset, messages in engagement_db_messages_map.items():

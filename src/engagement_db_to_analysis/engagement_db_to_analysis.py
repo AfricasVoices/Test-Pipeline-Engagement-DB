@@ -6,7 +6,7 @@ from firebase_admin import storage
 from google.cloud import firestore
 
 
-from src.common.get_messages_in_datasets_og import get_messages_in_datasets
+from src.common.get_messages_in_datasets import get_messages_in_datasets
 from src.engagement_db_to_analysis import google_drive_upload
 from src.engagement_db_to_analysis.analysis_files import export_production_file, export_analysis_file
 from src.engagement_db_to_analysis.automated_analysis import run_automated_analysis
