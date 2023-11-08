@@ -100,24 +100,59 @@ def _get_new_runs(rapid_pro, flow_id, cache=None):
     return rapid_pro.get_raw_runs(flow_id, last_modified_after_inclusive=filter_last_modified_after)
 
 
-def _normalise_and_validate_contact_urn(contact_urn):
+def _normalise_and_validate_contact_urns(contact_urns):
     """
-    Normalises and validates the given URN.
+    Normalises and validates the given URNs into a single, canonical urn, by:
+     - Ensuring only one URN is provided, or only whatsapp and tel URNS with the same phone number are provided.
+     - Ensuring tel URNS have country codes.
+     - Converting whatsapp URNs to tel URNs.
+     - Cleaning #<username> tags from telegram URNs.
+     All other URN types are accepted with no additional checks.
 
     Fails with an AssertionError if the given URN is invalid.
 
-    :param contact_urn: URN to de-identify.
-    :type contact_urn: str
+    :param contact_urns: URN(s) to normalise and validate.
+    :type contact_urns: list of str
     :return: Normalised contact urn.
     :rtype: str
     """
+    assert 0 < len(contact_urns) <= 2, f"Contact should have 1 or 2 urns, but actually has " \
+                                       f"{len(contact_urns)} urns"
+
+    if len(contact_urns) == 1:
+        contact_urn = contact_urns[0]
+    else:
+        assert len(contact_urns) == 2
+        # Contacts with 2 urns are only supported if those 2 urns are composed of one tel urn and one whatsapp urn
+        channel_0 = contact_urns[0].split(":")[0]
+        channel_1 = contact_urns[1].split(":")[0]
+        urn_types = [channel_0, channel_1]
+        # (Compare sorted lists instead of sets because the urn_types might have duplicates e.g. 2 different tel urns)
+        assert sorted(urn_types) == sorted({"tel", "whatsapp"}), urn_types
+
+        # Contacts with 2 urns are also only supported if those urns have the same phone number.
+        # We need to replace "+"s here because whatsapp urns don't contain a plus but tel urns do.
+        phone_number_0 = contact_urns[0].split(":")[1].replace("+", "")
+        phone_number_1 = contact_urns[1].split(":")[1].replace("+", "")
+        assert phone_number_0 == phone_number_1
+
+        # Arbitrarily pick either urn for now, if we picked the whatsapp urn it will be converted to tel later.
+        contact_urn = contact_urns[0]
+
+    # If the contact's canonical urn is for a whatsapp channel, convert it to a tel urn.
+    if contact_urn.startswith("whatsapp:"):
+        number = contact_urn.split(":")[1]
+        assert not number.startswith("+")
+        contact_urn = f"tel:+{number}"
+
+    # Ensure tel urns start with a country code.
     if contact_urn.startswith("tel:"):
         assert contact_urn.startswith("tel:+")
 
+    # Sometimes a telegram urn ends with an optional #<username> e.g. telegram:123456#testuser
+    # To ensure we always get the same urn for the same telegram user, normalise telegram urns to exclude
+    # this #<username>
     if contact_urn.startswith("telegram:"):
-        # Sometimes a telegram urn ends with an optional #<username> e.g. telegram:123456#testuser
-        # To ensure we always get the same urn for the same telegram user, normalise telegram urns to exclude
-        # this #<username>
         contact_urn = contact_urn.split("#")[0]
 
     return contact_urn
@@ -259,8 +294,7 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                     cache.set_latest_run_timestamp(flow_id, run.modified_on)
                 continue
             contact = contacts_lut[run.contact.uuid]
-            assert len(contact.urns) == 1, len(contact.urns)
-            contact_urn = _normalise_and_validate_contact_urn(contact.urns[0])
+            contact_urn = _normalise_and_validate_contact_urns(contact.urns)
 
             if rapid_pro_config.uuid_filter is not None:
                 # If a uuid filter exists, then only add this message if the sender's uuid exists in the uuid table
