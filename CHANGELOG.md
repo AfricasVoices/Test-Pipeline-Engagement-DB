@@ -6,6 +6,7 @@
 
 Engagement DB -> Analysis:
  - Adds optional `region_filter` argument to `MapConfiguration`, for controlling which regions should be drawn on a map.
+ - Adds optional `legend_position` argument to `MapConfiguration`, for controlling where a map's legend should be drawn.
 
 ## v4.1.0
 
