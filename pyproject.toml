@@ -19,7 +19,7 @@ name = "pypi"
 
 [tool.pdm.dev-dependencies]
 dev = [
-    "-e CoreDataModules[mapping] @ git+https://github.com/AfricasVoices/CoreDataModules@v0.17.2",
+    "-e CoreDataModules[mapping] @ git+https://github.com/AfricasVoices/CoreDataModules@v0.17.3",
     "-e RapidProTools @ git+https://github.com/AfricasVoices/RapidProTools@v0.3.10",
     "-e PipelineInfrastructure @ git+https://github.com/AfricasVoices/Pipeline-Infrastructure@v0.1.7",
     "-e SocialMediaTools @ git+https://github.com/AfricasVoices/SocialMediaTools@v0.1.2",

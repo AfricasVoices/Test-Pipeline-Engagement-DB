@@ -1,6 +1,6 @@
 from core_data_modules.analysis import (engagement_counts, repeat_participations, theme_distributions, sample_messages,
                                         AnalysisConfiguration, traffic_analysis, cross_tabs)
-from core_data_modules.analysis.mapping import participation_maps, kenya_mapper, somalia_mapper
+from core_data_modules.analysis.mapping import participation_maps, kenya_mapper, somalia_mapper, mapping_utils
 from core_data_modules.logging import Logger
 from core_data_modules.util import IOUtils
 
@@ -144,6 +144,6 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
 
         participation_maps.export_participation_maps(
             participants_by_column, "consent_withdrawn", rqa_column_configs, column_config,
-            MAPPERS[coding_config.analysis_location],
+            lambda x, y: (MAPPERS[coding_config.analysis_location](x, y, region_filter=map_config.region_filter)),
             f"{export_dir_path}/maps/{column_config.dataset_name}/{column_config.dataset_name}_"
         )

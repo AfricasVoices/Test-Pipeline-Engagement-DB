@@ -220,14 +220,19 @@ class MembershipGroupConfiguration:
 
 
 class MapConfiguration:
-    def __init__(self, analysis_location):
+    def __init__(self, analysis_location, region_filter=None):
         """
         Configuration for generating maps for an `AnalysisLocations`.
 
         :param analysis_location: Location to generate the maps for.
         :type analysis_location: AnalysisLocations
+        :param region_filter: A function which, given a region, determines whether the region should be included
+                              in the generated map or not.
+                              If None, no filter is applied and all regions are drawn.
+        :type region_filter: (func of str -> boolean) | None
         """
         self.analysis_location = analysis_location
+        self.region_filter = region_filter
 
 
 class AnalysisConfiguration:
