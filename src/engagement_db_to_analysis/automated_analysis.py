@@ -144,6 +144,8 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
 
         participation_maps.export_participation_maps(
             participants_by_column, "consent_withdrawn", rqa_column_configs, column_config,
-            lambda x, y: (MAPPERS[coding_config.analysis_location](x, y, region_filter=map_config.region_filter)),
+            lambda x, y: (MAPPERS[coding_config.analysis_location](
+                x, y, region_filter=map_config.region_filter, legend_position=map_config.legend_position)
+            ),
             f"{export_dir_path}/maps/{column_config.dataset_name}/{column_config.dataset_name}_"
         )

@@ -220,7 +220,7 @@ class MembershipGroupConfiguration:
 
 
 class MapConfiguration:
-    def __init__(self, analysis_location, region_filter=None):
+    def __init__(self, analysis_location, region_filter=None, legend_position="lower right"):
         """
         Configuration for generating maps for an `AnalysisLocations`.
 
@@ -230,9 +230,13 @@ class MapConfiguration:
                               in the generated map or not.
                               If None, no filter is applied and all regions are drawn.
         :type region_filter: (func of str -> boolean) | None
+        :param legend_position: Where on the map to draw the legend. For accepted values, see `loc` at
+                                https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html.
+        :type legend_position: str
         """
         self.analysis_location = analysis_location
         self.region_filter = region_filter
+        self.legend_position = legend_position
 
 
 class AnalysisConfiguration:

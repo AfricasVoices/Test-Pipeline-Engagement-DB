@@ -348,7 +348,8 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         maps=[
             MapConfiguration(
                 analysis_location=AnalysisLocations.KENYA_COUNTY,
-                region_filter=lambda county: county in {"siaya", "bungoma", "kakamega"}
+                region_filter=lambda county: county in {"siaya", "bungoma", "kakamega"},
+                legend_position="upper left"
             )
         ],
         traffic_labels=[
