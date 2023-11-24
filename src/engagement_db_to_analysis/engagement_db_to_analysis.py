@@ -23,7 +23,7 @@ from src.engagement_db_to_analysis.rapid_pro_advert_functions import sync_advert
 
 log = Logger(__name__)
 
-MAIN_ANALYSIS_DIR = "main"
+MAIN_ANALYSIS_DIR = "all_operators"
 
 
 def _convert_messages_to_traced_data(user, messages):
