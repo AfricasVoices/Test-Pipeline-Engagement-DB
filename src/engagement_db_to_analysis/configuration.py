@@ -237,7 +237,8 @@ class ChannelGroup:
         considered for analysis.
         :param group_name: The name of the channel group.
         :type group_name: str
-        :param channel_operators: A list of individual message channels to include in the group. Messages which have one of these operators will be included in the analysis for this group.
+        :param channel_operators: A list of individual message channels to include in the group. 
+                                  Messages which have one of these operators will be included in the analysis for this group.
         :type channel_operators: list of str
         """
         self.group_name = group_name
