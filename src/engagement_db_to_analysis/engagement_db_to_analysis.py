@@ -172,7 +172,11 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
         engagement_db_datasets.extend(config.engagement_db_datasets)
     messages_map = get_messages_in_datasets(engagement_db, engagement_db_datasets, cache, dry_run)
 
-    messages = [message for messages_list in messages_map.values() for message in messages_list]
+    messages = []
+    for messages_list in messages_map.values():
+        for message in messages_list:
+            messages.append(message)
+
     messages_traced_data = _convert_messages_to_traced_data(user, messages)
 
     messages_traced_data = filter_messages(user, messages_traced_data, pipeline_config)
