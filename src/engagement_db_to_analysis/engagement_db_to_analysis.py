@@ -186,18 +186,16 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     messages_traced_data_clone = messages_traced_data.copy()
     messages_by_column, participants_by_column = run_analysis(
         user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
-        membership_group_dir_path, messages_traced_data_clone, consent_withdrawn_uuids
+        membership_group_dir_path, messages_traced_data_clone, consent_withdrawn_uuids, f"{output_dir}/{MAIN_ANALYSIS_DIR}"
     )
-    export_analysis_files(pipeline_config, messages_by_column, participants_by_column, f"{output_dir}/{MAIN_ANALYSIS_DIR}")
     
     channel_operators = get_channel_operators(messages)
     for channel_operator in channel_operators:
         filtered_messages_td = filter_messages_by_criteria(filter_msg_by_channel_operator, messages_traced_data, channel_operator)
         messages_by_column, participants_by_column = run_analysis(
             user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
-            membership_group_dir_path, filtered_messages_td, consent_withdrawn_uuids
+            membership_group_dir_path, filtered_messages_td, consent_withdrawn_uuids, f"{output_dir}/{channel_operator}"
         )
-        export_analysis_files(pipeline_config, messages_by_column, participants_by_column, f"{output_dir}/{channel_operator}")
 
     if pipeline_config.analysis.channel_group_analysis:
         for channel_group in pipeline_config.analysis.channel_group_analysis:
@@ -205,10 +203,8 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
                                                                channel_group.channel_operators)
             messages_by_column, participants_by_column = run_analysis(
                 user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
-                membership_group_dir_path, filtered_messages_td, consent_withdrawn_uuids
+                membership_group_dir_path, filtered_messages_td, consent_withdrawn_uuids, f"{output_dir}/{channel_group.group_name}"
             )
-            export_analysis_files(pipeline_config, messages_by_column, participants_by_column,
-                                  f"{output_dir}/{channel_group.group_name}")
 
     dry_run_text = "(dry run)" if dry_run else ""
     if pipeline_config.analysis.google_drive_upload is None:
