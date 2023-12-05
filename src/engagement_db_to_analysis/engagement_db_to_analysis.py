@@ -80,14 +80,12 @@ def get_channel_operators(messages):
     return {msg.channel_operator for msg in messages}
 
 
-def filter_msg_by_channel_operator(message_td, channel_operator):
-    if message_td["channel_operator"] == channel_operator:
-        return message_td
+def message_has_channel_operator(message_td, channel_operator):
+    return message_td["channel_operator"] == channel_operator
 
 
-def filter_msg_by_channel_groups(message_td, channel_operators):
-    if message_td["channel_operator"] in channel_operators:
-        return message_td
+def message_in_channel_operators(message_td, channel_operators):
+    return message_td["channel_operator"] in channel_operators
 
 
 def filter_messages_by_criteria(filter_func, messages_traced_data, *args, **kwargs):
