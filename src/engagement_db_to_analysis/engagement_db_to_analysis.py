@@ -185,7 +185,7 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
     
     channel_operators = get_channel_operators(messages)
     for channel_operator in channel_operators:
-        filtered_messages_td = filter_messages_by_criteria(filter_msg_by_channel_operator, messages_traced_data, channel_operator)
+        filtered_messages_td = filter_messages_by_criteria(message_has_channel_operator, messages_traced_data, channel_operator)
         messages_by_column, participants_by_column = run_analysis(
             user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
             membership_group_dir_path, filtered_messages_td, consent_withdrawn_uuids, f"{output_dir}/{channel_operator}"
@@ -193,7 +193,7 @@ def generate_analysis_files(user, google_cloud_credentials_file_path, pipeline_c
 
     if pipeline_config.analysis.channel_group_analysis:
         for channel_group in pipeline_config.analysis.channel_group_analysis:
-            filtered_messages_td = filter_messages_by_criteria(filter_msg_by_channel_groups, messages_traced_data,
+            filtered_messages_td = filter_messages_by_criteria(message_in_channel_operators, messages_traced_data,
                                                                channel_group.channel_operators)
             messages_by_column, participants_by_column = run_analysis(
                 user, google_cloud_credentials_file_path, pipeline_config, analysis_dataset_configurations,
