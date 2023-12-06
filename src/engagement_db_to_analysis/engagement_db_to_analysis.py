@@ -54,6 +54,15 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
+def check_labels_for_stop_code(td, column_labels, column_config):
+    if column_config.coded_field in td:
+        column_labels = td[column_config.coded_field]
+        for label in column_labels:
+            code_id = label["CodeID"]
+            control_code = column_config.code_scheme.get_code_with_code_id(code_id).control_code
+            return control_code == Codes.STOP
+
+
 def get_consent_withdrawn_participant_uuids(user, pipeline_config, messages_traced_data):
     messages_traced_data_clone = messages_traced_data.copy()
     impute_codes_by_message(
@@ -66,11 +75,9 @@ def get_consent_withdrawn_participant_uuids(user, pipeline_config, messages_trac
     consent_withdrawn_uuids = set()
     for td in column_traced_data_iterable:
         for column_config in column_configs:
-            if column_config.coded_field in td:
-                column_labels = td[column_config.coded_field]
-                for label in column_labels:
-                    if column_config.code_scheme.get_code_with_code_id(label["CodeID"]).control_code == Codes.STOP:
-                        consent_withdrawn_uuids.add(td["participant_uuid"])
+            label_has_stop_code = check_labels_for_stop_code(td, column_labels, column_config)
+            if label_has_stop_code:
+                consent_withdrawn_uuids.add(td["participant_uuid"])
 
     log.info(f"Found {len(consent_withdrawn_uuids)} participants who withdrew consent")
     return consent_withdrawn_uuids
