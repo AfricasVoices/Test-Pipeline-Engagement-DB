@@ -54,7 +54,7 @@ def export_traced_data(traced_data, export_path):
         TracedDataJsonIO.export_traced_data_iterable_to_jsonl(traced_data, f)
 
 
-def check_labels_for_stop_code(td, column_labels, column_config):
+def check_labels_for_stop_code(td, column_config):
     if column_config.coded_field in td:
         column_labels = td[column_config.coded_field]
         for label in column_labels:
@@ -75,7 +75,7 @@ def get_consent_withdrawn_participant_uuids(user, pipeline_config, messages_trac
     consent_withdrawn_uuids = set()
     for td in column_traced_data_iterable:
         for column_config in column_configs:
-            label_has_stop_code = check_labels_for_stop_code(td, column_labels, column_config)
+            label_has_stop_code = check_labels_for_stop_code(td, column_config)
             if label_has_stop_code:
                 consent_withdrawn_uuids.add(td["participant_uuid"])
 
