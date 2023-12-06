@@ -268,8 +268,7 @@ class AnalysisConfiguration:
                      If None, generates maps for every `analysis_location` set in the `dataset_configurations`.
                      To disable map generation, set `maps=[]`.
         :type maps: list of MapConfiguration | None
-        :param channel_group_analysis: Configuration for defining message channels that can be collectively considered
-                                       for analysis.
+        :param channel_group_analysis: Configuration that defines message channels eligible for collective analysis.
         :type channel_group_analysis: list of ChannelGroup | None
         :param traffic_labels: List of TrafficLabels to use to generate a traffic_analysis file.
                                If None, no traffic analysis will be conducted.
