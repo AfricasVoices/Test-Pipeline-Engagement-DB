@@ -31,7 +31,7 @@ if [[ $# -ne 5 ]]; then
     [--dry-run] [--incremental-cache-volume <incremental-cache-volume>] 
     [--local-archive <local_archive>] : set a single option with argument, repeat it multiple times
     <user> <google-cloud-credentials-file-path> <configuration-file> <code-schemes-dir> <data-dir>"
-    exit
+    exit 1
 fi
 
 # Assign the program arguments to bash variables.

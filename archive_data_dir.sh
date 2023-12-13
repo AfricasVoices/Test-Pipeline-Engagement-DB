@@ -5,7 +5,7 @@ set -e
 if [[ $# -ne 2 ]]; then
     echo "Usage: ./archive_data_dir <data-dir> <archive-file>"
     echo "Backs-up the data root directory to a compressed file in at the specified location"
-    exit
+    exit 1
 fi
 
 DATA_DIR=$1

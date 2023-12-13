@@ -11,7 +11,7 @@ if [[ $# -ne 4 ]]; then
     [--profile-cpu <cpu-profile-output-path>] <configuration-module> <google-cloud-credentials-file-path> \
      <run-id> <event-key>"
     echo "Updates pipeline event/status to a firebase table to aid in monitoring"
-    exit
+    exit 1
 fi
 # Assign the program arguments to bash variables.
 CONFIGURATION_MODULE=$1

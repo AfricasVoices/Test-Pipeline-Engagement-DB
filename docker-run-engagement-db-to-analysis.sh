@@ -27,7 +27,7 @@ if [[ $# -ne 5 ]]; then
     echo "Usage: $0 
     [--dry-run] [--incremental-cache-volume <incremental-cache-volume>] 
     <user> <google-cloud-credentials-file-path> <configuration-module> <code-schemes-dir> <data-dir>"
-    exit
+    exit 1
 fi
 
 # Assign the program arguments to bash variables.

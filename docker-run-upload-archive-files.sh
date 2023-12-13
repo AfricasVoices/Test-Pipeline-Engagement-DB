@@ -9,7 +9,7 @@ IMAGE_NAME=$PROJECT_NAME-upload-archive-files
 if [[ $# -ne 4 ]]; then
     echo "Usage: ./docker-run-upload-archive-files.sh
      <user> <google-cloud-credentials-file-path> <configuration-module> <archive-dir>"
-    exit
+    exit 1
 fi
 # Assign the program arguments to bash variables.
 USER=$1
