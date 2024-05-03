@@ -50,7 +50,7 @@ def run_multiple_imputation_regression_analysis(participants, consent_withdrawn_
 
     data_frame = convert_participants_to_regression_data_frame(
         participants, consent_withdrawn_field, rqa_analysis_config,
-        [d for d in demog_analysis_configs if d.dataset_name in demographic_datasets]
+        [config for config in demog_analysis_configs if config.dataset_name in demographic_datasets]
     )
 
     # Generate 20 copies of the input dataset, where each copy has had the missing data filled in with a different set
