@@ -10,6 +10,7 @@ RUN if [ $(arch) = 'aarch64' ]; then apt-get update && apt-get install -y libgeo
 # R
 RUN apt-get update && apt-get install -y python3-dev r-base cmake
 RUN R -e "install.packages('arm', dependencies=TRUE, repos='https://cran.rstudio.com/')"
+# Install the mice package in R, which is a missing value imputation package
 RUN R -e "install.packages('mice', dependencies=TRUE, repos='https://cran.rstudio.com/')"
 
 # Make a directory for private credentials files
