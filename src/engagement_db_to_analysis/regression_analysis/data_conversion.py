@@ -1,10 +1,7 @@
 # TODO: Move this file to CoreDataModules once stable.
 
 from core_data_modules.analysis import analysis_utils
-from core_data_modules.analysis.analysis_utils import get_codes_from_td
-# TODO: _normal_codes is defined privately in multiple places in CoreDataModules.
-#       Update CoreDataModules to publicly define this in one place.
-from core_data_modules.analysis.cross_tabs import _normal_codes
+from core_data_modules.analysis.analysis_utils import get_codes_from_td, normal_codes
 from core_data_modules.cleaners import Codes
 
 from src.engagement_db_to_analysis.regression_analysis.r_utils import convert_dicts_to_r_data_frame_of_factors
@@ -17,7 +14,7 @@ def _get_matrix_values(codes, dataset_name, code_scheme):
     matrix_values = dict()  # of str -> str
 
     code_ids = {code.code_id for code in codes}
-    for code in _normal_codes(code_scheme.codes):
+    for code in normal_codes(code_scheme.codes):
         if code.code_id in code_ids:
             value = 1  # Use 1 here instead of Codes.MATRIX_1 because the type needs to be int, not str.
         else:
@@ -32,14 +29,14 @@ def _get_categorical_value(codes):
     """
     Gets the single, normal categorical value from a list of codes. If there is no normal value, returns None.
     """
-    normal_codes = _normal_codes(codes)
+    all_normal_codes = normal_codes(codes)
 
-    assert len(normal_codes) <= 1, len(normal_codes)
+    assert len(all_normal_codes) <= 1, len(all_normal_codes)
 
-    if len(normal_codes) == 0:
+    if len(all_normal_codes) == 0:
         return None
 
-    return normal_codes[0].string_value
+    return all_normal_codes[0].string_value
 
 
 def _get_participant_regression_data(participant, consent_withdrawn_field, rqa_analysis_config, demog_analysis_configs):

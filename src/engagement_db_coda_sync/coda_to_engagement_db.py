@@ -1,6 +1,7 @@
 from core_data_modules.logging import Logger
 from engagement_database.data_models import MessageStatuses
 from google.cloud import firestore
+from google.cloud.firestore_v1 import FieldFilter
 
 from src.engagement_db_coda_sync.cache import CodaSyncCache
 from src.engagement_db_coda_sync.lib import _update_engagement_db_message_from_coda_message
@@ -10,13 +11,15 @@ log = Logger(__name__)
 
 
 @firestore.transactional
-def _sync_coda_message_to_engagement_db_batch(transaction, coda_message, engagement_db, engagement_db_dataset,
+def _sync_coda_message_to_engagement_db_batch(transaction, coda, coda_message, engagement_db, engagement_db_dataset,
                                               coda_config, start_after=None, dry_run=False):
     """
     Syncs a Coda message to a batch of up to 250 engagement database messages.
 
     :param transaction: Transaction in the engagement database to perform the update in.
     :type transaction: google.cloud.firestore.Transaction
+    :param coda: Coda instance to sync from.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_message: Coda Message to sync.
     :type coda_message: core_data_modules.data_models.Message
     :param engagement_db: Engagement database to sync from.
@@ -48,9 +51,9 @@ def _sync_coda_message_to_engagement_db_batch(transaction, coda_message, engagem
 
     engagement_db_messages = engagement_db.get_messages(
         firestore_query_filter=lambda q: q
-            .where("dataset", "==", engagement_db_dataset)
-            .where("coda_id", "==", coda_message.message_id)
-            .where("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE])
+            .where(filter=FieldFilter("dataset", "==", engagement_db_dataset))
+            .where(filter=FieldFilter("coda_id", "==", coda_message.message_id))
+            .where(filter=FieldFilter("status", "in", [MessageStatuses.LIVE, MessageStatuses.STALE]))
             .order_by("last_updated")
             .order_by("message_id")
             .start_after(start_after_dict)
@@ -68,7 +71,7 @@ def _sync_coda_message_to_engagement_db_batch(transaction, coda_message, engagem
         log.info(f"Processing matching engagement message {i + 1}/{len(engagement_db_messages)}: "
                  f"{engagement_db_message.message_id}...")
         message_sync_events = _update_engagement_db_message_from_coda_message(
-            engagement_db, engagement_db_message, coda_message, coda_config, transaction=transaction, dry_run=dry_run
+            engagement_db, coda, engagement_db_message, coda_message, coda_config, transaction=transaction, dry_run=dry_run
         )
         sync_stats.add_events(message_sync_events)
 
@@ -80,11 +83,13 @@ def _sync_coda_message_to_engagement_db_batch(transaction, coda_message, engagem
     return next_start_after, sync_stats
 
 
-def _sync_coda_message_to_engagement_db(coda_message, engagement_db, engagement_db_dataset, coda_config, dry_run=False):
+def _sync_coda_message_to_engagement_db(coda, coda_message, engagement_db, engagement_db_dataset, coda_config, dry_run=False):
     """
     Syncs a coda message to an engagement database, by downloading all the engagement database messages which match the
     coda message's id and dataset, and making sure the labels match.
 
+    :param coda: Coda instance to sync from.
+    :type coda: coda_v2_python_client.firebase_client_wrapper.CodaV2Client
     :param coda_message: Coda Message to sync.
     :type coda_message: core_data_modules.data_models.Message
     :param engagement_db: Engagement database to sync from.
@@ -108,7 +113,8 @@ def _sync_coda_message_to_engagement_db(coda_message, engagement_db, engagement_
     while first_run or start_after is not None:
         first_run = False
         start_after, batch_sync_stats = _sync_coda_message_to_engagement_db_batch(
-            engagement_db.transaction(), coda_message, engagement_db, engagement_db_dataset, coda_config, start_after, dry_run
+            engagement_db.transaction(), coda, coda_message, engagement_db, engagement_db_dataset, coda_config,
+            start_after, dry_run
         )
         sync_stats.add_stats(batch_sync_stats)
         batches += 1
@@ -150,7 +156,7 @@ def _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, datase
     for i, coda_message in enumerate(coda_messages):
         log.info(f"Processing Coda message {i + 1}/{len(coda_messages)}: {coda_message.message_id}...")
         message_sync_stats = _sync_coda_message_to_engagement_db(
-            coda_message, engagement_db, dataset_config.engagement_db_dataset, coda_config, dry_run
+            coda, coda_message, engagement_db, dataset_config.engagement_db_dataset, coda_config, dry_run
         )
         sync_stats.add_stats(message_sync_stats)
 
@@ -196,7 +202,7 @@ def sync_coda_to_engagement_db(coda, engagement_db, coda_config, cache_path=None
     dataset_to_sync_stats = dict()  # of coda dataset id -> CodaToEngagementDBSyncStats
     for dataset_config in coda_config.dataset_configurations:
         log.info(f"Syncing Coda dataset {dataset_config.coda_dataset_id} to engagement db dataset "
-                 f"{dataset_config.coda_dataset_id}")
+                 f"{dataset_config.engagement_db_dataset}")
         dataset_sync_stats = _sync_coda_dataset_to_engagement_db(coda, engagement_db, coda_config, dataset_config, cache, dry_run)
         dataset_to_sync_stats[dataset_config.coda_dataset_id] = dataset_sync_stats
 

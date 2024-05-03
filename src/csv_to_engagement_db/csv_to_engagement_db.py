@@ -10,6 +10,8 @@ from core_data_modules.logging import Logger
 from core_data_modules.util import SHAUtils
 from engagement_database.data_models import (HistoryEntryOrigin, Message, MessageDirections, MessageOrigin,
                                              MessageStatuses)
+from google.cloud.firestore_v1 import FieldFilter
+
 from src.common.cache import Cache
 from src.csv_to_engagement_db.sync_stats import CSVSyncEvents, CSVToEngagementDBDatasetSyncStats, CSVToEngagementDBSyncStats
 from storage.google_cloud import google_cloud_utils
@@ -96,7 +98,7 @@ def _engagement_db_has_message(engagement_db, message):
     :return: Whether a message with this text, timestamp, and participant_uuid exists in the engagement database.
     :rtype: bool
     """
-    matching_messages_filter = lambda q: q.where("origin.origin_id", "==", message.origin.origin_id)
+    matching_messages_filter = lambda q: q.where(filter=FieldFilter("origin.origin_id", "==", message.origin.origin_id))
     matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
     assert len(matching_messages) < 2
 

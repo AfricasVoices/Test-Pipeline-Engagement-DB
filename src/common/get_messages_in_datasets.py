@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from core_data_modules.logging import Logger
 from engagement_database.data_models import MessageStatuses
+from google.cloud.firestore_v1 import FieldFilter
 
 log = Logger(__name__)
 
@@ -54,8 +55,8 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
 
             # Download messages that have been updated/created after the previous run
             incremental_messages_filter = lambda q: q \
-                .where("dataset", "==", engagement_db_dataset) \
-                .where("last_updated", ">", latest_message_timestamp)
+                .where(filter=FieldFilter("dataset", "==", engagement_db_dataset)) \
+                .where(filter=FieldFilter("last_updated", ">", latest_message_timestamp))
 
             updated_messages = engagement_db.get_messages(
                 firestore_query_filter=incremental_messages_filter, batch_size=500)
@@ -66,8 +67,8 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
             # already seen.
             latest_ws_message_timestamp = cache.get_date_time(f"{engagement_db_dataset}_ws")
             ws_corrected_messages_filter = lambda q: q \
-                .where("previous_datasets", "array_contains", engagement_db_dataset) \
-                .where("last_updated", ">", latest_ws_message_timestamp)
+                .where(filter=FieldFilter("previous_datasets", "array_contains", engagement_db_dataset)) \
+                .where(filter=FieldFilter("last_updated", ">", latest_ws_message_timestamp))
 
             downloaded_ws_corrected_messages = engagement_db.get_messages(
                 firestore_query_filter=ws_corrected_messages_filter, batch_size=500)
@@ -100,8 +101,8 @@ def get_messages_in_datasets(engagement_db, engagement_db_datasets, cache=None, 
             log.warning(f"Performing a full download for {engagement_db_dataset} messages...")
 
             full_download_filter = lambda q: q \
-                .where("dataset", "==", engagement_db_dataset) \
-                .where("status", "in", {MessageStatuses.LIVE, MessageStatuses.STALE})
+                .where(filter=FieldFilter("dataset", "==", engagement_db_dataset)) \
+                .where(filter=FieldFilter("status", "in", {MessageStatuses.LIVE, MessageStatuses.STALE}))
 
             messages = engagement_db.get_messages(firestore_query_filter=full_download_filter, batch_size=500)
             log.info(f"Downloaded {len(messages)} messages")

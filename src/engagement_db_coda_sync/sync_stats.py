@@ -14,6 +14,7 @@ class CodaSyncEvents:
     LABELS_MATCH = "labels_match"
     UPDATE_ENGAGEMENT_DB_LABELS = "update_engagement_db_labels"
     WS_CORRECTION = "ws_correction"
+    FIX_WS_CYCLE = "fix_ws_cycle"
 
 
 class EngagementDBToCodaSyncStats(SyncStats):
@@ -25,7 +26,8 @@ class EngagementDBToCodaSyncStats(SyncStats):
             CodaSyncEvents.ADD_MESSAGE_TO_CODA: 0,
             CodaSyncEvents.LABELS_MATCH: 0,
             CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS: 0,
-            CodaSyncEvents.WS_CORRECTION: 0
+            CodaSyncEvents.WS_CORRECTION: 0,
+            CodaSyncEvents.FIX_WS_CYCLE: 0
         })
 
     def print_summary(self):
@@ -36,6 +38,7 @@ class EngagementDBToCodaSyncStats(SyncStats):
         log.info(f"Messages updated with labels from Coda: {self.event_counts[CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS]}")
         log.info(f"Messages with labels already matching Coda: {self.event_counts[CodaSyncEvents.LABELS_MATCH]}")
         log.info(f"Messages WS-corrected: {self.event_counts[CodaSyncEvents.WS_CORRECTION]}")
+        log.info(f"Messages with a WS cycle that was fixed: {self.event_counts[CodaSyncEvents.FIX_WS_CYCLE]}")
 
 
 class CodaToEngagementDBSyncStats(SyncStats):
@@ -45,7 +48,8 @@ class CodaToEngagementDBSyncStats(SyncStats):
             CodaSyncEvents.READ_MESSAGE_FROM_ENGAGEMENT_DB: 0,
             CodaSyncEvents.LABELS_MATCH: 0,
             CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS: 0,
-            CodaSyncEvents.WS_CORRECTION: 0
+            CodaSyncEvents.WS_CORRECTION: 0,
+            CodaSyncEvents.FIX_WS_CYCLE: 0
         })
 
     def print_summary(self):
@@ -54,3 +58,4 @@ class CodaToEngagementDBSyncStats(SyncStats):
         log.info(f"Messages updated with labels from Coda: {self.event_counts[CodaSyncEvents.UPDATE_ENGAGEMENT_DB_LABELS]}")
         log.info(f"Messages with labels already matching Coda: {self.event_counts[CodaSyncEvents.LABELS_MATCH]}")
         log.info(f"Messages WS-corrected: {self.event_counts[CodaSyncEvents.WS_CORRECTION]}")
+        log.info(f"Messages with a WS cycle that was fixed: {self.event_counts[CodaSyncEvents.FIX_WS_CYCLE]}")

@@ -8,7 +8,7 @@ if [[ $# -ne 6 ]]; then
     echo "  <user> <pipeline-name> <google-cloud-credentials-file-path> <configuration-module> <data-dir>"
     echo "Runs the pipeline end-to-end (sync-rapid-pro-to-engagement-db, sync-engagement-db-to-coda, sync-coda-to-engagement-db,\
           sync-engagement-db-to-rapid-pro, run-engagement-db-to-analysis, ARCHIVE)"
-    exit
+    exit 1
 fi
 
 USER=$1
