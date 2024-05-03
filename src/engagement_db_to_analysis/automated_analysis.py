@@ -7,9 +7,12 @@ from core_data_modules.util import IOUtils
 from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_rqa_column_configs,
                                                                   analysis_dataset_configs_to_demog_column_configs,
                                                                   analysis_dataset_configs_to_column_configs)
-from src.engagement_db_to_analysis.configuration import AnalysisLocations, MapConfiguration
-from src.engagement_db_to_analysis.regression_analysis.complete_case_regression_analysis import (
-    export_all_complete_case_regression_analysis_txt)
+
+from src.engagement_db_to_analysis.configuration import AnalysisLocations
+from src.engagement_db_to_analysis.regression_analysis.complete_case_regression_analysis import \
+    export_all_complete_case_regression_analysis_txt
+from src.engagement_db_to_analysis.regression_analysis.multiple_imputation_regression_analysis import \
+    export_all_multiple_imputation_regression_analysis_txt
 
 log = Logger(__name__)
 
@@ -113,12 +116,28 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
         log.debug("Not running any traffic analysis because analysis_configuration.traffic_labels is None")
 
     if analysis_config.enable_experimental_regression_analysis:
-        log.info(f"Running experimental regression analysis...")
+        log.info(f"Running experimental complete-case regression analysis...")
         with open(f"{export_dir_path}/complete_case_regression.txt", "w") as f:
             export_all_complete_case_regression_analysis_txt(
                 participants_by_column, "consent_withdrawn", rqa_column_configs, demog_column_configs, f
             )
 
+        log.info(f"Running experimental multiple-imputation regression analysis...")
+        with open(f"{export_dir_path}/multiple_imputation_regression.txt", "w") as f:
+            export_all_multiple_imputation_regression_analysis_txt(
+                participants_by_column, "consent_withdrawn", rqa_column_configs, demog_column_configs, f
+            )
+
+    log.info(f"Exporting participation maps for each location dataset...")
+    mappers = {
+        AnalysisLocations.KENYA_COUNTY: kenya_mapper.export_kenya_counties_map,
+        AnalysisLocations.KENYA_CONSTITUENCY: kenya_mapper.export_kenya_constituencies_map,
+
+        AnalysisLocations.MOGADISHU_SUB_DISTRICT: somalia_mapper.export_mogadishu_sub_district_frequencies_map,
+        AnalysisLocations.SOMALIA_DISTRICT: somalia_mapper.export_somalia_district_frequencies_map,
+        AnalysisLocations.SOMALIA_REGION: somalia_mapper.export_somalia_region_frequencies_map
+    }
+    
     map_configurations = analysis_config.maps
     if map_configurations is None:
         map_configurations = []
