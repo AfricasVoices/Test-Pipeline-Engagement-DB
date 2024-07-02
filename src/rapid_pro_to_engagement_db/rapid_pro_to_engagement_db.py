@@ -116,8 +116,11 @@ def _normalise_and_validate_contact_urns(contact_urns):
     :return: Normalised contact urn.
     :rtype: str
     """
-    assert 0 < len(contact_urns) <= 2, f"Contact should have 1 or 2 urns, but actually has " \
-                                       f"{len(contact_urns)} urns"
+    # assert 0 < len(contact_urns) <= 2, f"Contact should have 1 or 2 urns, but actually has " \
+    #                                    f"{len(contact_urns)} urns"
+    urns_exists = 0 < len(contact_urns) <= 2
+    if not urns_exists:
+        return None
 
     if len(contact_urns) == 1:
         contact_urn = contact_urns[0]
