@@ -303,6 +303,12 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
                 # If a uuid filter exists, then only add this message if the sender's uuid exists in the uuid table
                 # and in the valid uuids. The check for presence in the uuid table is to ensure we don't add a uuid
                 # table entry for people who didn't consent for us to continue to keep their data.
+                if contact_urn is None:
+                    print("Contact urn is None")
+                    if not dry_run and cache is not None:
+                        cache.set_latest_run_timestamp(flow_id, run.modified_on)
+                    continue
+
                 if not uuid_table.has_data(contact_urn):
                     log.info("A uuid filter was specified but the message is not from a participant in the "
                              "uuid_table; skipping")
