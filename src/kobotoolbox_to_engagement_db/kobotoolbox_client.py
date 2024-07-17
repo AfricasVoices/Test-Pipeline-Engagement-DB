@@ -7,7 +7,7 @@ from core_data_modules.logging import Logger
 
 log = Logger(__name__)
 
-BASE_URL = "https://kf.kobotoolbox.org/api/v2/assets"
+BASE_URL = "https://kobo.humanitarianresponse.info/api/v2/assets"
 
 
 class KoboToolBoxClient:
@@ -23,14 +23,14 @@ class KoboToolBoxClient:
         :return: A dictionary of authorization headers containing the KoboToolBox API token.
         :rtype: dict
         """
-        log.info('Downloading KoboToolBox access tokens...')
+        log.info('Downloading KoboToolBox access token...')
         api_token = json.loads(google_cloud_utils.download_blob_to_string(
             google_cloud_credentials_file_path, token_file_url).strip())
-        
+
         authorization_headers = {"Authorization": f'Token {api_token["api_token"]}'}
 
         return authorization_headers
-        
+
 
     def get_form_responses(authorization_headers, asset_uid, submitted_after_exclusive=None):
         """
@@ -78,7 +78,7 @@ class KoboToolBoxClient:
 
         response = requests.get(request, headers=authorization_headers, verify=False)
         if response.content:
-            form_responses = response.json()["results"]
+            form_responses = json.loads(response.content)['results']
             log.info(f"Downloaded {len(form_responses)} total responses")
         else: 
             log.info(f"No responses downloaded for Asset '{asset_uid}'{timestamp_log}. Status code: {response.status_code}")
