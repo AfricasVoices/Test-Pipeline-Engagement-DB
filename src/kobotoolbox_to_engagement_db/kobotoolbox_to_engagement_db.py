@@ -92,7 +92,7 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
     """
     participant_id_answer = response.get(participant_id_question_id, None)
     response_uuid = f"{response['_id']}_{response['formhub/uuid']}"
-    
+
     if participant_id_answer is None:
         participant_uuid = response_uuid
     else:
@@ -100,7 +100,7 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
 
         assert id_type == KoboToolBoxParticipantIdTypes.KENYA_MOBILE_NUMBER, \
             f"Participant id type {id_type} not recognised."
-        
+
         try:
             participant_urn = _validate_phone_number_and_format_as_urn(
                 phone_number=participant_id, country_code="254", valid_length=12, valid_prefixes={"10", "11", "7"}
@@ -112,7 +112,7 @@ def _get_participant_uuid_for_response(response, id_type, participant_id_questio
                 participant_uuid = response_uuid
             else:
                 raise ValueError(f"Invalid participant id: {participant_id}.") from e
-            
+
     return participant_uuid
 
 
@@ -164,7 +164,7 @@ def _engagement_db_has_message(engagement_db, message):
     """
     matching_messages_filter = lambda q: q.where("origin.origin_id", "==", message.origin.origin_id)
     matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
-    
+
     assert len(matching_messages) < 2
 
     return len(matching_messages) > 0
@@ -227,13 +227,13 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
     form_responses = sorted(KoboToolBoxClient.get_form_responses(authorization_headers, kobotoolbox_source.sync_config.asset_uid, last_seen_response_time), 
                             key=lambda response: response['_submission_time'])
     log.info(f"Downloaded {len(form_responses)} responses")
-    
+
     sync_stats = KoboToolBoxToEngagementDBSyncStats()
 
     # Check if form_responses is empty and return sync_stats without performing sync operations
     if not form_responses:
         return sync_stats
-    
+
     for i, form_response in enumerate(form_responses):
         log.info(f"Processing response {i + 1}/{len(form_responses)}...")
         sync_stats.add_event(KoboToolBoxSyncEvents.READ_RESPONSE_FROM_KOBOTOOLBOX_FORM)
@@ -245,18 +245,18 @@ def _sync_kobotoolbox_to_engagement_db(google_cloud_credentials_file_path, kobot
                 sync_stats.add_event(KoboToolBoxSyncEvents.FOUND_A_NULL_RESPONSE)
                 continue
             sync_stats.add_event(KoboToolBoxSyncEvents.READ_ANSWER_FROM_RESPONSE)
-            
+
             participant_uuid = _get_participant_uuid_for_response(form_response, kobotoolbox_source.sync_config.participant_id_configuration.id_type, 
                                                                   kobotoolbox_source.sync_config.participant_id_configuration.data_column_name, 
-                                                                  uuid_table, kobotoolbox_source.sync_config.participant_id_configuration)
+                                                                  uuid_table, kobotoolbox_source.sync_config)
 
             engagement_db_message = _form_answer_to_engagement_db_message(form_answer, kobotoolbox_source.sync_config.asset_uid, form_response, participant_uuid,
                                           question_config.engagement_db_dataset, question_config.data_column_name)
-            
+
             message_origin_details = {"message_id": f"{form_response['_id']}_{form_response['formhub/uuid']}",
                                           "timestamp": form_response.get("_submission_time"),
                                           "text": form_answer}
-            
+
             sync_event = _ensure_engagement_db_has_message(engagement_db, engagement_db_message, message_origin_details)
             sync_stats.add_event(sync_event)
 
