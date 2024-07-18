@@ -1,15 +1,29 @@
 from core_data_modules.analysis import (engagement_counts, repeat_participations, theme_distributions, sample_messages,
                                         AnalysisConfiguration, traffic_analysis, cross_tabs)
-from core_data_modules.analysis.mapping import participation_maps, kenya_mapper, somalia_mapper
+from core_data_modules.analysis.mapping import participation_maps, kenya_mapper, somalia_mapper, mapping_utils
 from core_data_modules.logging import Logger
 from core_data_modules.util import IOUtils
 
 from src.engagement_db_to_analysis.column_view_conversion import (analysis_dataset_configs_to_rqa_column_configs,
                                                                   analysis_dataset_configs_to_demog_column_configs,
                                                                   analysis_dataset_configs_to_column_configs)
+
 from src.engagement_db_to_analysis.configuration import AnalysisLocations
+from src.engagement_db_to_analysis.regression_analysis.complete_case_regression_analysis import \
+    export_all_complete_case_regression_analysis_txt
+from src.engagement_db_to_analysis.regression_analysis.multiple_imputation_regression_analysis import \
+    export_all_multiple_imputation_regression_analysis_txt
 
 log = Logger(__name__)
+
+MAPPERS = {
+    AnalysisLocations.KENYA_COUNTY: kenya_mapper.export_kenya_counties_map,
+    AnalysisLocations.KENYA_CONSTITUENCY: kenya_mapper.export_kenya_constituencies_map,
+
+    AnalysisLocations.MOGADISHU_SUB_DISTRICT: somalia_mapper.export_mogadishu_sub_district_frequencies_map,
+    AnalysisLocations.SOMALIA_DISTRICT: somalia_mapper.export_somalia_district_frequencies_map,
+    AnalysisLocations.SOMALIA_REGION: somalia_mapper.export_somalia_region_frequencies_map
+}
 
 
 def _get_column_config_with_dataset_name(dataset_name, column_configs):
@@ -101,6 +115,19 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
     else:
         log.debug("Not running any traffic analysis because analysis_configuration.traffic_labels is None")
 
+    if analysis_config.enable_experimental_regression_analysis:
+        log.info(f"Running experimental complete-case regression analysis...")
+        with open(f"{export_dir_path}/complete_case_regression.txt", "w") as f:
+            export_all_complete_case_regression_analysis_txt(
+                participants_by_column, "consent_withdrawn", rqa_column_configs, demog_column_configs, f
+            )
+
+        log.info(f"Running experimental multiple-imputation regression analysis...")
+        with open(f"{export_dir_path}/multiple_imputation_regression.txt", "w") as f:
+            export_all_multiple_imputation_regression_analysis_txt(
+                participants_by_column, "consent_withdrawn", rqa_column_configs, demog_column_configs, f
+            )
+
     log.info(f"Exporting participation maps for each location dataset...")
     mappers = {
         AnalysisLocations.KENYA_COUNTY: kenya_mapper.export_kenya_counties_map,
@@ -110,19 +137,34 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
         AnalysisLocations.SOMALIA_DISTRICT: somalia_mapper.export_somalia_district_frequencies_map,
         AnalysisLocations.SOMALIA_REGION: somalia_mapper.export_somalia_region_frequencies_map
     }
+    
+    map_configurations = analysis_config.maps
+    if map_configurations is None:
+        map_configurations = []
+        for analysis_dataset_config in analysis_config.dataset_configurations:
+            for coding_config in analysis_dataset_config.coding_configs:
+                if coding_config.analysis_location in MAPPERS:
+                    map_configurations.append(MapConfiguration(coding_config.analysis_location))
 
-    for analysis_dataset_config in analysis_config.dataset_configurations:
-        for coding_config in analysis_dataset_config.coding_configs:
-            if coding_config.analysis_location in mappers:
-                location_column_config = AnalysisConfiguration(
-                    dataset_name=coding_config.analysis_dataset,
-                    raw_field=analysis_dataset_config.raw_dataset,
-                    coded_field=f"{coding_config.analysis_dataset}_labels",
-                    code_scheme=coding_config.code_scheme
-                )
+    log.info(f"Exporting participation maps for locations "
+             f"{[config.analysis_location for config in map_configurations]}...")
 
-                participation_maps.export_participation_maps(
-                    participants_by_column, "consent_withdrawn", rqa_column_configs, location_column_config,
-                    mappers[coding_config.analysis_location],
-                    f"{export_dir_path}/maps/{location_column_config.dataset_name}/{location_column_config.dataset_name}_"
-                )
+    for map_config in map_configurations:
+        dataset_config, coding_config = analysis_config.get_configurations_for_analysis_location(
+            map_config.analysis_location
+        )
+
+        column_config = AnalysisConfiguration(
+            dataset_name=coding_config.analysis_dataset,
+            raw_field=dataset_config.raw_dataset,
+            coded_field=f"{coding_config.analysis_dataset}_labels",
+            code_scheme=coding_config.code_scheme
+        )
+
+        participation_maps.export_participation_maps(
+            participants_by_column, "consent_withdrawn", rqa_column_configs, column_config,
+            lambda x, y: (MAPPERS[coding_config.analysis_location](
+                x, y, region_filter=map_config.region_filter, legend_position=map_config.legend_position)
+            ),
+            f"{export_dir_path}/maps/{column_config.dataset_name}/{column_config.dataset_name}_"
+        )

@@ -6,6 +6,7 @@ from core_data_modules.cleaners import URNCleaner
 from core_data_modules.logging import Logger
 from engagement_database.data_models import (Message, MessageDirections, MessageStatuses, HistoryEntryOrigin,
                                              MessageOrigin)
+from google.cloud.firestore_v1 import FieldFilter
 from storage.google_cloud import google_cloud_utils
 
 from src.rapid_pro_to_engagement_db.cache import RapidProSyncCache
@@ -133,7 +134,7 @@ def _engagement_db_has_message(engagement_db, message):
     :return: Whether a message with this text, timestamp, and participant_uuid exists in the engagement database.
     :rtype: bool
     """
-    matching_messages_filter = lambda q: q.where("origin.origin_id", "==", message.origin.origin_id)
+    matching_messages_filter = lambda q: q.where(filter=FieldFilter("origin.origin_id", "==", message.origin.origin_id))
     matching_messages = engagement_db.get_messages(firestore_query_filter=matching_messages_filter)
     assert len(matching_messages) < 2
 
@@ -227,9 +228,10 @@ def sync_rapid_pro_to_engagement_db(rapid_pro, engagement_db, uuid_table, rapid_
 
         # Get any contacts that have been updated since we last asked, in case any of the downloaded runs are for very
         # new contacts.
-        contacts = rapid_pro.update_raw_contacts_with_latest_modified(contacts)
-        if not dry_run and cache is not None:
-            cache.set_contacts(contacts)
+        updated_contacts = rapid_pro.update_raw_contacts_with_latest_modified(contacts)
+        if not dry_run and cache is not None and updated_contacts != contacts:
+            cache.set_contacts(updated_contacts)
+        contacts = updated_contacts
         contacts_lut = {c.uuid: c for c in contacts}
 
         # Process each run in turn, adding its values to the engagement database if it contains messages relevant to these flow

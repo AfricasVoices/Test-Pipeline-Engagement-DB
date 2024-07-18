@@ -27,7 +27,7 @@ if [[ $# -ne 4 ]]; then
     echo "Usage: $0
     [--dry-run] [--incremental-cache-volume <incremental-cache-volume>]
     <user> <google-cloud-credentials-file-path> <configuration-file> <code-schemes-dir>"
-    exit
+    exit 1
 fi
 
 # Assign the program arguments to bash variables.
@@ -40,7 +40,7 @@ CODE_SCHEMES_DIR=$4
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u sync_engagement_db_to_rapid_pro.py ${DRY_RUN} ${INCREMENTAL_ARG} ${USER} \
+CMD="pdm run python -u sync_engagement_db_to_rapid_pro.py ${DRY_RUN} ${INCREMENTAL_ARG} ${USER} \
     /credentials/google-cloud-credentials.json configuration"
 
 if [[ "$INCREMENTAL_ARG" ]]; then

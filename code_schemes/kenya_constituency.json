@@ -686,13 +686,13 @@
     },
     {
       "CodeID": "code-c7b961c9",
-      "DisplayText": "igambang'ombe",
+      "DisplayText": "chuka/igambang'ombe",
       "CodeType": "Normal",
       "NumericValue": 81,
-      "StringValue": "igambang_ombe",
+      "StringValue": "chuka_igambang_ombe",
       "VisibleInCoda": true,
       "MatchValues": [
-        "igambang'ombe"
+        "chuka/igambang'ombe"
       ]
     },
     {
@@ -1995,13 +1995,14 @@
     },
     {
       "CodeID": "code-c24cb56f",
-      "DisplayText": "mbita",
+      "DisplayText": "suba north/mbita",
       "CodeType": "Normal",
       "NumericValue": 254,
-      "StringValue": "mbita",
+      "StringValue": "suba_north_mbita",
       "VisibleInCoda": true,
       "MatchValues": [
-        "mbita"
+        "mbita",
+        "suba north"
       ]
     },
     {
@@ -2798,13 +2799,13 @@
     },
     {
       "CodeID": "code-7f76391f",
-      "DisplayText": "suba",
+      "DisplayText": "suba south",
       "CodeType": "Normal",
       "NumericValue": 255,
-      "StringValue": "suba",
+      "StringValue": "suba_south",
       "VisibleInCoda": true,
       "MatchValues": [
-        "suba"
+        "suba south"
       ]
     },
     {

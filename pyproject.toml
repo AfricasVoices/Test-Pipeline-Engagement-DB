@@ -1,0 +1,33 @@
+[project]
+authors = [
+    {name = "Africa's Voices", email = "data.technology@africasvoices.org"},
+]
+dependencies = [
+    "telethon",
+    "rpy2",
+    "setuptools"
+]
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.pdm]
+[[tool.pdm.source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "-e CoreDataModules[mapping] @ git+https://github.com/AfricasVoices/CoreDataModules@v0.17.3",
+    "-e RapidProTools @ git+https://github.com/AfricasVoices/RapidProTools@v0.3.10",
+    "-e PipelineInfrastructure @ git+https://github.com/AfricasVoices/Pipeline-Infrastructure@v0.1.7",
+    "-e SocialMediaTools @ git+https://github.com/AfricasVoices/SocialMediaTools@v0.1.2",
+    # Editable packages install alphabetically, so slightly tweak the package name of CodV2PythonClient to ensure it
+    # installs after CoreDataModules.
+    "-e PythonClientCodaV2 @ git+https://github.com/AfricasVoices/CodaV2PythonClient@v0.1.5",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"

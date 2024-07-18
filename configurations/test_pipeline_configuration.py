@@ -31,10 +31,10 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             ),
             sync_config=RapidProToEngagementDBConfiguration(
                 flow_result_configurations=[
-                    FlowResultConfiguration("test_pipeline_daniel_activation", "rqa_s01e01", "s01e01"),
-                    FlowResultConfiguration("test_pipeline_daniel_demog", "constituency", "location"),
-                    FlowResultConfiguration("test_pipeline_daniel_demog", "age", "age"),
-                    FlowResultConfiguration("test_pipeline_daniel_demog", "gender", "gender"),
+                    FlowResultConfiguration("test_pipeline_sms_activation", "rqa_s01e01", "s01e01"),
+                    FlowResultConfiguration("test_pipeline_sms_demog", "constituency", "location"),
+                    FlowResultConfiguration("test_pipeline_sms_demog", "age", "age"),
+                    FlowResultConfiguration("test_pipeline_sms_demog", "gender", "gender"),
                 ]
             )
         )
@@ -265,13 +265,24 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
             allow_clearing_fields=True,
             weekly_advert_contact_field=ContactField(key="test_pipeline_weekly_advert_contacts",
                                                      label="test pipeline weekly advert contacts"),
-            sync_advert_contacts = True,
+            sync_advert_contacts = False,
         )
     ),
     analysis=AnalysisConfiguration(
         google_drive_upload=GoogleDriveUploadConfiguration(
             credentials_file_url="gs://avf-credentials/pipeline-runner-service-acct-avf-data-core-64cc71459fe7.json",
             drive_dir="pipeline_upload_test"
+        ),
+        analysis_dashboard_upload=AnalysisDashboardUploadConfiguration(
+            credentials_file_url="gs://avf-credentials/avf-analysis-dashboard-firebase-credentials.json",
+            # TODO Replace SeriesConfiguration with an analysis_dashboard.data_models.Series
+            series=SeriesConfiguration(
+                series_id="test-series",
+                series_name="Test Series",
+                project_name="Test Project",
+                pool_name="Test Pool"
+            ),
+            bucket_name="avf-analysis-dashboard.appspot.com"
         ),
         membership_group_configuration=MembershipGroupConfiguration(
             membership_group_csv_urls={ "listening_group": [
@@ -359,6 +370,13 @@ PIPELINE_CONFIGURATION = PipelineConfiguration(
         ws_correct_dataset_code_scheme=load_code_scheme("ws_correct_dataset"),
         cross_tabs=[
             ("age_category", "gender"),
+        ],
+        maps=[
+            MapConfiguration(
+                analysis_location=AnalysisLocations.KENYA_COUNTY,
+                region_filter=lambda county: county in {"siaya", "bungoma", "kakamega"},
+                legend_position="upper left"
+            )
         ],
         traffic_labels=[
             TrafficLabel(isoparse("2021-04-01T00:00+03:00"), isoparse("2021-05-01T00:00+03:00"), "April"),
