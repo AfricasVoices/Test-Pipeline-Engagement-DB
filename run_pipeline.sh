@@ -3,9 +3,9 @@
 set -e
 
 
-if [[ $# -ne 6 ]]; then
+if [[ $# -ne 7 ]]; then
     echo "Usage: ./run_pipeline.sh"
-    echo "  <user> <pipeline-name> <google-cloud-credentials-file-path> <configuration-module> <data-dir>"
+    echo "<user> <pipeline-name> <google-cloud-credentials-file-path> <configuration-file> <code-schemes-dir> <data-dir> <archive-dir>"
     echo "Runs the pipeline end-to-end (sync-rapid-pro-to-engagement-db, sync-engagement-db-to-coda, sync-coda-to-engagement-db,\
           sync-engagement-db-to-rapid-pro, run-engagement-db-to-analysis, ARCHIVE)"
     exit 1
@@ -14,31 +14,44 @@ fi
 USER=$1
 PIPELINE_NAME=$2
 GOOGLE_CLOUD_CREDENTIALS_PATH=$3
-CONFIGURATION_MODULE=$4
-DATA_DIR=$5
-ARCHIVE_LOCATION=$6
+CONFIGURATION_FILE=$4
+CODE_SCHEMES_DIR=$5
+DATA_DIR=$6
+ARCHIVE_DIR=$7
 
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 HASH=$(git rev-parse HEAD)
 RUN_ID="$DATE-$HASH"
-ARCHIVE_FILE="$ARCHIVE_LOCATION/data-$RUN_ID.tar.gzip"
+ARCHIVE_FILE="$ARCHIVE_DIR/data-$RUN_ID.tar.gzip"
 
-./docker-run-log-pipeline-event.sh  "$CONFIGURATION_MODULE" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$RUN_ID" "PipelineRunStart"
+echo "Starting a new pipeline run with id ${RUN_ID}"
 
-./docker-sync-rapid-pro-to-engagement-db.sh --incremental-cache-volume "$PIPELINE_NAME-rapid-pro-to-engagement-db-cache"  \
-                         "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE" "$DATA_DIR"
+./docker-run-log-pipeline-event.sh  "$CONFIGURATION_FILE" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$RUN_ID" "PipelineRunStart"
 
-./docker-sync-engagement-db-to-coda.sh --incremental-cache-volume "$PIPELINE_NAME-engagement-db-to-coda-cache" "$USER" \
-                        "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE" "$DATA_DIR"
+./docker-sync-rapid-pro-to-engagement-db.sh \
+    --incremental-cache-volume "$PIPELINE_NAME-rapid-pro-to-engagement-db-cache"  \
+    "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_FILE" "$CODE_SCHEMES_DIR" "$DATA_DIR"
 
-./docker-sync-coda-to-engagement-db.sh --incremental-cache-volume --skip-updating-coda-users-and-code-schemes "$PIPELINE_NAME-coda-to-engagement-db-cache" "$USER" \
-                        "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE" "$DATA_DIR"
+./docker-run-kobotoolbox-to-engagement-db.sh \
+    --incremental-cache-volume "$PIPELINE_NAME-kobotoolbox-to-engagement-db-cache-prod"  \
+    "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_FILE" "$CODE_SCHEMES_DIR" "$DATA_DIR"
 
-./docker-run-engagement-db-to-analysis.sh --incremental-cache-volume "$PIPELINE_NAME-engagement-db-to-analysis-cache" \
-                        "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE" "$DATA_DIR"
+./docker-sync-engagement-db-to-coda.sh \
+    --incremental-cache-volume "$PIPELINE_NAME-engagement-db-to-coda-cache" \
+    "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_FILE" "$CODE_SCHEMES_DIR" "$DATA_DIR"
+
+./docker-sync-coda-to-engagement-db.sh \
+    --incremental-cache-volume "$PIPELINE_NAME-coda-to-engagement-db-cache" \
+    "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_FILE" "$CODE_SCHEMES_DIR" "$DATA_DIR"
+
+./docker-run-engagement-db-to-analysis.sh \
+    --incremental-cache-volume "$PIPELINE_NAME-engagement-db-to-analysis-cache" \
+    "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_FILE" "$CODE_SCHEMES_DIR" "$DATA_DIR"
 
 ./archive_data_dir.sh "$DATA_DIR" "$ARCHIVE_FILE"
 
-./docker-run-upload-archive-files.sh "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_MODULE" "$ARCHIVE_LOCATION"
+./docker-run-upload-archive-files.sh \
+    "$USER" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$CONFIGURATION_FILE" "$CODE_SCHEMES_DIR" "$ARCHIVE_DIR"
 
-./docker-run-log-pipeline-event.sh  "$CONFIGURATION_MODULE" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$RUN_ID" "PipelineRunEnd"
+./docker-run-log-pipeline-event.sh \
+    "$CONFIGURATION_FILE" "$CODE_SCHEMES_DIR" "$GOOGLE_CLOUD_CREDENTIALS_PATH" "$RUN_ID" "PipelineRunEnd"
