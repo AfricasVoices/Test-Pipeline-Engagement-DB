@@ -1,4 +1,4 @@
-from core_data_modules.analysis.cross_tabs import _normal_codes
+from core_data_modules.analysis.analysis_utils import normal_codes
 from core_data_modules.logging import Logger
 from rpy2 import robjects
 from rpy2.interactive.packages import importr
@@ -36,7 +36,7 @@ def run_multiple_imputation_regression_analysis(participants, consent_withdrawn_
             TODO: Return the regression results table as an object that can be inspected and formatted rather than a str
     """
     # If this RQA has no normal themes, exit early, so we don't spend time creating and imputing datasets unnecessarily.
-    if len(_normal_codes(rqa_analysis_config.code_scheme.codes)) == 0:
+    if len(normal_codes(rqa_analysis_config.code_scheme.codes)) == 0:
         return dict()
 
     # Initialise R
@@ -64,7 +64,7 @@ def run_multiple_imputation_regression_analysis(participants, consent_withdrawn_
 
     demogs_formula = " + ".join(demographic_datasets)
     results = dict()
-    for code in _normal_codes(rqa_analysis_config.code_scheme.codes):
+    for code in normal_codes(rqa_analysis_config.code_scheme.codes):
         theme = f"{rqa_analysis_config.dataset_name}_{code.string_value}"
         formula = f"{theme} ~ {demogs_formula}"
         log.info(f"Running multiple imputation regression for '{formula}'...")
