@@ -1,5 +1,8 @@
 from core_data_modules.analysis.analysis_utils import normal_codes
 from core_data_modules.logging import Logger
+from rpy2 import robjects
+from rpy2.interactive.packages import importr
+from rpy2.robjects import r
 
 from src.engagement_db_to_analysis.regression_analysis.data_conversion import \
     convert_participants_to_regression_data_frame
@@ -10,22 +13,10 @@ log = Logger(__name__)
 GLM_FAMILY = 'binomial(link="logit")'
 
 
-def _get_model_formula(theme, predictors):
+def run_multiple_imputation_regression_analysis(participants, consent_withdrawn_field, rqa_analysis_config,
+                                                demog_analysis_configs):
     """
-    Gets the model formula string for a given theme and the names of its predictor variables.
-    
-    :param theme: Theme in model formula e.g. "s01e01_yes"
-    :type theme: str
-    :param predictors: List of predictor variables e.g. ["age", "gender", ...]
-    :type predictors: list of str
-    """
-    return f"{theme} ~ {' + '.join(predictors)}"
-
-
-def run_complete_case_regression_analysis(participants, consent_withdrawn_field, rqa_analysis_config,
-                                          demog_analysis_configs):
-    """
-    Runs complete-case, multivariate regression analysis on one RQA configuration against multiple demographics.
+    Runs multiple-imputation regression analysis on one RQA configuration against multiple demographics.
 
     The regression is run separately on each of the normal themes in the RQA code scheme, each against the normal codes
     in the provided demographics.
@@ -44,41 +35,59 @@ def run_complete_case_regression_analysis(participants, consent_withdrawn_field,
     :rtype: dict of str -> str
             TODO: Return the regression results table as an object that can be inspected and formatted rather than a str
     """
-    from rpy2.interactive.packages import importr
-    from rpy2.robjects import r
+    # If this RQA has no normal themes, exit early, so we don't spend time creating and imputing datasets unnecessarily.
+    if len(normal_codes(rqa_analysis_config.code_scheme.codes)) == 0:
+        return dict()
 
     # Initialise R
-    base = importr("base")
+    base = importr("base")  # R standard library
     arm = importr("arm")  # Library for 'Data Analysis Using Regression and Multilevel/Hierarchical Models'
+    mice = importr("mice")  # Library for 'Multivariate Imputation by Chained Equations'
+    env = robjects.globalenv
+
+    # TODO: Derive these variables automatically or from configuration rather than from a hard-coded string.
+    demographic_datasets = {"gender", "disability", "recently_displaced", "age_category"}
 
     data_frame = convert_participants_to_regression_data_frame(
-        participants, consent_withdrawn_field, rqa_analysis_config, demog_analysis_configs
+        participants, consent_withdrawn_field, rqa_analysis_config,
+        [config for config in demog_analysis_configs if config.dataset_name in demographic_datasets]
     )
 
-    # TODO: Derive these predictors automatically or from configuration rather than from a hard-coded list.
-    predictors = ["gender", "age_category", "disability", "recently_displaced"]
+    # Generate 20 copies of the input dataset, where each copy has had the missing data filled in with a different set
+    # of plausible values.
+    # Reset R's random number generator seed to ensure we get reproducible results.
+    log.info(f"Running multiple imputation for dataset '{rqa_analysis_config.dataset_name}'...")
+    base.set_seed(123)
+    multiple_imputed_data_frame = mice.mice(data_frame, m=20, printFlag=False)
+    env["multiple_imputed_data_frame"] = multiple_imputed_data_frame
+    env["glm_family"] = r(GLM_FAMILY)
 
+    demogs_formula = " + ".join(demographic_datasets)
     results = dict()
     for code in normal_codes(rqa_analysis_config.code_scheme.codes):
         theme = f"{rqa_analysis_config.dataset_name}_{code.string_value}"
-        formula = _get_model_formula(theme, predictors)
+        formula = f"{theme} ~ {demogs_formula}"
+        log.info(f"Running multiple imputation regression for '{formula}'...")
 
-        log.info(f"Running complete case regression '{formula}'...")
-        regression_results = arm.bayesglm(formula, family=r(GLM_FAMILY), data=data_frame)
+        # Run the regression analysis independently on each imputed dataset
+        env["multiple_regression_results"] = r(
+            f"with(multiple_imputed_data_frame, bayesglm({formula}, family=glm_family))"
+        )
 
-        summarised_results = base.summary(regression_results)
-        coefficients = summarised_results.rx2("coefficients")
-        results_table = str(coefficients)
-        results[theme] = results_table
+        # Pool the results from each independent regression, to give a final estimate of the regression
+        # coefficients and confidence intervals.
+        env["pooled_results"] = r("pool(multiple_regression_results)")
+        summarised_results = r("summary(pooled_results, conf.int=TRUE, conf.level=0.95)")
+        results[theme] = str(summarised_results)
 
     return results
 
 
-def run_all_complete_case_regression_analysis(participants, consent_withdrawn_field, rqa_analysis_configs, demog_analysis_configs):
+def run_all_multiple_imputation_regression_analysis(participants, consent_withdrawn_field, rqa_analysis_configs, demog_analysis_configs):
     """
-    Runs all the complete case regression analysis for multiple RQA and demographic configurations.
+    Runs all the multiple imputation regression analysis for multiple RQA and demographic configurations.
 
-    This function calls `run_complete_case_regression_analysis` once for each of the given `rqa_analysis_configs`.
+    This function calls `run_multiple_imputation_regression_analysis` once for each of the given `rqa_analysis_configs`.
 
     :param participants: Participants to analyse.
     :type participants: iterable of core_data_modules.traced_data.TracedData
@@ -96,7 +105,7 @@ def run_all_complete_case_regression_analysis(participants, consent_withdrawn_fi
     """
     all_results = dict()  # of dataset_name -> (dict of theme -> results table as text)
     for rqa_config in rqa_analysis_configs:
-        rqa_results = run_complete_case_regression_analysis(
+        rqa_results = run_multiple_imputation_regression_analysis(
             participants, consent_withdrawn_field, rqa_config, demog_analysis_configs
         )
         all_results[rqa_config.dataset_name] = rqa_results
@@ -104,10 +113,10 @@ def run_all_complete_case_regression_analysis(participants, consent_withdrawn_fi
     return all_results
 
 
-def export_all_complete_case_regression_analysis_txt(participants, consent_withdrawn_field, rqa_analysis_configs,
-                                                     demog_analysis_configs, f):
+def export_all_multiple_imputation_regression_analysis_txt(participants, consent_withdrawn_field, rqa_analysis_configs,
+                                                           demog_analysis_configs, f):
     """
-    Computes all the complete-case regression analysis and exports them to a text file.
+    Computes all the multiple imputation regression analysis and exports the results to a text file.
 
     :param participants: Participants to analyse.
     :type participants: iterable of core_data_modules.traced_data.TracedData
@@ -123,11 +132,11 @@ def export_all_complete_case_regression_analysis_txt(participants, consent_withd
     :param f: Text file to write the regression results to.
     :type f: file-like
     """
-    regression_results = run_all_complete_case_regression_analysis(
+    regression_results = run_all_multiple_imputation_regression_analysis(
         participants, consent_withdrawn_field, rqa_analysis_configs, demog_analysis_configs
     )
 
     for results in regression_results.values():
-        for theme, result_text in results.items():
+        for (theme, result_text) in results.items():
             f.write(theme + "\n")
             f.write(result_text + "\n")

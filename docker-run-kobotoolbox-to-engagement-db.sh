@@ -3,7 +3,7 @@
 set -e
 
 PROJECT_NAME="$(<configurations/docker_image_project_name.txt)"
-IMAGE_NAME=$PROJECT_NAME-facebook-to-engagement-db
+IMAGE_NAME=$PROJECT_NAME-kobotoolbox-to-engagement-db
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -21,10 +21,10 @@ done
 
 # Check that the correct number of arguments were provided.
 if [[ $# -ne 5 ]]; then
-    echo "Usage: $0 
-    [--incremental-cache-volume <incremental-cache-volume>] 
+    echo "Usage: $0
+    [--incremental-cache-volume <incremental-cache-volume>]
     <user> <google-cloud-credentials-file-path> <configuration-file> <code-schemes-dir> <data-dir>"
-    exit 1
+    exit
 fi
 
 # Assign the program arguments to bash variables.
@@ -38,13 +38,13 @@ DATA_DIR=$5
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pdm run python -u sync_facebook_to_engagement_db.py ${INCREMENTAL_ARG} ${USER} \
-    /credentials/google-cloud-credentials.json configuration_file /data/metrics-dir"
+CMD="pipenv run python -u sync_kobotoolbox_to_engagement_db.py ${INCREMENTAL_ARG} ${USER} \
+    /credentials/google-cloud-credentials.json configuration"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
-    container="$(docker container create -w /app --mount source="$INCREMENTAL_CACHE_VOLUME_NAME",target=/cache "$IMAGE_NAME" /bin/bash -c "$CMD")"
+    container="$(docker container create -t -w /app --mount source="$INCREMENTAL_CACHE_VOLUME_NAME",target=/cache "$IMAGE_NAME" /bin/bash -c "$CMD")"
 else
-    container="$(docker container create -w /app "$IMAGE_NAME" /bin/bash -c "$CMD")"
+    container="$(docker container create -t -w /app "$IMAGE_NAME" /bin/bash -c "$CMD")"
 fi
 
 echo "Created container $container"
@@ -59,13 +59,10 @@ docker cp "$CODE_SCHEMES_DIR" "$container:/app/code_schemes"
 
 echo "Copying $CONFIGURATION_FILE -> $container_short_id:/app/configuration.py"
 docker cp "$CONFIGURATION_FILE" "$container:/app/configuration.py"
+
 # Run the container
 echo "Starting container $container_short_id"
-docker start -a -i "$container"
-
-# Copy the output data back out of the container
-echo "Copying $container_short_id:/data/. -> $DATA_DIR"
-docker cp "$container:/data/." "$DATA_DIR/"
+docker start -a "$container"
 
 # Copy cache data out of the container for backup
 if [[ "$INCREMENTAL_ARG" ]]; then

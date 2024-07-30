@@ -11,7 +11,7 @@ if [[ $# -ne 4 ]]; then
     [--profile-cpu <cpu-profile-output-path>] <configuration-module> <google-cloud-credentials-file-path> \
      <run-id> <event-key>"
     echo "Updates pipeline event/status to a firebase table to aid in monitoring"
-    exit
+    exit 1
 fi
 # Assign the program arguments to bash variables.
 CONFIGURATION_MODULE=$1
@@ -23,7 +23,7 @@ EVENT_KEY=$4
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u log_pipeline_event.py ${CONFIGURATION_MODULE}  /credentials/google-cloud-credentials.json \
+CMD="pdm run python -u log_pipeline_event.py ${CONFIGURATION_MODULE}  /credentials/google-cloud-credentials.json \
        ${RUN_ID} ${EVENT_KEY}"
 
 container="$(docker container create -w /app "$IMAGE_NAME" /bin/bash -c "$CMD")"

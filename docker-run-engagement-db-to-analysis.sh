@@ -27,7 +27,7 @@ if [[ $# -ne 5 ]]; then
     echo "Usage: $0 
     [--dry-run] [--incremental-cache-volume <incremental-cache-volume>] 
     <user> <google-cloud-credentials-file-path> <configuration-module> <code-schemes-dir> <data-dir>"
-    exit
+    exit 1
 fi
 
 # Assign the program arguments to bash variables.
@@ -41,7 +41,7 @@ DATA_DIR=$5
 docker build -t "$IMAGE_NAME" .
 
 # Create a container from the image that was just built.
-CMD="pipenv run python -u engagement_db_to_analysis.py ${DRY_RUN} ${INCREMENTAL_ARG} ${USER} \
+CMD="pdm run python -u engagement_db_to_analysis.py ${DRY_RUN} ${INCREMENTAL_ARG} ${USER} \
     /credentials/google-cloud-credentials.json configuration /data/membership-groups /data/analysis-outputs"
 
 if [[ "$INCREMENTAL_ARG" ]]; then
