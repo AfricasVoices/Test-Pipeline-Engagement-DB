@@ -8,7 +8,7 @@ from src.engagement_db_to_analysis.column_view_conversion import (analysis_datas
                                                                   analysis_dataset_configs_to_demog_column_configs,
                                                                   analysis_dataset_configs_to_column_configs)
 
-from src.engagement_db_to_analysis.configuration import AnalysisLocations
+from src.engagement_db_to_analysis.configuration import AnalysisLocations, MapConfiguration
 from src.engagement_db_to_analysis.regression_analysis.complete_case_regression_analysis import \
     export_all_complete_case_regression_analysis_txt
 from src.engagement_db_to_analysis.regression_analysis.multiple_imputation_regression_analysis import \
