@@ -49,10 +49,21 @@ class FlowResultConfiguration:
 
 
 class UuidFilter:
-    """TODO:_summary_
+    """
+    A filter for UUIDs used to ensure that messages are processed only if the sender's UUID is valid and
+    exists in the specified UUID table.
+
+    param uuid_file_url: The URL to the file containing the list of valid UUIDs.
+    :type uuid_file_url: str
     """
 
     def __init__(self, uuid_file_url: str):
+        """
+        Initializes the UuidFilter instance with the URL or path to the UUID file.
+
+        :param uuid_file_url: The URL or path to the file containing valid UUIDs.
+        :type uuid_file_url: str
+        """
         self.uuid_file_url = uuid_file_url
 
 
