@@ -40,7 +40,21 @@ def _get_contacts_from_cache(cache=None):
 
 
 def _update_cache_with_changes_in_flow_result_configs(cache, rapid_pro, flow_result_configurations, dry_run=False):
-    # TODO: Add docstring
+    """
+    Updates the cache with changes in flow result configurations. If the cache is empty, it sets the initial
+    flow result configurations. If the cache contains existing configurations, it updates the cache with
+    new configurations and resets timestamps for any existing configurations that are updated.
+
+    :param cache: The cache object used to store and retrieve flow result configurations.
+    :type cache: Cache
+    :param rapid_pro: The RapidPro object used to retrieve flow IDs.
+    :type rapid_pro: RapidPro
+    :param flow_result_configurations: A list of `FlowResultConfiguration` objects representing the current
+                                       flow result configurations.
+    :type flow_result_configurations: list of FlowResultConfiguration
+    :param dry_run: If True, only simulate the cache update without making actual changes.
+    :type dry_run: bool
+    """
     if cache is None:
         return
 
