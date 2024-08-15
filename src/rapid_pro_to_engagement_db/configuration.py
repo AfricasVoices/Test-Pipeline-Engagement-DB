@@ -68,9 +68,27 @@ class UuidFilter:
 
 
 class RapidProToEngagementDBConfiguration:
-    """TODO:_summary_
+    """
+    Configuration for syncing flow results to an engagement database, with optional UUID filtering.
+
+    :param flow_result_configurations: A list of `FlowResultConfiguration` objects specifying the flow result fields
+                                       and the corresponding engagement database datasets.
+    :type flow_result_configurations: list of FlowResultConfiguration
+    :param uuid_filter: Optional filter to ensure messages are processed only if the sender's UUID is valid and
+                        exists in the specified UUID table.
+    :type uuid_filter: UuidFilter, optional
     """
 
     def __init__(self, flow_result_configurations: [FlowResultConfiguration], uuid_filter: Optional[UuidFilter] = None):
+        """
+        Initializes the configuration for syncing flow results to an engagement database.
+
+        :param flow_result_configurations: A list of `FlowResultConfiguration` objects specifying the flow result fields
+                                           and the corresponding engagement database datasets.
+        :type flow_result_configurations: list of FlowResultConfiguration
+        :param uuid_filter: Optional filter to ensure messages are processed only if the sender's UUID is valid and
+                            exists in the specified UUID table.
+        :type uuid_filter: UuidFilter, optional
+        """
         self.flow_result_configurations = flow_result_configurations
         self.uuid_filter = uuid_filter
