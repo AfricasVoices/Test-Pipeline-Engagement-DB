@@ -14,48 +14,42 @@ from src.google_form_to_engagement_db.sync_stats import GoogleFormToEngagementDB
 log = Logger(__name__)
 
 
-def _validate_configuration_against_form_structure(form, form_config):
+def _validate_configuration_against_form_structure(form_question_ids, form_config):
     """
-    Validates a Google Form dictionary against a form configuration.
+    Validates the configuration of a Google Form against its structure.
 
-    Fails with an AssertionError if there are duplicated questions, in either the form or in the configuration.
-    Fails with an AssertionError if there are any questions requested by the configuration which aren't available
-    in the form.
-    Logs a warning if there are any questions asked in the form which aren't requested by the configuration.
+    This function checks for the following conditions:
+    - Ensures that there are no duplicated question IDs in the configuration.
+    - Verifies that all questions specified in the configuration exist in the form.
+    - Logs a warning for any questions present in the form that are not specified in the configuration.
 
-    :param form: The Google Form to be validated, in Google Forms' form dictionary format.
-    :type form: dict
+    :param form_question_ids: A set of question IDs present in the Google Form.
+    :type form_question_ids: set
     :param form_config: Configuration to use for the validation.
     :type form_config: src.google_form_to_engagement_db.configuration.GoogleFormToEngagementDBConfiguration
     """
-    form_questions = set()
-    for item in form["items"]:
-        title = item["title"]
-        assert title not in form_questions, f"Question '{title}' specified in form {form['formId']} twice"
-        form_questions.add(title)
-
-    config_questions = set()
-    for question_config in form_config.question_configurations:
-        for question_title in question_config.question_titles:
-            assert question_title not in config_questions, \
-                f"Question '{question_title} specified in configuration for form {form_config.form_id} twice"
-        config_questions.add(question_title)
-
+    config_question_ids = set()
     if form_config.participant_id_configuration is not None:
-        config_questions.add(form_config.participant_id_configuration.question_title)
+        config_question_ids.add(form_config.participant_id_configuration.question_id)
+
+    for question_config in form_config.question_configurations:
+        for question_id in question_config.question_ids:
+            assert question_id not in config_question_ids, \
+                f"Question '{question_id} specified in configuration for form {form_config.form_id} twice"
+            config_question_ids.add(question_id)
 
     # Ensure that all questions requested in the configuration exist in the form.
-    config_questions_not_in_form = config_questions - form_questions
-    assert len(config_questions_not_in_form) == 0,\
+    config_question_ids_not_in_form = config_question_ids - form_question_ids
+    assert len(config_question_ids_not_in_form) == 0,\
         f"Some questions requested in the configuration do not exist in form " \
-        f"{form_config.form_id}: {config_questions_not_in_form}"
+        f"{form_config.form_id}: {config_question_ids_not_in_form}"
 
     # Check if there were any questions in the form that do not exist in the configuration.
     # Warn about these cases, but don't fail because it's possible not all questions asked are to be analysed.
-    form_questions_not_in_config = form_questions - config_questions
-    if len(form_questions_not_in_config) != 0:
+    form_question_ids_not_in_config = form_question_ids - config_question_ids
+    if len(form_question_ids_not_in_config) != 0:
         log.warning(f"Found some questions in the form that aren't set in the configuration: "
-                    f"{form_questions_not_in_config}")
+                    f"{form_question_ids_not_in_config}")
 
 
 def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_length, valid_prefixes=None):
