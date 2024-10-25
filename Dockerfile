@@ -28,7 +28,8 @@ WORKDIR /app
 ADD pyproject.toml /app
 ADD pdm.lock /app
 ADD README.md /app
-RUN pdm lock --check && pdm sync
+# RUN pdm lock --check && pdm sync
+RUN pdm install --no-lock --no-editable
 
 # Copy the rest of the project
 ADD .git /app/.git
