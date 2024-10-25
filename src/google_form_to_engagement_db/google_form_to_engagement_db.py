@@ -325,7 +325,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
         log.info(f"Processing response {i + 1}/{len(responses)}...")
         sync_stats.add_event(GoogleFormSyncEvents.READ_RESPONSE_FROM_GOOGLE_FORM)
 
-        participant_id_type = None
+        participant_id_type, participant_id_question_id = None, None
         if form_config.participant_id_configuration is not None:
             participant_id_type = form_config.participant_id_configuration.id_type
             participant_id_question_id = form_config.participant_id_configuration.question_id
