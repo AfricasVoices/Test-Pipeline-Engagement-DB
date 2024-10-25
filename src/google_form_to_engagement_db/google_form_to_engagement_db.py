@@ -299,41 +299,16 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     :return: sync_stats
     :rtype: src.google_form_to_engagement_db.sync_stats.GoogleFormToEngagementDBSyncStats
     """
-    log.info(f"Downloading structure of form {form_config.form_id}...")
-    form = google_form_client.get_form(form_config.form_id)
+    log.info(f"Downloading form question ids of form {form_config.form_id}...")
+    form_question_ids = google_form_client.get_question_ids(form_config.form_id)
 
     log.info(f"Validating question configurations...")
-    _validate_configuration_against_form_structure(form, form_config)
+    _validate_configuration_against_form_structure(form_question_ids, form_config)
 
-    log.info("Linking question ids to the form configuration...")
-    question_title_to_engagement_db_dataset = dict()
+    question_id_to_engagement_db_dataset = dict()
     for question_config in form_config.question_configurations:
-        for question_title in question_config.question_titles:
-            question_title_to_engagement_db_dataset[question_title] = question_config.engagement_db_dataset
-
-    question_id_to_engagement_db_dataset, question_title_to_question_id = dict(), dict()
-    participant_id_question_id = None
-    for item in form["items"]:            
-        if "questionItem" in item:
-            question_id, question_title = item["questionItem"]["question"]["questionId"], item["title"]
-            if question_title in question_title_to_engagement_db_dataset:
-                engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
-                question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
-                question_title_to_question_id[question_title] = question_id
-
-            if form_config.participant_id_configuration is not None and \
-                    question_title == form_config.participant_id_configuration.question_title:
-                participant_id_question_id = question_id
-        
-        # Question group - a group of questions that all share the same set of possible answers 
-        # (for example, a grid of ratings from 1 to 5).
-        elif "questionGroupItem" in item:
-            for question in item["questionGroupItem"]["questions"]:
-                question_id, question_title = question["questionId"], question["rowQuestion"]["title"]
-                if question_title in question_title_to_engagement_db_dataset:
-                    engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
-                    question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
-                    question_title_to_question_id[question_title] = question_id
+        for question_id in question_config.question_ids:
+            question_id_to_engagement_db_dataset[question_id] = question_config.engagement_db_dataset
 
     # Download responses
     last_seen_response_time = None if cache is None else cache.get_date_time(form_config.form_id)
@@ -353,6 +328,7 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
         participant_id_type = None
         if form_config.participant_id_configuration is not None:
             participant_id_type = form_config.participant_id_configuration.id_type
+            participant_id_question_id = form_config.participant_id_configuration.question_id
         participant_uuid = _get_participant_uuid_for_response(
             response, participant_id_type, participant_id_question_id, uuid_table, form_config
         )
@@ -379,16 +355,16 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
             question_id_to_engagement_db_message[answer["questionId"]] = (engagement_db_message, engagement_db_message_origin_details)
 
         for question_config in form_config.question_configurations:
-            assert len(question_config.question_titles) > 0, "No question titles found in the question configuration."
-            if len(question_config.question_titles) == 1:
-                question_id = question_title_to_question_id[question_config.question_titles[0]]
+            assert len(question_config.question_ids) > 0, "No question ids found in the question configuration."
+
+            if len(question_config.question_ids) == 1:
+                question_id = question_config.question_ids[0]
                 if question_id not in question_id_to_engagement_db_message:
                     continue
                 message_with_origin_details = question_id_to_engagement_db_message[question_id]
             else:
                 list_of_messages_with_origin_details = []
-                for question_title in question_config.question_titles:
-                    question_id = question_title_to_question_id[question_title]
+                for question_id in question_config.question_ids:
                     if question_id not in question_id_to_engagement_db_message:
                         continue
                     list_of_messages_with_origin_details.append(question_id_to_engagement_db_message[question_id])
