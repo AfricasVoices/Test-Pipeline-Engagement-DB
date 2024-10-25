@@ -29,17 +29,16 @@ class GoogleFormParticipantIdTypes:
 
 
 class ParticipantIdConfiguration:
-    def __init__(self, question_title, id_type):
+    def __init__(self, question_id, id_type):
         """
         Configuration for a participant uuid question.
 
-        :param question_title: Question title. This is the text presented to the form user for this question
-                               e.g. "What is your phone number?"
-        :type question_title: str
+        :param question_id: Question id. This is the id for this question
+        :type question_id: str
         :param id_type: See `GoogleFormParticipantIdTypes`.
         :type id_type: str
         """
-        self.question_title = question_title
+        self.question_id = question_id
         self.id_type = id_type
 
 
