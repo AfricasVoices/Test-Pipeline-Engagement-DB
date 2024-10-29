@@ -149,22 +149,22 @@ def run_automated_analysis(messages_by_column, participants_by_column, analysis_
     log.info(f"Exporting participation maps for locations "
              f"{[config.analysis_location for config in map_configurations]}...")
 
-    for map_config in map_configurations:
-        dataset_config, coding_config = analysis_config.get_configurations_for_analysis_location(
-            map_config.analysis_location
-        )
+    # for map_config in map_configurations:
+    #     dataset_config, coding_config = analysis_config.get_configurations_for_analysis_location(
+    #         map_config.analysis_location
+    #     )
 
-        column_config = AnalysisConfiguration(
-            dataset_name=coding_config.analysis_dataset,
-            raw_field=dataset_config.raw_dataset,
-            coded_field=f"{coding_config.analysis_dataset}_labels",
-            code_scheme=coding_config.code_scheme
-        )
+    #     column_config = AnalysisConfiguration(
+    #         dataset_name=coding_config.analysis_dataset,
+    #         raw_field=dataset_config.raw_dataset,
+    #         coded_field=f"{coding_config.analysis_dataset}_labels",
+    #         code_scheme=coding_config.code_scheme
+    #     )
 
-        participation_maps.export_participation_maps(
-            participants_by_column, "consent_withdrawn", rqa_column_configs, column_config,
-            lambda x, y: (MAPPERS[coding_config.analysis_location](
-                x, y, region_filter=map_config.region_filter, legend_position=map_config.legend_position)
-            ),
-            f"{export_dir_path}/maps/{column_config.dataset_name}/{column_config.dataset_name}_"
-        )
+        # participation_maps.export_participation_maps(
+        #     participants_by_column, "consent_withdrawn", rqa_column_configs, column_config,
+        #     lambda x, y: (MAPPERS[coding_config.analysis_location](
+        #         x, y, region_filter=map_config.region_filter, legend_position=map_config.legend_position)
+        #     ),
+        #     f"{export_dir_path}/maps/{column_config.dataset_name}/{column_config.dataset_name}_"
+        # )
