@@ -1477,22 +1477,22 @@ files = [
 
 [[package]]
 name = "rpy2"
-version = "3.5.14"
+version = "3.5.16"
 requires_python = ">=3.7"
 summary = "Python interface to the R language (embedded R)"
 dependencies = [
     "backports-zoneinfo; python_version < \"3.9\"",
-    "cffi>=1.10.0",
+    "cffi>=1.15.1",
     "jinja2",
     "packaging; platform_system == \"Windows\"",
     "tzlocal",
 ]
 files = [
-    {file = "rpy2-3.5.14-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:5cb7398adfcb6ca4faefbe856fb7af95eb11722ad18fbfcb4a79dbea1cf71c7c"},
-    {file = "rpy2-3.5.14-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:f35910208e5945b5108b7668bcb58127742f47fc0e8df8b2f4889c86be6f6519"},
-    {file = "rpy2-3.5.14-cp38-cp38-macosx_11_0_x86_64.whl", hash = "sha256:adbd8e08f67f807fcca8e47473340e233a55c25fffd418081e6719316e03dbd7"},
-    {file = "rpy2-3.5.14-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:ca95dee528d0a8032913de5fa85b8252b925f389aa2e2219d5314dcf43beeb1e"},
-    {file = "rpy2-3.5.14.tar.gz", hash = "sha256:5f46ae31d36e117be366ad4ae02493c015ac6ba59ebe3b4cd7200075332fc481"},
+    {file = "rpy2-3.5.16-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:c748fc74ba01a51f6aca0a5f9e7bf637cd09413ffa031dd79b49b7a9fe97770b"},
+    {file = "rpy2-3.5.16-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:f076b34bd79f62ae583e75acc1b305ba73a6639ea5c9a44dc53896709ccd8ba0"},
+    {file = "rpy2-3.5.16-cp38-cp38-macosx_11_0_x86_64.whl", hash = "sha256:3bb396851710856c6544c4278988b2abfe01d5a392278e5157b97148e62079c4"},
+    {file = "rpy2-3.5.16-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:c067769dbade7faccdc8d2181ae5e29329fe0e66289fb291436a546da2f5e881"},
+    {file = "rpy2-3.5.16.tar.gz", hash = "sha256:837e2f74583658a5c4c339761a73f9434f33ef9ced3e30c64da7562165c2801b"},
 ]
 
 [[package]]
@@ -1582,12 +1582,12 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "68.2.2"
+version = "75.3.0"
 requires_python = ">=3.8"
 summary = "Easily download, build, install, upgrade, and uninstall Python packages"
 files = [
-    {file = "setuptools-68.2.2-py3-none-any.whl", hash = "sha256:b454a35605876da60632df1a60f736524eb73cc47bbc9f3f1ef1b644de74fd2a"},
-    {file = "setuptools-68.2.2.tar.gz", hash = "sha256:4ac1475276d2f1c48684874089fefcd83bd7162ddaafb81fac866ba0db282a87"},
+    {file = "setuptools-75.3.0-py3-none-any.whl", hash = "sha256:f2504966861356aa38616760c0f66568e535562374995367b4e69c7143cf6bcd"},
+    {file = "setuptools-75.3.0.tar.gz", hash = "sha256:fba5dd4d766e97be1b1681d98712680ae8f2f26d7881245f2ce9e40714f1a686"},
 ]
 
 [[package]]
@@ -1664,7 +1664,7 @@ dependencies = [
 
 [[package]]
 name = "telethon"
-version = "1.32.0"
+version = "1.37.0"
 requires_python = ">=3.5"
 summary = "Full-featured Telegram client library for Python 3"
 dependencies = [
@@ -1672,7 +1672,7 @@ dependencies = [
     "rsa",
 ]
 files = [
-    {file = "Telethon-1.32.0.tar.gz", hash = "sha256:a7efe0da9002e545236d636833e29e1be460e268d20ca49d03f8b9e8c9dab82a"},
+    {file = "Telethon-1.37.0.tar.gz", hash = "sha256:e5e43cff1c1b34e2f9c2b395215beb6e9bda706b69def7efff4f55b23c9c4374"},
 ]
 
 [[package]]
