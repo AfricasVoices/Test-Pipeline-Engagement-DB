@@ -302,8 +302,11 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     log.info(f"Downloading form question ids of form {form_config.form_id}...")
     form_question_ids = google_form_client.get_question_ids(form_config.form_id)
 
-    log.info(f"Validating question configurations...")
-    _validate_configuration_against_form_structure(form_question_ids, form_config)
+    try:
+        log.info(f"Validating question configurations...")
+        _validate_configuration_against_form_structure(form_question_ids, form_config)
+    except AssertionError as e:
+        log.warning(f"Assertion error in _validate_configuration_against_form_structure: {e}")
 
     question_id_to_engagement_db_dataset = dict()
     for question_config in form_config.question_configurations:
