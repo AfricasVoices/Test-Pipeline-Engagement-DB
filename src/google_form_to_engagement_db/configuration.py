@@ -29,33 +29,31 @@ class GoogleFormParticipantIdTypes:
 
 
 class ParticipantIdConfiguration:
-    def __init__(self, question_title, id_type):
+    def __init__(self, question_id, id_type):
         """
         Configuration for a participant uuid question.
 
-        :param question_title: Question title. This is the text presented to the form user for this question
-                               e.g. "What is your phone number?"
-        :type question_title: str
+        :param question_id: Question id. This is the id for this question
+        :type question_id: str
         :param id_type: See `GoogleFormParticipantIdTypes`.
         :type id_type: str
         """
-        self.question_title = question_title
+        self.question_id = question_id
         self.id_type = id_type
 
 
 class QuestionConfiguration:
-    def __init__(self, question_titles, engagement_db_dataset, answers_delimeter="; "):
+    def __init__(self, question_ids, engagement_db_dataset, answers_delimeter="; "):
         """
-        :param question_titles: Question titles. This are the texts presented to the form user for these questions
-                               e.g. ["Do you live in a town/city?", "which town/city?"]
-        :type question_titles: list of str
+        :param question_ids: Question ids.
+        :type question_ids: list of str
         :param engagement_db_dataset: Name of the dataset to use in the engagement database.
         :type engagement_db_dataset: str
         :param answers_delimeter: a character for specifying the boundary between the answers given for multiple
-                                `question_titles` 
+                                `question_ids` 
         :type answers_delimeter: str
         """
-        self.question_titles = question_titles
+        self.question_ids = question_ids
         self.engagement_db_dataset = engagement_db_dataset
         self.answers_delimeter = answers_delimeter
 

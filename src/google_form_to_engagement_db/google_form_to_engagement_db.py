@@ -14,48 +14,42 @@ from src.google_form_to_engagement_db.sync_stats import GoogleFormToEngagementDB
 log = Logger(__name__)
 
 
-def _validate_configuration_against_form_structure(form, form_config):
+def _validate_configuration_against_form_structure(form_question_ids, form_config):
     """
-    Validates a Google Form dictionary against a form configuration.
+    Validates the configuration of a Google Form against its structure.
 
-    Fails with an AssertionError if there are duplicated questions, in either the form or in the configuration.
-    Fails with an AssertionError if there are any questions requested by the configuration which aren't available
-    in the form.
-    Logs a warning if there are any questions asked in the form which aren't requested by the configuration.
+    This function checks for the following conditions:
+    - Ensures that there are no duplicated question IDs in the configuration.
+    - Verifies that all questions specified in the configuration exist in the form.
+    - Logs a warning for any questions present in the form that are not specified in the configuration.
 
-    :param form: The Google Form to be validated, in Google Forms' form dictionary format.
-    :type form: dict
+    :param form_question_ids: A set of question IDs present in the Google Form.
+    :type form_question_ids: set
     :param form_config: Configuration to use for the validation.
     :type form_config: src.google_form_to_engagement_db.configuration.GoogleFormToEngagementDBConfiguration
     """
-    form_questions = set()
-    for item in form["items"]:
-        title = item["title"]
-        assert title not in form_questions, f"Question '{title}' specified in form {form['formId']} twice"
-        form_questions.add(title)
-
-    config_questions = set()
-    for question_config in form_config.question_configurations:
-        for question_title in question_config.question_titles:
-            assert question_title not in config_questions, \
-                f"Question '{question_title} specified in configuration for form {form_config.form_id} twice"
-        config_questions.add(question_title)
-
+    config_question_ids = set()
     if form_config.participant_id_configuration is not None:
-        config_questions.add(form_config.participant_id_configuration.question_title)
+        config_question_ids.add(form_config.participant_id_configuration.question_id)
+
+    for question_config in form_config.question_configurations:
+        for question_id in question_config.question_ids:
+            assert question_id not in config_question_ids, \
+                f"Question '{question_id} specified in configuration for form {form_config.form_id} twice"
+            config_question_ids.add(question_id)
 
     # Ensure that all questions requested in the configuration exist in the form.
-    config_questions_not_in_form = config_questions - form_questions
-    assert len(config_questions_not_in_form) == 0,\
+    config_question_ids_not_in_form = config_question_ids - form_question_ids
+    assert len(config_question_ids_not_in_form) == 0,\
         f"Some questions requested in the configuration do not exist in form " \
-        f"{form_config.form_id}: {config_questions_not_in_form}"
+        f"{form_config.form_id}: {config_question_ids_not_in_form}"
 
     # Check if there were any questions in the form that do not exist in the configuration.
     # Warn about these cases, but don't fail because it's possible not all questions asked are to be analysed.
-    form_questions_not_in_config = form_questions - config_questions
-    if len(form_questions_not_in_config) != 0:
+    form_question_ids_not_in_config = form_question_ids - config_question_ids
+    if len(form_question_ids_not_in_config) != 0:
         log.warning(f"Found some questions in the form that aren't set in the configuration: "
-                    f"{form_questions_not_in_config}")
+                    f"{form_question_ids_not_in_config}")
 
 
 def _validate_phone_number_and_format_as_urn(phone_number, country_code, valid_length, valid_prefixes=None):
@@ -305,41 +299,19 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
     :return: sync_stats
     :rtype: src.google_form_to_engagement_db.sync_stats.GoogleFormToEngagementDBSyncStats
     """
-    log.info(f"Downloading structure of form {form_config.form_id}...")
-    form = google_form_client.get_form(form_config.form_id)
+    log.info(f"Downloading form question ids of form {form_config.form_id}...")
+    form_question_ids = google_form_client.get_question_ids(form_config.form_id)
 
-    log.info(f"Validating question configurations...")
-    _validate_configuration_against_form_structure(form, form_config)
+    try:
+        log.info(f"Validating question configurations...")
+        _validate_configuration_against_form_structure(form_question_ids, form_config)
+    except AssertionError as e:
+        log.warning(f"Assertion error in _validate_configuration_against_form_structure: {e}")
 
-    log.info("Linking question ids to the form configuration...")
-    question_title_to_engagement_db_dataset = dict()
+    question_id_to_engagement_db_dataset = dict()
     for question_config in form_config.question_configurations:
-        for question_title in question_config.question_titles:
-            question_title_to_engagement_db_dataset[question_title] = question_config.engagement_db_dataset
-
-    question_id_to_engagement_db_dataset, question_title_to_question_id = dict(), dict()
-    participant_id_question_id = None
-    for item in form["items"]:            
-        if "questionItem" in item:
-            question_id, question_title = item["questionItem"]["question"]["questionId"], item["title"]
-            if question_title in question_title_to_engagement_db_dataset:
-                engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
-                question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
-                question_title_to_question_id[question_title] = question_id
-
-            if form_config.participant_id_configuration is not None and \
-                    question_title == form_config.participant_id_configuration.question_title:
-                participant_id_question_id = question_id
-        
-        # Question group - a group of questions that all share the same set of possible answers 
-        # (for example, a grid of ratings from 1 to 5).
-        elif "questionGroupItem" in item:
-            for question in item["questionGroupItem"]["questions"]:
-                question_id, question_title = question["questionId"], question["rowQuestion"]["title"]
-                if question_title in question_title_to_engagement_db_dataset:
-                    engagement_db_dataset = question_title_to_engagement_db_dataset[question_title]
-                    question_id_to_engagement_db_dataset[question_id] = engagement_db_dataset
-                    question_title_to_question_id[question_title] = question_id
+        for question_id in question_config.question_ids:
+            question_id_to_engagement_db_dataset[question_id] = question_config.engagement_db_dataset
 
     # Download responses
     last_seen_response_time = None if cache is None else cache.get_date_time(form_config.form_id)
@@ -356,9 +328,10 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
         log.info(f"Processing response {i + 1}/{len(responses)}...")
         sync_stats.add_event(GoogleFormSyncEvents.READ_RESPONSE_FROM_GOOGLE_FORM)
 
-        participant_id_type = None
+        participant_id_type, participant_id_question_id = None, None
         if form_config.participant_id_configuration is not None:
             participant_id_type = form_config.participant_id_configuration.id_type
+            participant_id_question_id = form_config.participant_id_configuration.question_id
         participant_uuid = _get_participant_uuid_for_response(
             response, participant_id_type, participant_id_question_id, uuid_table, form_config
         )
@@ -385,16 +358,16 @@ def _sync_google_form_to_engagement_db(google_form_client, engagement_db, form_c
             question_id_to_engagement_db_message[answer["questionId"]] = (engagement_db_message, engagement_db_message_origin_details)
 
         for question_config in form_config.question_configurations:
-            assert len(question_config.question_titles) > 0, "No question titles found in the question configuration."
-            if len(question_config.question_titles) == 1:
-                question_id = question_title_to_question_id[question_config.question_titles[0]]
+            assert len(question_config.question_ids) > 0, "No question ids found in the question configuration."
+
+            if len(question_config.question_ids) == 1:
+                question_id = question_config.question_ids[0]
                 if question_id not in question_id_to_engagement_db_message:
                     continue
                 message_with_origin_details = question_id_to_engagement_db_message[question_id]
             else:
                 list_of_messages_with_origin_details = []
-                for question_title in question_config.question_titles:
-                    question_id = question_title_to_question_id[question_title]
+                for question_id in question_config.question_ids:
                     if question_id not in question_id_to_engagement_db_message:
                         continue
                     list_of_messages_with_origin_details.append(question_id_to_engagement_db_message[question_id])

@@ -33,6 +33,31 @@ class GoogleFormsClient:
     def get_form(self, form_id):
         return self.client.forms().get(formId=form_id).execute()
 
+    def _process_form_items(self, form_id):
+        """Helper method to process form items and extract question IDs and titles."""
+        form = self.get_form(form_id)
+        question_id_to_title_map = {}
+
+        for item in form["items"]:
+            if "questionItem" in item:
+                question_id = item["questionItem"]["question"]["questionId"]
+                question_id_to_title_map[question_id] = item["title"]
+            
+            elif "questionGroupItem" in item:
+                for question in item["questionGroupItem"]["questions"]:
+                    question_id = question["questionId"]
+                    question_id_to_title_map[question_id] = question["rowQuestion"]["title"]
+        
+        return question_id_to_title_map
+
+    def get_question_ids(self, form_id):
+        """Get set of all question IDs in the form."""
+        return set(self._process_form_items(form_id).keys())
+
+    def get_question_id_to_title_map(self, form_id):
+        """Get dictionary mapping question IDs to their titles."""
+        return self._process_form_items(form_id)
+
     def get_form_responses(self, form_id, submitted_after_exclusive=None):
         """
         Gets responses to the requested form.
